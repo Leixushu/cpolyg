@@ -11,11 +11,11 @@ int main(int argc, char ** argv)
 {
     PolyMesh msh;
     
-    msh = oneSquare();
+    msh = hexUnitSquare(0.1);
     
-    MeshFn fn = MeshFn(msh, c5, 2);
-    
-    fn.a.print();
+//     MeshFn fn = MeshFn(msh, c5, 2);
+//     
+//     fn.a.print();
     
     return 0;
 }
