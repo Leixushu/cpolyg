@@ -73,11 +73,19 @@ void Triangulation::doTriangulation()
     }
     
     triangles.resize(out.numberoftriangles);
+    p.resize(out.numberoftriangles);
     for (i = 0; i < out.numberoftriangles; i++)
     {
         triangles[i][0] = out.trianglelist[out.numberofcorners*i];
         triangles[i][1] = out.trianglelist[out.numberofcorners*i+1];
         triangles[i][2] = out.trianglelist[out.numberofcorners*i+2];
+        
+        p[i][0] = points[triangles[i][0]][0];
+        p[i][1] = points[triangles[i][0]][1];
+        p[i][2] = points[triangles[i][1]][0];
+        p[i][3] = points[triangles[i][1]][1];
+        p[i][4] = points[triangles[i][2]][0];
+        p[i][5] = points[triangles[i][2]][1];
     }
     
     if(out.numberofpoints)

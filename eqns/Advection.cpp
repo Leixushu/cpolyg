@@ -1,65 +1,146 @@
+#include <iostream>
 #include "Advection.h"
+#include "Legendre.h"
 
+using namespace arma;
 
-MeshFn Advection::assemble(MeshFn &f)
+double betaUDotGradPsi::operator()(double x, double y)
+{
+    double xx, yy;
+    msh.getLocalCoordinates(i, x, y, xx, yy);
+    
+    return (beta_x*Leg2D(xx, yy, m, *psi_x) + beta_y*Leg2D(xx, yy, m, *psi_y))
+            *Leg2D(xx, yy, m, u);
+}
+
+double uPsiBetaDotN::operator()(double x, double y)
+{
+    double xMinus, xPlus, yMinus, yPlus;
+    double betaDotN;
+    double psiVal;
+    
+    msh.getLocalCoordinates(iMinus, x, y, xMinus, yMinus);
+    
+    psiVal = Leg2D(xMinus, yMinus, m, *psi);
+    betaDotN = (nx*beta_x + ny*beta_y);
+    
+    if (betaDotN > 0)
+    {
+        return betaDotN*psiVal*Leg2D(xMinus, yMinus, m, uMinus);
+    } else
+    {
+        msh.getLocalCoordinates(iPlus, x, y, xPlus, yPlus);
+        return betaDotN*psiVal*Leg2D(xPlus, yPlus, m, uPlus);
+    }
+}
+
+double Advection::volumeIntegral(int i, vec &psi_x, vec &psi_y)
+{
+    volumeTerm.psi_x = &psi_x;
+    volumeTerm.psi_y = &psi_y;
+    
+    return msh.polygonIntegral(volumeTerm, i);
+}
+
+double Advection::boundaryIntegral(int i, vec &psi, MeshFn &u)
+{
+    int a1, b1, a2, b2;
+    int nv1, nv2;
+    int j, k, l, i2;
+    int neighbor;
+    double integ;
+    
+    integ = 0;
+    
+    boundaryTerm.psi = &psi;
+    
+    nv1 = msh.p[i].size();
+    
+    // loop over all edges of the polygon we're in
+    for (j = 0; j < nv1; j++)
+    {
+        a1 = msh.p[i][j];
+        b1 = msh.p[i][(j+1)%nv1];
+        
+        neighbor = i;
+        
+        // loop over all neighboring polygons to find the one that shares this edge
+        for (k = 0; k < msh.p2p[i].size(); k++)
+        {
+            i2 = msh.p2p[i][k];
+            nv2 = msh.p[i2].size();
+            // loop over all edges of the neighboring polygon
+            for (l = 0; l < nv2; l++)
+            {
+                a2 = msh.p[i2][l];
+                b2 = msh.p[i2][(l+1)%nv2];
+                // have we found a match?
+                if ((a1 == a2 && b1 == b2) || (a1 == b2 && b1 == a2))
+                {
+                    neighbor = i2;
+                    break;
+                }
+            }
+            
+            // if we've found a match, don't need to keep looking
+            if (neighbor != i) break;
+        }
+        
+        msh.getOutwardNormal(i, a1, b1, boundaryTerm.nx, boundaryTerm.ny);
+        boundaryTerm.iPlus = neighbor;
+        boundaryTerm.uPlus = u.a.tube(neighbor, 0);
+        
+        integ += msh.lineIntegral(boundaryTerm, a1, b1);
+    }
+    
+    return integ;
+}
+
+MeshFn Advection::assemble(MeshFn &u)
 {
     int i, j;
-    int deg = f.deg;
+    int deg = u.deg;
     int basisSize = (deg+1)*(deg+2)/2;
+    double w, h;
+    vec psi = zeros<vec>(basisSize);
+    vec psi_x;
+    vec psi_y;
     
     // only one component for advection equation
     MeshFn b(msh, deg, 1);
     
+    volumeTerm.m = deg+1;
+    volumeTerm.beta_x = beta_x;
+    volumeTerm.beta_y = beta_y;
+    
+    boundaryTerm.m = deg+1;
+    boundaryTerm.beta_x = beta_x;
+    boundaryTerm.beta_y = beta_y;
+    
     // loop over all polygons
     for (i = 0; i < msh.np; i++)
     {
+        w = msh.bb[i][2];
+        h = msh.bb[i][3];
+        
+        volumeTerm.i = i;
+        volumeTerm.u = u.a.tube(i, 0);
+        boundaryTerm.uMinus = u.a.tube(i, 0);
+        boundaryTerm.iMinus = i;
+        
         for (j = 0; j < basisSize; j++)
         {
+            psi[j] = 1.0;
             
+            psi_x = LegDerX(deg + 1, psi) * 2.0/w;
+            psi_y = LegDerY(deg + 1, psi) * 2.0/h;
+            
+            b.a(i, 0, j) = volumeIntegral(i, psi_x, psi_y);
+            b.a(i, 0, j) -= boundaryIntegral(i, psi, u);
+          
+            psi[j] = 0.0;
         }
     }
     
     return b;
-    
-//     b = np.zeros((msh.np * basis_size))
-//     psi = np.zeros((basis_size))
-//     psi_x = np.zeros((basis_size))
-//     psi_y = np.zeros((basis_size))
-//     
-//     # loop over all polygons in the mesh
-//     for i,p in enumerate(msh.p):
-//         w = msh.bb[i,1,0]
-//         h = msh.bb[i,1,1]
-//         
-//         # loop over all basis vectors
-//         for j in range(basis_size):
-//             # get the jth basis vector
-//             psi[j] = 1
-//             
-//             # compute its gradient
-//             fn.legderx(n_coeffs, psi, psi_x)
-//             psi_x *= 2.0/w
-//             
-//             fn.legdery(n_coeffs, psi, psi_y)
-//             psi_y *= 2.0/h
-//             
-//             fi = f[i,:]
-//             bb = msh.bb[i]
-//             v = msh.v[p]
-//             
-//             # set up product function
-//             f_beta_dot_grad_psi = lambda x, y: (fn.eval_fn_p(fi, x, y, bb)
-//                 *(beta(x,y)[0]*fn.eval_fn_p(psi_x, x, y, bb)
-//                 + beta(x,y)[1]*fn.eval_fn_p(psi_y, x, y, bb)))
-//             
-//             f_beta_dot_grad_psi = fn.fn_callback(f_beta_dot_grad_psi)
-//             
-//             # compute the integrals on the interior and over the boundary (numerical flux)
-//             b[i*basis_size + j] = fn.integrate_p(f_beta_dot_grad_psi, v, msh.tri[i])
-//             b[i*basis_size + j] -= flux(f, psi, msh, i)
-//             
-//             # reset the basis vector to zero
-//             psi[j] = 0
-//     
-//     return b
 }

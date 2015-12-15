@@ -19,17 +19,18 @@ endif
 SYSTEM_INCLUDE_DIR := /usr/local/include
 SYSTEM_LIB_DIR := /usr/local/lib
 
-INCLUDES := -I$(SYSTEM_INCLUDE_DIR) -Ivoro++_2d/src -Isrc
+INCLUDES := -I$(SYSTEM_INCLUDE_DIR) -Ivoro++_2d/src -Isrc -Ieqns
 LIBS := -L$(SYSTEM_LIB_DIR) -Llib -larmadillo -lgsl -lvoro++_2d 
 
 CFLAGS += $(INCLUDES)
 
 CSRC := triangle.c
+OBJC := $(addprefix build/, $(notdir $(patsubst %.c,%.o, $(CSRC))))
+DEPC := $(addprefix build/, $(notdir $(patsubst %.c,%.d, $(CSRC))))
+
 SRC := main.cpp PolyMesh.cpp MeshFn.cpp Meshes.cpp Triangulation.cpp \
 	   Quadrature.cpp Legendre.cpp \
 	   Advection.cpp
-
-OBJC := $(addprefix build/, $(notdir $(patsubst %.c,%.o, $(CSRC))))
 OBJS := $(addprefix build/, $(notdir $(patsubst %.cpp,%.o, $(SRC))))
 DEPS := $(addprefix build/, $(notdir $(patsubst %.cpp,%.d, $(SRC))))
 EXEC := cpolyg
@@ -46,6 +47,6 @@ cployg: Makefile $(OBJS) $(OBJC)
 	$(CXX) $(CFLAGS) $(OBJC) $(OBJS) $(LIBS) -o $(EXEC)
 
 clean:
-	rm -f $(OBJS) $(DEPS) $(EXEC)
+	rm -f $(OBJS) $(DEPS) $(OBJC) $(DEPC) $(EXEC)
 
 -include $(DEPS)

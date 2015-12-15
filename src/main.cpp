@@ -1,11 +1,13 @@
+#include <cmath>
+#include <iostream>
 #include "PolyMesh.h"
 #include "MeshFn.h"
 #include "Meshes.h"
-#include <cmath>
+#include "Advection.h"
 
 double c5(double x, double y)
 {
-    return 5 + x + y;
+    return 5 + x + 7*x*y + 3*x*x*y;
 }
 
 double gaussian(double x, double y)
@@ -15,13 +17,18 @@ double gaussian(double x, double y)
 
 int main(int argc, char ** argv)
 {
+    using namespace std;
+    
     PolyMesh msh;
     
-    msh = quadUnitSquare(0.03);
+    msh = quadUnitSquare(0.1);
+    Advection eqn(msh);
+    MeshFn f = MeshFn(msh, gaussian, 4);
     
-    MeshFn fn = MeshFn(msh, gaussian, 2);
+    MeshFn b = eqn.assemble(f);
     
-    fn.gnuplot("plt/test.gnu");
+    f.gnuplot("plt/f.gnu");
+    b.gnuplot("plt/b.gnu");
     
     return 0;
 }

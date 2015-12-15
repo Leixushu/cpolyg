@@ -3,15 +3,6 @@
 #include <armadillo>
 #include "PolyMesh.h"
 
-typedef double (*FnCallback)(double x, double y);
-
-struct PolyFn
-{
-    arma::vec a;
-    
-    double eval(double x, double y, PolyMesh &msh, int p);
-};
-
 struct MeshFn
 {
     PolyMesh &msh;

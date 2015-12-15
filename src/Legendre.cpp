@@ -48,7 +48,7 @@ outputs:
 
 */
 
-double Leg2D(double x, double y, int m, vec c)
+double Leg2D(double x, double y, int m, vec &c)
 {
     int i, j, k;
     double val = 0;
@@ -75,7 +75,7 @@ inputs:
 outputs:
     double * cp : Legendre coefficients of the x derivative (must be already allocated)
 */
-vec LegDerX(int m, vec a_c)
+vec LegDerX(int m, vec &a_c)
 {
     int i, j, k;
     vec c = a_c;
@@ -125,7 +125,7 @@ inputs:
 outputs:
     double * cp : Legendre coefficients of the y derivative (must be already allocated)
 */
-vec LegDerY(int m, vec a_c)
+vec LegDerY(int m, vec &a_c)
 {
     int i, j, k;
     vec c = a_c;

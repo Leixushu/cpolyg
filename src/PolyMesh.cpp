@@ -187,3 +187,49 @@ PolyMesh::PolyMesh(vector<array<double, 2>> points)
     computebb();
     computeTriangulation();
 }
+
+
+double PolyMesh::integrate(FnFunctor &cb)
+{
+    double integ;
+    int i;
+    
+    integ = 0;
+    for (i = 0; i < np; i++)
+    {
+        integ += polygonIntegral(cb, i);
+    }
+    return integ;
+}
+
+template <typename T> int sgn(T val)
+{
+    return (T(0) < val) - (val < T(0));
+}
+
+void PolyMesh::getOutwardNormal(int i, int a, int b, double &x, double &y)
+{
+    double dx, dy, cx, cy, d, length;
+    int j;
+    
+    cx = 0;
+    cy = 0;
+    for (j = 0; j < p[i].size(); j++)
+    {
+        cx += v[p[i][j]][0];
+        cy += v[p[i][j]][y];
+    }
+    cx /= p[i].size();
+    cy /= p[i].size();
+    
+    dx = v[a][0] - v[b][0];
+    dy = v[a][1] - v[b][1];
+    
+    length = sqrt(dx*dx + dy*dy);
+    
+    d = -dy*(v[a][0] - cx) + dx*(v[a][1] - cy);
+    
+    x = -sgn(d)*dy/length;
+    y = sgn(d)*dx/length;
+}
+

@@ -10,9 +10,9 @@ using namespace arma;
 
 MeshFn::MeshFn(PolyMesh &a_msh, int a_deg, int a_nc) : msh(a_msh)
 {
-    int basisSize = (deg+1)*(deg+2)/2;
     nc = a_nc;
     deg = a_deg;
+    int basisSize = (deg+1)*(deg+2)/2;
     
     a = cube(msh.np, nc, basisSize);
 }
@@ -33,13 +33,13 @@ MeshFn::MeshFn(PolyMesh &a_msh, FnCallback cb, int a_deg) : msh(a_msh)
 void MeshFn::interp(FnCallback cb, int component)
 {
     gsl_integration_glfixed_table *glpts;
+    vec quadraturePts(deg+1);
+    int m;
     int basisSize;
     int p;
     int i, j, k;
     int numQuadPts;
     double ax,by,w,h;
-    //vector<double> c;
-    
     vec vals;
     mat G;
     
@@ -49,7 +49,28 @@ void MeshFn::interp(FnCallback cb, int component)
     vec c = zeros<vec>(basisSize);
     
     // compute the quadrature points to use for the least squares interpolation
-    glpts = gsl_integration_glfixed_table_alloc(deg+1);
+    m = deg+1;
+    glpts = gsl_integration_glfixed_table_alloc(m);
+    
+    if (m % 2 == 0)
+    {
+        for (i = 0; i < m/2; i++)
+        {
+            quadraturePts[m/2 + i] = glpts->x[i];
+            quadraturePts[m/2 - i - 1] = -glpts->x[i];
+        }
+    }
+    else
+    {
+        quadraturePts[m/2] = 0.0;
+        for (i = 1; i <= m/2; i++)
+        {
+            quadraturePts[m/2 - i] = -glpts->x[i];
+            quadraturePts[m/2 + i] = glpts->x[i];
+        }
+    }
+    // clean up
+    gsl_integration_glfixed_table_free(glpts);
     
     // number of points in tensor product
     numQuadPts = (deg+1)*(deg+1);
@@ -63,10 +84,8 @@ void MeshFn::interp(FnCallback cb, int component)
         {
             for (j = 0; j < deg + 1; j++)
             {
-                //G(i*(deg+1) + j, k) = 
-                //    Leg2D(glpts->x[i], glpts->x[j], deg + 1, c.data());
                 G(i*(deg+1) + j, k) = 
-                      Leg2D(glpts->x[i], glpts->x[j], deg + 1, c);
+                      Leg2D(quadraturePts[i], quadraturePts[j], deg + 1, c);
             }
         }
         c[k] = 0.0;
@@ -86,14 +105,12 @@ void MeshFn::interp(FnCallback cb, int component)
             for (j = 0; j < deg + 1; j++)
             {
                 vals(i*(deg+1) + j) = 
-                    cb((glpts->x[i]+1)*w/2.0 + ax, (glpts->x[j]+1)*h/2.0 + by);
+                    cb((quadraturePts[i]+1)*w/2.0 + ax, (quadraturePts[j]+1)*h/2.0 + by);
             }
         }
         
         a.tube(p, component) = solve(G, vals);
     }
-    
-    gsl_integration_glfixed_table_free(glpts);
 }
 
 double MeshFn::eval(double x, double y, int p, int c/* = 0 */)
@@ -101,8 +118,10 @@ double MeshFn::eval(double x, double y, int p, int c/* = 0 */)
     double xx, yy;
     vec coeffs;
     
-    xx = 2.0*(x - msh.bb[p][0])/msh.bb[p][2] - 1;
-    yy = 2.0*(y - msh.bb[p][1])/msh.bb[p][3] - 1;
+    msh.getLocalCoordinates(p, x, y, xx, yy);
+    
+    //xx = 2.0*(x - msh.bb[p][0])/msh.bb[p][2] - 1;
+    //yy = 2.0*(y - msh.bb[p][1])/msh.bb[p][3] - 1;
     
     coeffs = a.tube(p, c);
     

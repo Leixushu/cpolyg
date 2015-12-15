@@ -248,6 +248,9 @@
 /*                                                                           */
 /*****************************************************************************/
 
+#ifndef _TRIANGLE_H_
+#define _TRIANGLE_H_
+
 #define TRILIBRARY
 #define ANSI_DECLARATORS
 #define REAL double
@@ -292,3 +295,5 @@ void trifree(VOID *memptr);
 void triangulate();
 void trifree();
 #endif /* not ANSI_DECLARATORS */
+
+#endif

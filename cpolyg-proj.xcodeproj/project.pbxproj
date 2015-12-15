@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		BE5F2D7E1C1FD3CC005496CF /* leg.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = leg.cpp; path = src/leg.cpp; sourceTree = "<group>"; };
-		BE5F2D7F1C1FD3CC005496CF /* leg.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = leg.h; path = src/leg.h; sourceTree = "<group>"; };
 		BE5F2D801C1FD3CC005496CF /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = src/main.cpp; sourceTree = "<group>"; };
 		BE5F2D811C1FD3CC005496CF /* Meshes.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Meshes.cpp; path = src/Meshes.cpp; sourceTree = "<group>"; };
 		BE5F2D821C1FD3CC005496CF /* Meshes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Meshes.h; path = src/Meshes.h; sourceTree = "<group>"; };
@@ -17,14 +15,15 @@
 		BE5F2D851C1FD3CC005496CF /* PolyMesh.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = PolyMesh.cpp; path = src/PolyMesh.cpp; sourceTree = "<group>"; };
 		BE5F2D861C1FD3CC005496CF /* PolyMesh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = PolyMesh.h; path = src/PolyMesh.h; sourceTree = "<group>"; };
 		BE5F2D871C1FD445005496CF /* cpolyg */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.executable"; path = cpolyg; sourceTree = "<group>"; };
+		BEE5C6071C20BD5600A98049 /* Advection.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Advection.cpp; sourceTree = "<group>"; };
+		BEE5C6081C20BD5600A98049 /* Advection.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Advection.h; sourceTree = "<group>"; };
+		BEE5C6091C20BD5600A98049 /* Equation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Equation.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
 		BE95AF1A1C1F9C200009FE6F = {
 			isa = PBXGroup;
 			children = (
-				BE5F2D7E1C1FD3CC005496CF /* leg.cpp */,
-				BE5F2D7F1C1FD3CC005496CF /* leg.h */,
 				BE5F2D801C1FD3CC005496CF /* main.cpp */,
 				BE5F2D811C1FD3CC005496CF /* Meshes.cpp */,
 				BE5F2D821C1FD3CC005496CF /* Meshes.h */,
@@ -33,7 +32,18 @@
 				BE5F2D851C1FD3CC005496CF /* PolyMesh.cpp */,
 				BE5F2D861C1FD3CC005496CF /* PolyMesh.h */,
 				BE5F2D871C1FD445005496CF /* cpolyg */,
+				BEE5C6061C20BD5600A98049 /* eqns */,
 			);
+			sourceTree = "<group>";
+		};
+		BEE5C6061C20BD5600A98049 /* eqns */ = {
+			isa = PBXGroup;
+			children = (
+				BEE5C6071C20BD5600A98049 /* Advection.cpp */,
+				BEE5C6081C20BD5600A98049 /* Advection.h */,
+				BEE5C6091C20BD5600A98049 /* Equation.h */,
+			);
+			path = eqns;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
