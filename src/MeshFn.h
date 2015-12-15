@@ -23,7 +23,9 @@ struct MeshFn
     MeshFn(PolyMesh &a_msh, FnCallback cb, int a_deg);
     
     void interp(FnCallback cb, int c);
+    double eval(double x, double y, int p, int c = 0);
     
-    double eval(double x, double y, PolyMesh &msh, int p);
-    PolyFn getPolyFn(int p, int c);
+    void gnuplot(std::string filename, int c = 0);
+    
+    MeshFn operator+(MeshFn &fn2);
 };

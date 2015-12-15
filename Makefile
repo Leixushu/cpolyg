@@ -1,4 +1,4 @@
-VPATH= . src
+VPATH= . src eqns
 
 # debug flags
 CFLAGS = -g -O0
@@ -19,15 +19,17 @@ endif
 SYSTEM_INCLUDE_DIR := /usr/local/include
 SYSTEM_LIB_DIR := /usr/local/lib
 
-INCLUDES := -I$(SYSTEM_INCLUDE_DIR) -Ivoro++_2d/src
+INCLUDES := -I$(SYSTEM_INCLUDE_DIR) -Ivoro++_2d/src -Isrc
 LIBS := -L$(SYSTEM_LIB_DIR) -Llib -larmadillo -lgsl -lvoro++_2d 
 
 CFLAGS += $(INCLUDES)
 
 CSRC := triangle.c
-SRC := main.cpp PolyMesh.cpp MeshFn.cpp leg.cpp Meshes.cpp Triangulation.cpp
+SRC := main.cpp PolyMesh.cpp MeshFn.cpp Meshes.cpp Triangulation.cpp \
+	   Quadrature.cpp Legendre.cpp \
+	   Advection.cpp
 
-COBJ := $(addprefix build/, $(notdir $(patsubst %.c,%.o, $(CSRC))))
+OBJC := $(addprefix build/, $(notdir $(patsubst %.c,%.o, $(CSRC))))
 OBJS := $(addprefix build/, $(notdir $(patsubst %.cpp,%.o, $(SRC))))
 DEPS := $(addprefix build/, $(notdir $(patsubst %.cpp,%.d, $(SRC))))
 EXEC := cpolyg
@@ -38,10 +40,10 @@ build/%.o: %.cpp Makefile
 
 build/%.o: %.c Makefile
 	$(CC) -c $(CFLAGS) $< -o $@
-	$(CC) -MM -MT '$@' $(CFLAGS) $< > d/$*.d
+	$(CC) -MM -MT '$@' $(CFLAGS) $< > build/$*.d
 
-cployg: Makefile $(OBJS) $(COBJ)
-	$(CXX) $(CFLAGS) $(COBJ) $(OBJS) $(LIBS) -o $(EXEC)
+cployg: Makefile $(OBJS) $(OBJC)
+	$(CXX) $(CFLAGS) $(OBJC) $(OBJS) $(LIBS) -o $(EXEC)
 
 clean:
 	rm -f $(OBJS) $(DEPS) $(EXEC)

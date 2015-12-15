@@ -1,6 +1,9 @@
 #include <gsl/gsl_sf_legendre.h>
 #include <stdlib.h>
 #include <string.h>
+#include "Legendre.h"
+
+using namespace arma;
 
 /*
 Legendre Polynomial Routines
@@ -44,7 +47,8 @@ outputs:
         \sum_{i = 0}^{m-1} \sum_{i=0}^{m-1-j} c_{ij} L_i(x) L_j(y)
 
 */
-double Leg2D(double x, double y, int m, double * c)
+
+double Leg2D(double x, double y, int m, vec c)
 {
     int i, j, k;
     double val = 0;
@@ -71,14 +75,11 @@ inputs:
 outputs:
     double * cp : Legendre coefficients of the x derivative (must be already allocated)
 */
-void LegDerX(int m, double * a_c, double * cp)
+vec LegDerX(int m, vec a_c)
 {
     int i, j, k;
-    
-    double * c;
-    
-    c = (double *)malloc(sizeof(double)*m*(m+1)/2);
-    memcpy(c, a_c, sizeof(double)*m*(m+1)/2);
+    vec c = a_c;
+    vec cp = zeros<vec>(m*(m+1)/2);
     
     k = 0;
     for (i = 0; i < m; i++)
@@ -113,7 +114,7 @@ void LegDerX(int m, double * a_c, double * cp)
         cp[j] = c[m+j];
     }
     
-    free(c);
+    return cp;
 }
 
 /*
@@ -124,13 +125,11 @@ inputs:
 outputs:
     double * cp : Legendre coefficients of the y derivative (must be already allocated)
 */
-void LegDerY(int m, double * a_c, double * cp)
+vec LegDerY(int m, vec a_c)
 {
     int i, j, k;
-    double * c;
-    
-    c = (double *)malloc(sizeof(double)*m*(m+1)/2);
-    memcpy(c, a_c, sizeof(double)*m*(m+1)/2);
+    vec c = a_c;
+    vec cp = zeros<vec>(m*(m+1)/2);
     
     k = 0;
     for (i = 0; i < m; i++)
@@ -165,5 +164,5 @@ void LegDerY(int m, double * a_c, double * cp)
         cp[-i*(i - 1 - 2*m)/2] = c[-i*(i - 1 - 2*m)/2 + 1];
     }
     
-    free(c);
+    return cp;
 }
