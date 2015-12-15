@@ -96,15 +96,21 @@ void PolyMesh::computeTriangulation()
 {
     int i, j;
     int nv;
+    vector<array<double, 2>> points;
     
+    tri.resize(np);
     for (i = 0; i < np; i++)
     {
         nv = p[i].size();
+        points.resize(nv);
         
         for (j = 0; j < nv; j++)
         {
-        
+            points[j][0] = v[p[i][j]][0];
+            points[j][1] = v[p[i][j]][1];
         }
+        
+        tri[i] = Triangulation(points);
     }
 }
 
@@ -136,8 +142,6 @@ PolyMesh::PolyMesh(vector<array<double, 2>> points)
     
     cout << "Constructing Voronoi Diagram from " << points.size()
          << " generating points." << endl;
-    
-    cout << "ok..." << endl;
     
     for(i = 0; i < points.size(); i++)
     {

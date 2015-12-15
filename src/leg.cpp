@@ -1,4 +1,6 @@
 #include <gsl/gsl_sf_legendre.h>
+#include <stdlib.h>
+#include <string.h>
 
 /*
 Legendre Polynomial Routines
@@ -69,9 +71,14 @@ inputs:
 outputs:
     double * cp : Legendre coefficients of the x derivative (must be already allocated)
 */
-void LegDerX(int m, double * c, double * cp)
+void LegDerX(int m, double * a_c, double * cp)
 {
     int i, j, k;
+    
+    double * c;
+    
+    c = (double *)malloc(sizeof(double)*m*(m+1)/2);
+    memcpy(c, a_c, sizeof(double)*m*(m+1)/2);
     
     k = 0;
     for (i = 0; i < m; i++)
@@ -105,6 +112,8 @@ void LegDerX(int m, double * c, double * cp)
     {
         cp[j] = c[m+j];
     }
+    
+    free(c);
 }
 
 /*
@@ -115,9 +124,13 @@ inputs:
 outputs:
     double * cp : Legendre coefficients of the y derivative (must be already allocated)
 */
-void LegDerY(int m, double * c, double * cp)
+void LegDerY(int m, double * a_c, double * cp)
 {
     int i, j, k;
+    double * c;
+    
+    c = (double *)malloc(sizeof(double)*m*(m+1)/2);
+    memcpy(c, a_c, sizeof(double)*m*(m+1)/2);
     
     k = 0;
     for (i = 0; i < m; i++)
@@ -151,4 +164,6 @@ void LegDerY(int m, double * c, double * cp)
     {
         cp[-i*(i - 1 - 2*m)/2] = c[-i*(i - 1 - 2*m)/2 + 1];
     }
+    
+    free(c);
 }

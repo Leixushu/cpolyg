@@ -3,6 +3,8 @@
 #include <vector>
 #include <array>
 
+#include "Triangulation.h"
+
 struct PolyMesh
 {
     int np;
@@ -10,6 +12,7 @@ struct PolyMesh
     std::vector<std::array<double, 2>> v;
     std::vector<std::array<double, 4>> bb;
     std::vector<std::vector<int>> p2p;
+    std::vector<Triangulation> tri;
     
     PolyMesh() {};
     PolyMesh(std::vector<std::array<double, 2>> pts);
