@@ -1,4 +1,4 @@
-VPATH= . 
+VPATH= . src
 
 # debug flags
 CFLAGS = -g -O0
@@ -16,8 +16,8 @@ endif
 SYSTEM_INCLUDE_DIR := /usr/local/include
 SYSTEM_LIB_DIR := /usr/local/lib
 
-INCLUDES := -I$(SYSTEM_INCLUDE_DIR) -Ivoro++/src
-LIBS := -L$(SYSTEM_LIB_DIR) -Llib -larmadillo -lgsl -lvoro++
+INCLUDES := -I$(SYSTEM_INCLUDE_DIR) -Ivoro++_2d/src
+LIBS := -L$(SYSTEM_LIB_DIR) -Llib -larmadillo -lgsl -lvoro++_2d 
 
 CFLAGS += $(INCLUDES)
 

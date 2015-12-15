@@ -71,6 +71,7 @@ void MeshFn::interp(FnCallback cb, int component)
     
     for (p = 0; p < msh.np; p++)
     {
+        cout << "Interpolating over polygon " << p << endl;
         ax = msh.bb[p][0];
         by = msh.bb[p][1];
         w = msh.bb[p][2];
@@ -89,7 +90,6 @@ void MeshFn::interp(FnCallback cb, int component)
     }
     
     gsl_integration_glfixed_table_free(glpts);
-
 }
 
 PolyFn MeshFn::getPolyFn(int p, int c)

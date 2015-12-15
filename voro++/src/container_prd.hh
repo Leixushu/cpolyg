@@ -42,6 +42,7 @@ namespace voro {
  * information about the underlying computational grid. */
 class container_periodic_base : public unitcell, public voro_base {
 	public:
+		const double max_len_sq;
 		/** The lower y index (inclusive) of the primary domain within
 		 * the block structure. */
 		int ey;
@@ -302,7 +303,7 @@ class container_periodic : public container_periodic_base, public radius_mono {
 		 * \param[in] fp a file handle to write to. */
 		template<class c_loop>
 		void draw_cells_gnuplot(c_loop &vl,FILE *fp) {
-			voronoicell c;double *pp;
+			voronoicell c(*this);double *pp;
 			if(vl.start()) do if(compute_cell(c,vl)) {
 				pp=p[vl.ijk]+ps*vl.q;
 				c.draw_gnuplot(*pp,pp[1],pp[2],fp);
@@ -329,7 +330,7 @@ class container_periodic : public container_periodic_base, public radius_mono {
 		 * \param[in] fp a file handle to write to. */
 		template<class c_loop>
 		void draw_cells_pov(c_loop &vl,FILE *fp) {
-			voronoicell c;double *pp;
+			voronoicell c(*this);double *pp;
 			if(vl.start()) do if(compute_cell(c,vl)) {
 				fprintf(fp,"// cell %d\n",id[vl.ijk][vl.q]);
 				pp=p[vl.ijk]+ps*vl.q;
@@ -360,13 +361,13 @@ class container_periodic : public container_periodic_base, public radius_mono {
 		void print_custom(c_loop &vl,const char *format,FILE *fp) {
 			int ijk,q;double *pp;
 			if(contains_neighbor(format)) {
-				voronoicell_neighbor c;
+				voronoicell_neighbor c(*this);
 				if(vl.start()) do if(compute_cell(c,vl)) {
 					ijk=vl.ijk;q=vl.q;pp=p[ijk]+ps*q;
 					c.output_custom(format,id[ijk][q],*pp,pp[1],pp[2],default_radius,fp);
 				} while(vl.inc());
 			} else {
-				voronoicell c;
+				voronoicell c(*this);
 				if(vl.start()) do if(compute_cell(c,vl)) {
 					ijk=vl.ijk;q=vl.q;pp=p[ijk]+ps*q;
 					c.output_custom(format,id[ijk][q],*pp,pp[1],pp[2],default_radius,fp);
@@ -418,7 +419,7 @@ class container_periodic : public container_periodic_base, public radius_mono {
 			bool q=compute_cell(c,ijk,co[ijk]-1);
 			co[ijk]--;
 			return q;
-		}		
+		}
 	private:
 		voro_compute<container_periodic> vc;
 		friend class voro_compute<container_periodic>;
@@ -525,7 +526,7 @@ class container_periodic_poly : public container_periodic_base, public radius_po
 		 * \param[in] fp a file handle to write to. */
 		template<class c_loop>
 		void draw_cells_gnuplot(c_loop &vl,FILE *fp) {
-			voronoicell c;double *pp;
+			voronoicell c(*this);double *pp;
 			if(vl.start()) do if(compute_cell(c,vl)) {
 				pp=p[vl.ijk]+ps*vl.q;
 				c.draw_gnuplot(*pp,pp[1],pp[2],fp);
@@ -552,7 +553,7 @@ class container_periodic_poly : public container_periodic_base, public radius_po
 		 * \param[in] fp a file handle to write to. */
 		template<class c_loop>
 		void draw_cells_pov(c_loop &vl,FILE *fp) {
-			voronoicell c;double *pp;
+			voronoicell c(*this);double *pp;
 			if(vl.start()) do if(compute_cell(c,vl)) {
 				fprintf(fp,"// cell %d\n",id[vl.ijk][vl.q]);
 				pp=p[vl.ijk]+ps*vl.q;
@@ -583,13 +584,13 @@ class container_periodic_poly : public container_periodic_base, public radius_po
 		void print_custom(c_loop &vl,const char *format,FILE *fp) {
 			int ijk,q;double *pp;
 			if(contains_neighbor(format)) {
-				voronoicell_neighbor c;
+				voronoicell_neighbor c(*this);
 				if(vl.start()) do if(compute_cell(c,vl)) {
 					ijk=vl.ijk;q=vl.q;pp=p[ijk]+ps*q;
 					c.output_custom(format,id[ijk][q],*pp,pp[1],pp[2],pp[3],fp);
 				} while(vl.inc());
 			} else {
-				voronoicell c;
+				voronoicell c(*this);
 				if(vl.start()) do if(compute_cell(c,vl)) {
 					ijk=vl.ijk;q=vl.q;pp=p[ijk]+ps*q;
 					c.output_custom(format,id[ijk][q],*pp,pp[1],pp[2],pp[3],fp);
