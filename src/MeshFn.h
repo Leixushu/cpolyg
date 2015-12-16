@@ -12,11 +12,15 @@ struct MeshFn
     
     MeshFn(PolyMesh &a_msh, int a_deg, int a_nc = 1);
     MeshFn(PolyMesh &a_msh, FnCallback cb, int a_deg);
+    MeshFn(const MeshFn &fn);
     
     void interp(FnCallback cb, int c);
     double eval(double x, double y, int p, int c = 0);
     
     void gnuplot(std::string filename, int c = 0);
     
-    MeshFn operator+(MeshFn &fn2);
+    MeshFn operator+(MeshFn fn2);
+    MeshFn & operator=(const MeshFn fn);
 };
+
+MeshFn operator*(const double scale, const MeshFn& fn);

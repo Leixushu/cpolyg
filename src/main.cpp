@@ -3,6 +3,7 @@
 #include "PolyMesh.h"
 #include "MeshFn.h"
 #include "Meshes.h"
+#include "MassMatrix.h"
 #include "Advection.h"
 
 double c5(double x, double y)
@@ -19,16 +20,29 @@ int main(int argc, char ** argv)
 {
     using namespace std;
     
-    PolyMesh msh;
+    int deg = 3;
+    PolyMesh msh = quadUnitSquare(0.05);
+    MassMatrix M(msh, deg);
+    M.spy("plt/M.gnu");
     
-    msh = quadUnitSquare(0.1);
     Advection eqn(msh);
-    MeshFn f = MeshFn(msh, gaussian, 4);
     
-    MeshFn b = eqn.assemble(f);
-    
+    MeshFn f = MeshFn(msh, gaussian, deg);
     f.gnuplot("plt/f.gnu");
-    b.gnuplot("plt/b.gnu");
+    
+    MeshFn unp1 = f;
+    
+    int K;
+    int i;
+    double dt = 0.03;
+    
+    K = 600;
+    
+    for (i = 0; i < K; i++)
+    {
+        unp1 = unp1 + dt*eqn.assemble(unp1);
+        unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
+    }
     
     return 0;
 }

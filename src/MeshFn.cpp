@@ -30,6 +30,13 @@ MeshFn::MeshFn(PolyMesh &a_msh, FnCallback cb, int a_deg) : msh(a_msh)
     interp(cb, 0);
 }
 
+MeshFn::MeshFn(const MeshFn &fn) : msh(fn.msh)
+{
+    deg = fn.deg;
+    a = fn.a;
+    nc = fn.nc;
+}
+
 void MeshFn::interp(FnCallback cb, int component)
 {
     gsl_integration_glfixed_table *glpts;
@@ -155,15 +162,13 @@ void MeshFn::gnuplot(std::string filename, int c/* = 0 */)
                 val = eval(x, y, i, c);
                 plotFile << x << "\t" << y << "\t" << val << endl;
             }
-            
-            //plotFile << endl;
         }
     }
     
     plotFile.close();
 }
 
-MeshFn MeshFn::operator+(MeshFn &fn2)
+MeshFn MeshFn::operator+(MeshFn fn2)
 {
     assert(deg == fn2.deg);
     assert(nc == fn2.nc);
@@ -174,10 +179,19 @@ MeshFn MeshFn::operator+(MeshFn &fn2)
     return fn; 
 }
 
-// PolyFn MeshFn::getPolyFn(int p, int c)
-// {
-//     PolyFn fn;
-//     fn.a = a.tube(p, c);
-//     
-//     return fn;
-// }
+MeshFn & MeshFn::operator=(const MeshFn fn)
+{
+    msh = fn.msh;
+    deg = fn.deg;
+    a = fn.a;
+    nc = fn.nc;
+    
+    return *this;
+}
+
+MeshFn operator*(const double scale, const MeshFn& fn)
+{
+    MeshFn result = fn;
+    result.a *= scale;
+    return result;
+}

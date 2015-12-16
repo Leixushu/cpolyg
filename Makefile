@@ -20,7 +20,7 @@ SYSTEM_INCLUDE_DIR := /usr/local/include
 SYSTEM_LIB_DIR := /usr/local/lib
 
 INCLUDES := -I$(SYSTEM_INCLUDE_DIR) -Ivoro++_2d/src -Isrc -Ieqns
-LIBS := -L$(SYSTEM_LIB_DIR) -Llib -larmadillo -lgsl -lvoro++_2d 
+LIBS := -L$(SYSTEM_LIB_DIR) -Llib -larmadillo -lgsl -lvoro++_2d -lsuperlu
 
 CFLAGS += $(INCLUDES)
 
@@ -29,7 +29,7 @@ OBJC := $(addprefix build/, $(notdir $(patsubst %.c,%.o, $(CSRC))))
 DEPC := $(addprefix build/, $(notdir $(patsubst %.c,%.d, $(CSRC))))
 
 SRC := main.cpp PolyMesh.cpp MeshFn.cpp Meshes.cpp Triangulation.cpp \
-	   Quadrature.cpp Legendre.cpp \
+	   Quadrature.cpp Legendre.cpp MassMatrix.cpp \
 	   Advection.cpp
 OBJS := $(addprefix build/, $(notdir $(patsubst %.cpp,%.o, $(SRC))))
 DEPS := $(addprefix build/, $(notdir $(patsubst %.cpp,%.d, $(SRC))))
