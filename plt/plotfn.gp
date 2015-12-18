@@ -1,6 +1,8 @@
 meshfunction = ARG1
-if (ARG2 eq "") { ARG2 = 20 }
-if (ARG3 eq "") { ARG3 = 20 }
+xgrid = ARG2
+ygrid = ARG3
+if (xgrid eq "") { xgrid = 20 }
+if (ygrid eq "") { ygrid = 20 }
 
-set dgrid3d ARG2, ARG3, 4
+set dgrid3d xgrid, ygrid, 4
 splot meshfunction with pm3d title 'mesh function'

@@ -52,7 +52,7 @@ struct PolyMesh
     {
         int i, k;
         double area, integ, x1, x2, x3, y1, y2, y3, x, y, z;
-        auto &qr = Quadratures::tri4;
+        auto &qr = Quadratures::tri6;
         
         integ = 0;
         
@@ -87,7 +87,7 @@ struct PolyMesh
     {
         int k;
         double integ, x1, y1, x2, y2, x, y, length;
-        auto &qr = Quadratures::lin4;
+        auto &qr = Quadratures::lin6;
         
         integ = 0;
         

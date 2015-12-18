@@ -127,9 +127,6 @@ double MeshFn::eval(double x, double y, int p, int c/* = 0 */)
     
     msh.getLocalCoordinates(p, x, y, xx, yy);
     
-    //xx = 2.0*(x - msh.bb[p][0])/msh.bb[p][2] - 1;
-    //yy = 2.0*(y - msh.bb[p][1])/msh.bb[p][3] - 1;
-    
     coeffs = a.tube(p, c);
     
     return Leg2D(xx, yy, deg+1, coeffs);
@@ -168,7 +165,7 @@ void MeshFn::gnuplot(std::string filename, int c/* = 0 */)
     plotFile.close();
 }
 
-MeshFn MeshFn::operator+(MeshFn fn2)
+MeshFn MeshFn::operator+(const MeshFn &fn2) const
 {
     assert(deg == fn2.deg);
     assert(nc == fn2.nc);
@@ -179,7 +176,15 @@ MeshFn MeshFn::operator+(MeshFn fn2)
     return fn; 
 }
 
-MeshFn & MeshFn::operator=(const MeshFn fn)
+MeshFn MeshFn::operator*(const double scale) const
+{
+    MeshFn result = *this;
+    result.a *= scale;
+    
+    return result;
+}
+
+MeshFn & MeshFn::operator=(const MeshFn &fn)
 {
     msh = fn.msh;
     deg = fn.deg;
@@ -187,11 +192,4 @@ MeshFn & MeshFn::operator=(const MeshFn fn)
     nc = fn.nc;
     
     return *this;
-}
-
-MeshFn operator*(const double scale, const MeshFn& fn)
-{
-    MeshFn result = fn;
-    result.a *= scale;
-    return result;
 }

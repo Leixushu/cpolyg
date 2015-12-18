@@ -211,13 +211,14 @@ void PolyMesh::getOutwardNormal(int i, int a, int b, double &x, double &y)
 {
     double dx, dy, cx, cy, d, length;
     int j;
+    int s;
     
     cx = 0;
     cy = 0;
     for (j = 0; j < p[i].size(); j++)
     {
         cx += v[p[i][j]][0];
-        cy += v[p[i][j]][y];
+        cy += v[p[i][j]][1];
     }
     cx /= p[i].size();
     cy /= p[i].size();
@@ -228,8 +229,9 @@ void PolyMesh::getOutwardNormal(int i, int a, int b, double &x, double &y)
     length = sqrt(dx*dx + dy*dy);
     
     d = -dy*(v[a][0] - cx) + dx*(v[a][1] - cy);
+    s = sgn(-dy*(v[a][0] - cx) + dx*(v[a][1] - cy));
     
-    x = -sgn(d)*dy/length;
-    y = sgn(d)*dx/length;
+    x = -s*dy/length;
+    y = s*dx/length;
 }
 

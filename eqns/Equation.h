@@ -1,4 +1,5 @@
 #pragma once
+
 #include "PolyMesh.h"
 #include "MeshFn.h"
 
@@ -8,5 +9,5 @@ struct Equation
     
     Equation(PolyMesh &m) : msh(m) { };
     
-    virtual MeshFn assemble(MeshFn &f) = 0;
+    virtual MeshFn assemble(const MeshFn &f) = 0;
 };

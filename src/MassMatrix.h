@@ -13,6 +13,6 @@ struct MassMatrix
     
     MassMatrix(PolyMesh &msh, int deg);
     
-    MeshFn solve(MeshFn &fn);
+    MeshFn solve(const MeshFn &fn) const;
     void spy(std::string filename);
 };

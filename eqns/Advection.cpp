@@ -4,13 +4,23 @@
 
 using namespace arma;
 
+double beta_x(double x, double y)
+{
+    return 2*y - 1;
+}
+
+double beta_y(double x, double y)
+{
+    return -2*x + 1;
+}
+
 double betaUDotGradPsi::operator()(double x, double y)
 {
     double xx, yy;
     msh.getLocalCoordinates(i, x, y, xx, yy);
     
-    return (beta_x*Leg2D(xx, yy, m, *psi_x) + beta_y*Leg2D(xx, yy, m, *psi_y))
-            *Leg2D(xx, yy, m, u);
+    return Leg2D(xx, yy, m, u)*(beta_x(x, y)*Leg2D(xx, yy, m, *psi_x) 
+                              + beta_y(x, y)*Leg2D(xx, yy, m, *psi_y));
 }
 
 double uPsiBetaDotN::operator()(double x, double y)
@@ -19,10 +29,15 @@ double uPsiBetaDotN::operator()(double x, double y)
     double betaDotN;
     double psiVal;
     
+    if (iMinus == iPlus)
+    {
+        return 0;
+    }
+    
     msh.getLocalCoordinates(iMinus, x, y, xMinus, yMinus);
     
     psiVal = Leg2D(xMinus, yMinus, m, *psi);
-    betaDotN = (nx*beta_x + ny*beta_y);
+    betaDotN = (nx*beta_x(x, y) + ny*beta_y(x, y));
     
     if (betaDotN > 0)
     {
@@ -34,6 +49,10 @@ double uPsiBetaDotN::operator()(double x, double y)
     }
 }
 
+Advection::Advection(PolyMesh & m)
+: Equation(m), volumeTerm(betaUDotGradPsi(m)), boundaryTerm(uPsiBetaDotN(m))
+{ };
+
 double Advection::volumeIntegral(int i, vec &psi_x, vec &psi_y)
 {
     volumeTerm.psi_x = &psi_x;
@@ -42,7 +61,7 @@ double Advection::volumeIntegral(int i, vec &psi_x, vec &psi_y)
     return msh.polygonIntegral(volumeTerm, i);
 }
 
-double Advection::boundaryIntegral(int i, vec &psi, MeshFn &u)
+double Advection::boundaryIntegral(int i, vec &psi, const MeshFn &u)
 {
     int a1, b1, a2, b2;
     int nv1, nv2;
@@ -96,7 +115,7 @@ double Advection::boundaryIntegral(int i, vec &psi, MeshFn &u)
     return integ;
 }
 
-MeshFn Advection::assemble(MeshFn &u)
+MeshFn Advection::assemble(const MeshFn &u)
 {
     int i, j;
     int deg = u.deg;
@@ -110,12 +129,7 @@ MeshFn Advection::assemble(MeshFn &u)
     MeshFn b(msh, deg, 1);
     
     volumeTerm.m = deg+1;
-    volumeTerm.beta_x = beta_x;
-    volumeTerm.beta_y = beta_y;
-    
     boundaryTerm.m = deg+1;
-    boundaryTerm.beta_x = beta_x;
-    boundaryTerm.beta_y = beta_y;
     
     // loop over all polygons
     for (i = 0; i < msh.np; i++)

@@ -1,10 +1,17 @@
-if (ARG2 eq "") { ARG2 = 20 }
-if (ARG3 eq "") { ARG3 = 20 }
-if (ARG4 eq "") { ARG4 = 1 }
+final = ARG1
+xgrid = ARG2
+ygrid = ARG3
+step = ARG4
 
-if (ARG1 ne "")
-{
-    do for [i=0:ARG1:ARG4] {
-        call "plotfn.gp" sprintf("plt/u%d.gnu", i) 30 30 ; pause 0.01
+if (final eq "") { final = 0 }
+if (xgrid eq "") { xgrid = 20 }
+if (ygrid eq "") { ygrid = 20 }
+if (step eq "") { step = 1 }
+
+if (ARG1 ne "") {
+    do for [i=0:final:step] {
+        #print sprintf("Plot number %d", i);
+        call "plotfn.gp" sprintf("u%d.gnu", i) (xgrid) (ygrid);
+        pause 0.02;
     }
 }

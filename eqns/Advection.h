@@ -4,7 +4,6 @@
 
 struct betaUDotGradPsi : FnFunctor
 {
-    double beta_x, beta_y;
     int m;
     int i;
     
@@ -19,7 +18,7 @@ struct betaUDotGradPsi : FnFunctor
 
 struct uPsiBetaDotN : FnFunctor
 {
-    double beta_x, beta_y, nx, ny;
+    double nx, ny;
     int m;
     
     int iMinus, iPlus;
@@ -39,15 +38,10 @@ struct Advection : Equation
     betaUDotGradPsi volumeTerm;
     uPsiBetaDotN boundaryTerm;
     
-    Advection(PolyMesh & m)
-    : Equation(m), volumeTerm(betaUDotGradPsi(m)), boundaryTerm(uPsiBetaDotN(m))
-    {
-        beta_x = 1;
-        beta_y = 0;
-    };
+    Advection(PolyMesh & m);
     
-    MeshFn assemble(MeshFn &f);
+    MeshFn assemble(const MeshFn &f);
     
     double volumeIntegral(int i, arma::vec &psi_x, arma::vec &psi_y);
-    double boundaryIntegral(int i, arma::vec &psi, MeshFn &u);
+    double boundaryIntegral(int i, arma::vec &psi, const MeshFn &u);
 };

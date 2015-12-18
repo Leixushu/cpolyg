@@ -19,8 +19,21 @@ struct MeshFn
     
     void gnuplot(std::string filename, int c = 0);
     
-    MeshFn operator+(MeshFn fn2);
-    MeshFn & operator=(const MeshFn fn);
+    MeshFn& operator+=(const MeshFn fn2)
+    {
+        a += fn2.a;
+        return (*this);
+    }
+    MeshFn operator+(const MeshFn &fn2) const;
+    MeshFn& operator=(const MeshFn &fn);
+    MeshFn operator*(const double scale) const;
+    MeshFn operator/(const double scale) const
+    {
+        return (*this)*(1.0/scale);
+    }
 };
 
-MeshFn operator*(const double scale, const MeshFn& fn);
+inline MeshFn operator*(const double scale, const MeshFn& fn)
+{
+    return fn*scale;
+}

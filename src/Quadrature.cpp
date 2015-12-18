@@ -22,6 +22,19 @@ array<array<double, 2>, 4> lin4quadrature()
     return qr;
 }
 
+array<array<double, 2>, 6> lin6quadrature()
+{
+    array<array<double, 2>, 6> qr = 
+    {{{{ 0.6612093864662645, 0.3607615730481386}},
+      {{-0.6612093864662645, 0.3607615730481386}},
+      {{-0.2386191860831969, 0.4679139345726910}},
+      {{ 0.2386191860831969, 0.4679139345726910}},
+      {{-0.9324695142031521, 0.1713244923791704}},
+      {{ 0.9324695142031521, 0.1713244923791704}}}};
+    
+    return qr;
+}
+
 array<array<double, 3>, 3> tri2quadrature()
 {
     array<array<double, 3>, 3> qr = 
@@ -45,8 +58,32 @@ array<array<double, 3>, 6> tri4quadrature()
     return qr;
 }
 
+array<array<double, 3>, 12> tri6quadrature()
+{
+    array<array<double, 3>, 12> qr = 
+    {{{{0.24928674517091, 0.24928674517091, 0.11678627572638}},
+      {{0.24928674517091, 0.50142650965818, 0.11678627572638}},
+      {{0.50142650965818, 0.24928674517091, 0.11678627572638}},
+      {{0.06308901449150, 0.06308901449150, 0.05084490637021}},
+      {{0.06308901449150, 0.87382197101700, 0.05084490637021}},
+      {{0.87382197101700, 0.06308901449150, 0.05084490637021}},
+      {{0.31035245103378, 0.63650249912140, 0.08285107561837}},
+      {{0.63650249912140, 0.05314504984482, 0.08285107561837}},
+      {{0.05314504984482, 0.31035245103378, 0.08285107561837}},
+      {{0.63650249912140, 0.31035245103378, 0.08285107561837}},
+      {{0.31035245103378, 0.05314504984482, 0.08285107561837}},
+      {{0.05314504984482, 0.63650249912140, 0.08285107561837}}}};
+    
+    return qr;
+}
+
+
+
 std::array<std::array<double, 2>, 2> Quadratures::lin2 = lin2quadrature();
 std::array<std::array<double, 2>, 4> Quadratures::lin4 = lin4quadrature();
+std::array<std::array<double, 2>, 6> Quadratures::lin6 = lin6quadrature();
 
 std::array<std::array<double, 3>, 3> Quadratures::tri2 = tri2quadrature();
 std::array<std::array<double, 3>, 6> Quadratures::tri4 = tri4quadrature();
+std::array<std::array<double, 3>, 12> Quadratures::tri6 = tri6quadrature();
+
