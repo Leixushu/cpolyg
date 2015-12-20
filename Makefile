@@ -29,8 +29,9 @@ OBJC := $(addprefix build/, $(notdir $(patsubst %.c,%.o, $(CSRC))))
 DEPC := $(addprefix build/, $(notdir $(patsubst %.c,%.d, $(CSRC))))
 
 SRC := main.cpp PolyMesh.cpp MeshFn.cpp Meshes.cpp Triangulation.cpp \
-	   Quadrature.cpp Legendre.cpp MassMatrix.cpp \
-	   Advection.cpp
+	   Quadrature.cpp Legendre.cpp MassMatrix.cpp TimeIntegration.cpp \
+	   Functors.cpp \
+	   Advection.cpp Euler.cpp EulerVortex.cpp
 OBJS := $(addprefix build/, $(notdir $(patsubst %.cpp,%.o, $(SRC))))
 DEPS := $(addprefix build/, $(notdir $(patsubst %.cpp,%.d, $(SRC))))
 EXEC := cpolyg

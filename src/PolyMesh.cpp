@@ -5,11 +5,12 @@
 #include <vector>
 #include <algorithm>
 #include <iterator>
+#include <fstream>
 
 using namespace voro;
 using namespace std;
 
-#define EPS 1.e-10
+#define kEPS 1.e-10
 
 template<typename T>
 std::ostream & operator<<(std::ostream & os, std::vector<T> vec)
@@ -120,7 +121,7 @@ int PolyMesh::addVertex(array<double, 2> vertex)
     
     for (i = 0; i < v.size(); i++)
     {
-        if (fabs(vertex[0] - v[i][0]) + fabs(vertex[1] - v[i][1]) < EPS)
+        if (fabs(vertex[0] - v[i][0]) + fabs(vertex[1] - v[i][1]) < kEPS)
         {
             return i;
         }
@@ -130,14 +131,14 @@ int PolyMesh::addVertex(array<double, 2> vertex)
     return v.size()-1;
 }
 
-PolyMesh::PolyMesh(vector<array<double, 2>> points)
+PolyMesh::PolyMesh(vector<array<double, 2>> points, double width, double height)
 {
     int i;
     double x,y;
     array<double, 2> vertex;
     vector<int> polygon;
     
-	container_2d con(0, 1, 0, 1, 1, 1, false, false, 8);
+	container_2d con(0, width+kEPS, 0, height+kEPS, 1, 1, false, false, 8);
 	voronoicell_2d cell;
     
     cout << "Constructing Voronoi Diagram from " << points.size()
@@ -149,9 +150,6 @@ PolyMesh::PolyMesh(vector<array<double, 2>> points)
         y = points[i][1];
         con.put(i,x,y);
     }
-    
-    con.draw_particles("plt/points.gnu");
-    con.draw_cells_gnuplot("plt/edges.gnu");
     
     for(i = 0; i < points.size(); i++)
     {
@@ -182,12 +180,39 @@ PolyMesh::PolyMesh(vector<array<double, 2>> points)
     cout << "Resulting in " << v.size() << " vertices, "
                             << p.size() << " polygons." << endl;
     
+    con.draw_particles("plt/vorpoints.gnu");
+    con.draw_cells_gnuplot("plt/voredges.gnu");
+    
     np = p.size();
     computep2p();
     computebb();
     computeTriangulation();
 }
 
+void PolyMesh::gnuplot()
+{
+    ofstream pointFile, edgeFile;
+    int i, j, nv;
+    
+    //pointFile.open("plt/points.gnu");
+    edgeFile.open("plt/edges.gnu");
+    
+    for (i = 0; i < np; i++)
+    {
+        //pointFile << i << "\t" << v[i][0] << "\t" << v[i][1] << endl;
+        
+        nv = p[i].size();
+        
+        for (j = 0; j <= nv; j++)
+        {
+            edgeFile << v[p[i][j%nv]][0] << "\t" << v[p[i][j%nv]][1] << endl;
+        }
+        edgeFile << endl << endl;
+    }
+    
+    //pointFile.close();
+    edgeFile.close();
+}
 
 double PolyMesh::integrate(FnFunctor &cb)
 {
@@ -235,3 +260,32 @@ void PolyMesh::getOutwardNormal(int i, int a, int b, double &x, double &y)
     y = s*dx/length;
 }
 
+void PolyMesh::triangulate(std::vector<std::array<double, 2>> points)
+{
+    int i, j;
+    
+    cout << "Constructing Delaunay Triangulation from " << points.size()
+         << " generating points." << endl;
+    
+    Triangulation tri(points);
+    
+    v = tri.points;
+    np = tri.triangles.size();
+    p.resize(np, vector<int>(3));
+    
+    for (i = 0; i < np; i++)
+    {
+        for (j = 0; j < 3; j++)
+        {
+            p[i][j] = tri.triangles[i][j];
+        }
+    }
+        
+    cout << "Resulting in " << v.size() << " vertices, "
+                            << p.size() << " polygons." << endl;
+    
+    np = p.size();
+    computep2p();
+    computebb();
+    computeTriangulation();
+}

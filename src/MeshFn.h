@@ -14,10 +14,11 @@ struct MeshFn
     MeshFn(PolyMesh &a_msh, FnCallback cb, int a_deg);
     MeshFn(const MeshFn &fn);
     
-    void interp(FnCallback cb, int c);
-    double eval(double x, double y, int p, int c = 0);
+    void interp(const FnFunctor &cb, int component);
+    void interp(const VecFunctor &cb, int component = 0);
+    double eval(double x, double y, int p, int c = 0) const;
     
-    void gnuplot(std::string filename, int c = 0);
+    void gnuplot(std::string filename) const;
     
     MeshFn& operator+=(const MeshFn fn2)
     {

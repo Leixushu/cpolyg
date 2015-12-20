@@ -14,7 +14,7 @@ double beta_y(double x, double y)
     return -2*x + 1;
 }
 
-double betaUDotGradPsi::operator()(double x, double y)
+double Advection::betaUDotGradPsi::operator()(double x, double y) const
 {
     double xx, yy;
     msh.getLocalCoordinates(i, x, y, xx, yy);
@@ -23,7 +23,7 @@ double betaUDotGradPsi::operator()(double x, double y)
                               + beta_y(x, y)*Leg2D(xx, yy, m, *psi_y));
 }
 
-double uPsiBetaDotN::operator()(double x, double y)
+double Advection::uPsiBetaDotN::operator()(double x, double y) const
 {
     double xMinus, xPlus, yMinus, yPlus;
     double betaDotN;
@@ -49,7 +49,7 @@ double uPsiBetaDotN::operator()(double x, double y)
     }
 }
 
-Advection::Advection(PolyMesh & m)
+Advection::Advection(PolyMesh &m)
 : Equation(m), volumeTerm(betaUDotGradPsi(m)), boundaryTerm(uPsiBetaDotN(m))
 { };
 

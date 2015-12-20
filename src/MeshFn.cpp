@@ -1,6 +1,7 @@
 #include <gsl/gsl_sf_legendre.h>
 #include <gsl/gsl_integration.h>
 #include <cassert>
+#include <iomanip>
 #include "MeshFn.h"
 #include "Quadrature.h"
 #include "Legendre.h"
@@ -19,6 +20,7 @@ MeshFn::MeshFn(PolyMesh &a_msh, int a_deg, int a_nc) : msh(a_msh)
 
 MeshFn::MeshFn(PolyMesh &a_msh, FnCallback cb, int a_deg) : msh(a_msh)
 {
+    FnCallbackFunctor functor(cb);
     int basisSize;
     nc = 1;
     deg = a_deg;
@@ -27,7 +29,7 @@ MeshFn::MeshFn(PolyMesh &a_msh, FnCallback cb, int a_deg) : msh(a_msh)
     
     a = cube(msh.np, nc, basisSize);
     
-    interp(cb, 0);
+    interp(functor, 0);
 }
 
 MeshFn::MeshFn(const MeshFn &fn) : msh(fn.msh)
@@ -37,7 +39,14 @@ MeshFn::MeshFn(const MeshFn &fn) : msh(fn.msh)
     nc = fn.nc;
 }
 
-void MeshFn::interp(FnCallback cb, int component)
+void MeshFn::interp(const FnFunctor &cb, int component)
+{
+    VecFnFunctor vecFunctor(cb);
+    
+    interp(vecFunctor, component);
+}
+
+void MeshFn::interp(const VecFunctor &cb, int component/* = 0 */)
 {
     gsl_integration_glfixed_table *glpts;
     vec quadraturePts(deg+1);
@@ -47,7 +56,7 @@ void MeshFn::interp(FnCallback cb, int component)
     int i, j, k;
     int numQuadPts;
     double ax,by,w,h;
-    vec vals;
+    mat vals;
     mat G;
     
     // get the size of the basis given the degree
@@ -98,7 +107,7 @@ void MeshFn::interp(FnCallback cb, int component)
         c[k] = 0.0;
     }
     
-    vals = vec(numQuadPts);
+    vals = mat(numQuadPts, cb.nc);
     
     for (p = 0; p < msh.np; p++)
     {
@@ -111,16 +120,20 @@ void MeshFn::interp(FnCallback cb, int component)
         {
             for (j = 0; j < deg + 1; j++)
             {
-                vals(i*(deg+1) + j) = 
-                    cb((quadraturePts[i]+1)*w/2.0 + ax, (quadraturePts[j]+1)*h/2.0 + by);
+                vals.row(i*(deg+1) + j) = 
+                    cb((quadraturePts[i]+1)*w/2.0 + ax,
+                       (quadraturePts[j]+1)*h/2.0 + by).t();
             }
         }
         
-        a.tube(p, component) = solve(G, vals);
+        for (i = 0; i < cb.nc; i++)
+        {
+            a.tube(p, component + i) = solve(G, vals.col(i));
+        }
     }
 }
 
-double MeshFn::eval(double x, double y, int p, int c/* = 0 */)
+double MeshFn::eval(double x, double y, int p, int c/* = 0 */) const
 {
     double xx, yy;
     vec coeffs;
@@ -132,14 +145,17 @@ double MeshFn::eval(double x, double y, int p, int c/* = 0 */)
     return Leg2D(xx, yy, deg+1, coeffs);
 }
 
-void MeshFn::gnuplot(std::string filename, int c/* = 0 */)
+void MeshFn::gnuplot(std::string filename) const
 {
-    int i, j, k;
+    int i, j, k, c;
+    int oldPrecision;
     double x1, x2, x3, y1, y2, y3, x, y, val;
     ofstream plotFile;
     auto &qr = Quadratures::tri2;
     
     plotFile.open(filename);
+    
+    oldPrecision = plotFile.precision();
     
     for (i = 0; i < msh.np; i++)
     {
@@ -154,10 +170,19 @@ void MeshFn::gnuplot(std::string filename, int c/* = 0 */)
             
             for (k = 0; k < qr.size(); k++)
             {
+                plotFile.precision(oldPrecision);
+                
                 x = x1*(1-qr[k][0]-qr[k][1])+x2*qr[k][0]+x3*qr[k][1];
                 y = y1*(1-qr[k][0]-qr[k][1])+y2*qr[k][0]+y3*qr[k][1];
-                val = eval(x, y, i, c);
-                plotFile << x << "\t" << y << "\t" << val << endl;
+                plotFile << x << "\t" << y;
+                
+                plotFile.precision(20);
+                for (c = 0; c < nc; c++)
+                {
+                    val = eval(x, y, i, c);
+                    plotFile << "\t" << val;
+                }
+                plotFile << endl;
             }
         }
     }

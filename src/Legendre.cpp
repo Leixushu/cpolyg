@@ -48,7 +48,7 @@ outputs:
 
 */
 
-double Leg2D(double x, double y, int m, vec &c)
+double Leg2D(double x, double y, int m, vec c)
 {
     int i, j, k;
     double val = 0;

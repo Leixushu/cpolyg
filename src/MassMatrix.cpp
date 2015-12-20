@@ -4,24 +4,6 @@
 using namespace arma;
 using namespace std;
 
-struct ProductFunctor : FnFunctor
-{
-    vec phi, psi;
-    int i;
-    int m;
-    PolyMesh &msh;
-    
-    ProductFunctor(PolyMesh &m) : msh(m) {};
-    
-    double operator()(double x, double y)
-    {
-        double xx, yy;
-        msh.getLocalCoordinates(i, x, y, xx, yy);
-        
-        return Leg2D(xx, yy, m, phi)*Leg2D(xx, yy, m, psi);
-    };
-};
-
 MassMatrix::MassMatrix(PolyMesh &m, int d) : msh(m), deg(d)
 {
     int i, j, k;

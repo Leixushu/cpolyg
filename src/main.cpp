@@ -5,7 +5,10 @@
 #include "Meshes.h"
 #include "MassMatrix.h"
 #include "Advection.h"
+#include "EulerVortex.h"
 #include "TimeIntegration.h"
+
+#define kGamma 1.4
 
 double c5(double x, double y)
 {
@@ -22,40 +25,42 @@ int main(int argc, char ** argv)
     using namespace std;
     
     int deg = 1;
-    double h = 0.025;
+    double h = 1;
     
-    PolyMesh msh = hexUnitSquare(h);
+    PolyMesh msh = quadRectangle(1, 20, 15);
+    msh.gnuplot();
+    
     MassMatrix M(msh, deg);
     M.spy("plt/M.gnu");
     
-    Advection eqn(msh);
+    EulerVortex eqn(msh, kGamma);
     
-    MeshFn f = MeshFn(msh, gaussian, deg);
-    f.gnuplot("plt/f.gnu");
+    MeshFn f = eqn.initialConditions(deg);
     
-    MeshFn unp1 = f;
+    f.gnuplot("plt/u0.gnu");
     
-    RK4 ti(M, eqn);
-    
-    int K;
-    int i;
-    double dt = h/30.0;
-    
-    K = M_PI/dt;
-    K = 40;
-    
-    cout << "Computing total of " << K << " timesteps." << endl;
-    
-    for (i = 0; i < K; i++)
-    {
-        unp1 = ti.advance(unp1, dt);
-        unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
-        
-        if (i%10 == 0)
-        {
-            cout << "Timestep " << i << endl;
-        }
-    }
+//     MeshFn unp1 = f;
+//     
+//     RK4 ti(M, eqn);
+//     
+//     int K;
+//     int i;
+//     double dt = h/30.0;
+//     
+//     K = M_PI/dt;
+//     
+//     cout << "Computing total of " << K << " timesteps." << endl;
+//     
+//     for (i = 0; i < K; i++)
+//     {
+//         unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
+//         unp1 = ti.advance(unp1, dt);
+//         
+//         if (i%4 == 0)
+//         {
+//             cout << "Timestep " << i << endl;
+//         }
+//     }
     
     return 0;
 }

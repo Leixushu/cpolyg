@@ -11,7 +11,7 @@ if (step eq "") { step = 1 }
 if (ARG1 ne "") {
     do for [i=0:final:step] {
         #print sprintf("Plot number %d", i);
-        call "plotfn.gp" sprintf("u%d.gnu", i) (xgrid) (ygrid);
+        call "fn.gp" sprintf("u%d.gnu", i) (xgrid) (ygrid);
         pause 0.02;
     }
 }
