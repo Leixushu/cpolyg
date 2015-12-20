@@ -9,5 +9,6 @@ struct Equation
     
     Equation(PolyMesh &m) : msh(m) { };
     
-    virtual MeshFn assemble(const MeshFn &f) = 0;
+    virtual MeshFn assemble(const MeshFn &f, double t) = 0;
+    virtual ~Equation() {};
 };

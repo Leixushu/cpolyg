@@ -29,11 +29,6 @@ double Advection::uPsiBetaDotN::operator()(double x, double y) const
     double betaDotN;
     double psiVal;
     
-    if (iMinus == iPlus)
-    {
-        return 0;
-    }
-    
     msh.getLocalCoordinates(iMinus, x, y, xMinus, yMinus);
     
     psiVal = Leg2D(xMinus, yMinus, m, *psi);
@@ -44,6 +39,8 @@ double Advection::uPsiBetaDotN::operator()(double x, double y) const
         return betaDotN*psiVal*Leg2D(xMinus, yMinus, m, uMinus);
     } else
     {
+        if (iMinus == iPlus) return 0;
+        
         msh.getLocalCoordinates(iPlus, x, y, xPlus, yPlus);
         return betaDotN*psiVal*Leg2D(xPlus, yPlus, m, uPlus);
     }
@@ -51,7 +48,7 @@ double Advection::uPsiBetaDotN::operator()(double x, double y) const
 
 Advection::Advection(PolyMesh &m)
 : Equation(m), volumeTerm(betaUDotGradPsi(m)), boundaryTerm(uPsiBetaDotN(m))
-{ };
+{ }
 
 double Advection::volumeIntegral(int i, vec &psi_x, vec &psi_y)
 {
@@ -115,7 +112,7 @@ double Advection::boundaryIntegral(int i, vec &psi, const MeshFn &u)
     return integ;
 }
 
-MeshFn Advection::assemble(const MeshFn &u)
+MeshFn Advection::assemble(const MeshFn &u, double t/* = 0 */)
 {
     int i, j;
     int deg = u.deg;

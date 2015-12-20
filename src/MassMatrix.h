@@ -15,7 +15,7 @@ struct MassMatrix
         int m;
         PolyMesh &msh;
     
-        ProductFunctor(PolyMesh &m) : msh(m) {};
+        ProductFunctor(PolyMesh &a_msh) : msh(a_msh) {};
     
         double operator()(double x, double y) const
         {

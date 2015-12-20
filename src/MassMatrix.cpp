@@ -46,14 +46,19 @@ MassMatrix::MassMatrix(PolyMesh &m, int d) : msh(m), deg(d)
 
 MeshFn MassMatrix::solve(const MeshFn &fn) const
 {
+    int component;
     int basisSize = (deg+1)*(deg+2)/2;
-    MeshFn result(msh, deg, 1);
+    MeshFn result(msh, deg, fn.nc);
     
-    mat firstComp = fn.a.tube(0, 0, result.a.n_rows - 1, 0);
-    vec b = vectorise(firstComp, 1).t();
-    vec x = arma::spsolve(matrix, b);
-    
-    result.a.tube(0, 0, result.a.n_rows - 1, 0) = reshape(x, basisSize, msh.np).t();
+    for (component = 0; component < fn.nc; component++)
+    {
+        mat fnComponent = fn.a.tube(0, component, result.a.n_rows - 1, component);
+        vec b = vectorise(fnComponent, 1).t();
+        vec x = arma::spsolve(matrix, b);
+        
+        result.a.tube(0, component, result.a.n_rows - 1, component) = 
+            reshape(x, basisSize, msh.np).t();
+    }
     
     return result;
 }

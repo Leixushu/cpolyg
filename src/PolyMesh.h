@@ -12,16 +12,16 @@
 struct PolyMesh
 {
     int np;
-    std::vector<std::vector<int>> p;
-    std::vector<std::array<double, 2>> v;
-    std::vector<std::array<double, 4>> bb;
-    std::vector<std::vector<int>> p2p;
+    std::vector<std::vector<int> > p;
+    std::vector<std::array<double, 2> > v;
+    std::vector<std::array<double, 4> > bb;
+    std::vector<std::vector<int> > p2p;
     std::vector<Triangulation> tri;
     
     PolyMesh() {};
-    PolyMesh(std::vector<std::array<double, 2>> pts, double width = 1, double height = 1);
+    PolyMesh(std::vector<std::array<double, 2> > pts, double width = 1, double height = 1);
     
-    void triangulate(std::vector<std::array<double, 2>> pts);
+    void triangulate(std::vector<std::array<double, 2> > pts);
     
     int addVertex(std::array<double, 2> vertex);
     void computep2p();
@@ -32,14 +32,14 @@ struct PolyMesh
     
     void getOutwardNormal(int i, int a, int b, double &x, double &y);
     
-    inline void getLocalCoordinates(int p, double x_in, double y_in,
+    inline void getLocalCoordinates(int pi, double x_in, double y_in,
                                            double &x_out, double &y_out)
     {
-        x_out = 2.0*(x_in - bb[p][0])/bb[p][2] - 1;
-        y_out = 2.0*(y_in - bb[p][1])/bb[p][3] - 1;
+        x_out = 2.0*(x_in - bb[pi][0])/bb[pi][2] - 1;
+        y_out = 2.0*(y_in - bb[pi][1])/bb[pi][3] - 1;
     }
     
-    inline double polygonIntegral(FnFunctor &cb, int p)
+    inline double polygonIntegral(FnFunctor &cb, int pi)
     {
         int i, k;
         double area, integ, x1, x2, x3, y1, y2, y3, x, y, z;
@@ -48,14 +48,14 @@ struct PolyMesh
         integ = 0;
         
         // loop over triangles in triangulation of polygon
-        for (i = 0; i < tri[p].triangles.size(); i++)
+        for (i = 0; i < tri[pi].triangles.size(); i++)
         {
-            x1 = tri[p].p[i][0];
-            y1 = tri[p].p[i][1];
-            x2 = tri[p].p[i][2];
-            y2 = tri[p].p[i][3];
-            x3 = tri[p].p[i][4];
-            y3 = tri[p].p[i][5];
+            x1 = tri[pi].p[i][0];
+            y1 = tri[pi].p[i][1];
+            x2 = tri[pi].p[i][2];
+            y2 = tri[pi].p[i][3];
+            x3 = tri[pi].p[i][4];
+            y3 = tri[pi].p[i][5];
             
             area = 0.5*fabs(x1*y2 + x2*y3 + x3*y1 - x1*y3 - x3*y2 - x2*y1);
             
@@ -74,7 +74,7 @@ struct PolyMesh
         return integ;
     }
     
-    inline arma::vec polygonIntegral(VecFunctor &cb, int p)
+    inline arma::vec polygonIntegral(VecFunctor &cb, int pi)
     {
         int i, k;
         double area, x1, x2, x3, y1, y2, y3, x, y;
@@ -84,14 +84,14 @@ struct PolyMesh
         arma::vec integ = arma::zeros<arma::vec>(cb.nc);
         
         // loop over triangles in triangulation of polygon
-        for (i = 0; i < tri[p].triangles.size(); i++)
+        for (i = 0; i < tri[pi].triangles.size(); i++)
         {
-            x1 = tri[p].p[i][0];
-            y1 = tri[p].p[i][1];
-            x2 = tri[p].p[i][2];
-            y2 = tri[p].p[i][3];
-            x3 = tri[p].p[i][4];
-            y3 = tri[p].p[i][5];
+            x1 = tri[pi].p[i][0];
+            y1 = tri[pi].p[i][1];
+            x2 = tri[pi].p[i][2];
+            y2 = tri[pi].p[i][3];
+            x3 = tri[pi].p[i][4];
+            y3 = tri[pi].p[i][5];
             
             area = 0.5*fabs(x1*y2 + x2*y3 + x3*y1 - x1*y3 - x3*y2 - x2*y1);
             

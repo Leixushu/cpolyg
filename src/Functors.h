@@ -9,13 +9,18 @@ typedef arma::vec (*VecCallback)(double x, double y);
 struct FnFunctor
 {
     virtual double operator()(double x, double y) const = 0;
+    
+    FnFunctor() {};
+    //FnFunctor(const FnFunctor &fn) { };
+    
+    virtual ~FnFunctor() {};
 };
 
 struct FnCallbackFunctor : FnFunctor
 {   
     FnCallback cb;
     
-    FnCallbackFunctor(FnCallback fn) : cb(fn) {};
+    FnCallbackFunctor(FnCallback fn) : cb(fn) { }
     
     double operator()(double x, double y) const
     {
@@ -27,6 +32,7 @@ struct VecFunctor
 {
     int nc;
     virtual arma::vec operator()(double x, double y) const = 0;
+    virtual ~VecFunctor() {};
 };
 
 struct VecCallbackFunctor : VecFunctor

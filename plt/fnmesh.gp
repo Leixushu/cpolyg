@@ -1,12 +1,14 @@
 meshfunction = ARG1
 if (ARG2 eq "") { ARG2 = 20 }
 if (ARG3 eq "") { ARG3 = 20 }
+if (!exists("c")) { c = 0 }
+component = 3 + c
 
 set dgrid3d ARG2, ARG3, 4
 unset pm3d
 
 set table "interpolated_data.gnu"
-splot meshfunction
+splot meshfunction u 1:2:component
 
 unset table
 unset dgrid3d

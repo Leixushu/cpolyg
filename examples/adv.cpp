@@ -1,5 +1,6 @@
 #include <cmath>
 #include <iostream>
+#include <iomanip>
 #include "PolyMesh.h"
 #include "MeshFn.h"
 #include "Meshes.h"
@@ -23,9 +24,9 @@ int main(int argc, char ** argv)
     using namespace std;
     
     int deg = 1;
-    double h = 0.075;
+    double h = 0.025;
     
-    PolyMesh msh = triUnitSquare(h);
+    PolyMesh msh = quadUnitSquare(h);
     
     msh.gnuplot();
     
@@ -41,22 +42,30 @@ int main(int argc, char ** argv)
     
     int K;
     int i;
-    double dt = h/30.0;
+    double dt;
     
-    K = M_PI/dt;
+    K = 8*M_PI/h;
+    dt = M_PI/K;
     
+    cout << "Using h = " << h << endl;
     cout << "Computing total of " << K << " timesteps." << endl;
     
     for (i = 0; i < K; i++)
     {
+        if (i%10 == 0)
+            cout << "Beginning timestep " << i << ", t=" << i*dt << endl;
+        
         unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
         unp1 = ti.advance(unp1, dt);
-        
-        if (i%4 == 0)
-        {
-            cout << "Timestep " << i << endl;
-        }
     }
+    
+    cout << setprecision(20) << "Computed until final time t=" << i*dt << endl;
+    
+    double l2err;
+    FnCallbackFunctor exact(gaussian);
+    
+    l2err = unp1.L2Error(exact);
+    cout << "L^2 error = " << l2err << endl;
     
     return 0;
 }

@@ -97,7 +97,7 @@ void PolyMesh::computeTriangulation()
 {
     int i, j;
     int nv;
-    vector<array<double, 2>> points;
+    vector<array<double, 2> > points;
     
     tri.resize(np);
     for (i = 0; i < np; i++)
@@ -131,7 +131,7 @@ int PolyMesh::addVertex(array<double, 2> vertex)
     return v.size()-1;
 }
 
-PolyMesh::PolyMesh(vector<array<double, 2>> points, double width, double height)
+PolyMesh::PolyMesh(vector<array<double, 2> > points, double width, double height)
 {
     int i;
     double x,y;
@@ -260,24 +260,24 @@ void PolyMesh::getOutwardNormal(int i, int a, int b, double &x, double &y)
     y = s*dx/length;
 }
 
-void PolyMesh::triangulate(std::vector<std::array<double, 2>> points)
+void PolyMesh::triangulate(std::vector<std::array<double, 2> > points)
 {
     int i, j;
     
     cout << "Constructing Delaunay Triangulation from " << points.size()
          << " generating points." << endl;
     
-    Triangulation tri(points);
+    Triangulation delaunay(points);
     
-    v = tri.points;
-    np = tri.triangles.size();
+    v = delaunay.points;
+    np = delaunay.triangles.size();
     p.resize(np, vector<int>(3));
     
     for (i = 0; i < np; i++)
     {
         for (j = 0; j < 3; j++)
         {
-            p[i][j] = tri.triangles[i][j];
+            p[i][j] = delaunay.triangles[i][j];
         }
     }
         

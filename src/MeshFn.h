@@ -5,6 +5,18 @@
 
 struct MeshFn
 {
+    struct L2Difference : FnFunctor
+    {
+        const MeshFn &fn;
+        const FnFunctor &exact;
+        
+        int i, c;
+        
+        L2Difference(const MeshFn &f, const FnFunctor &e) : fn(f), exact(e) { };
+        
+        double operator()(double x, double y) const;
+    };
+    
     PolyMesh &msh;
     int nc;
     int deg;
@@ -17,6 +29,8 @@ struct MeshFn
     void interp(const FnFunctor &cb, int component);
     void interp(const VecFunctor &cb, int component = 0);
     double eval(double x, double y, int p, int c = 0) const;
+    
+    double L2Error(const FnFunctor &exact) const;
     
     void gnuplot(std::string filename) const;
     

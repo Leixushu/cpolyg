@@ -2,9 +2,15 @@
 
 #include <vector>
 #include <array>
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wall"
+
 extern "C" {
 #include "triangle.h"
 }
+
+#pragma clang diagnostic pop
 
 struct Triangulation
 {
@@ -12,7 +18,7 @@ struct Triangulation
     std::vector<std::array<int, 3> > triangles;
     std::vector<std::array<double, 6> > p;
     
-    Triangulation() {};
+    Triangulation() { }
     Triangulation(std::vector<std::array<double, 2> > pts);
     void doTriangulation();
 };

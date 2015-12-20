@@ -7,10 +7,10 @@ using namespace std;
 EulerVariables Euler::computeVariables(double x, double y, int m, const mat &U)
 {
     EulerVariables values;
-    values(0) = Leg2D(x, y, m, U.col(0));
-    values(1) = Leg2D(x, y, m, U.col(1));
-    values(2) = Leg2D(x, y, m, U.col(2));
-    values(3) = Leg2D(x, y, m, U.col(3));
+    values(0) = Leg2D(x, y, m, U.row(0).t());
+    values(1) = Leg2D(x, y, m, U.row(1).t());
+    values(2) = Leg2D(x, y, m, U.row(2).t());
+    values(3) = Leg2D(x, y, m, U.row(3).t());
     
     return values;
 }
@@ -63,20 +63,34 @@ vec Euler::LaxFriedrichsFlux::operator()(double x, double y) const
     EulerVariables varsMinus, varsPlus, flux_xMinus, flux_yMinus, flux_xPlus, flux_yPlus;
     double xMinus, yMinus, xPlus, yPlus;
     double cMinus, uMinus, vMinus, cPlus, uPlus, vPlus;
+    double rhoPlus, rhoEPlus;
     double psiVal;
     double VDotNMinus, VDotNPlus;
     double alpha;
     
-    msh.getLocalCoordinates(iMinus, x, y, xMinus, yMinus);
-    msh.getLocalCoordinates(iPlus, x, y, xPlus, yPlus);
+    if (iPlus != iMinus || exact == NULL)
+    {
+        msh.getLocalCoordinates(iPlus, x, y, xPlus, yPlus);
+        varsPlus = computeVariables(xPlus, yPlus, m, *UPlus);
+    } else
+    {
+        rhoPlus = exact->rho(x, y);
+        uPlus = exact->u(x, y);
+        vPlus = exact->v(x, y);
+        rhoEPlus = exact->rhoE(x, y);
+        
+        varsPlus[0] = rhoPlus;
+        varsPlus[1] = rhoPlus*uPlus;
+        varsPlus[2] = rhoPlus*vPlus;
+        varsPlus[3] = rhoEPlus;
+    }
     
-    psiVal = Leg2D(xMinus, yMinus, m, *psi);
-    
-    varsMinus = computeVariables(xMinus, yMinus, m, *UMinus);
-    varsPlus = computeVariables(xPlus, yPlus, m, *UPlus);
-    
-    flux(varsMinus, gamma, flux_xMinus, flux_yMinus, cMinus, uMinus, vMinus);
     flux(varsPlus, gamma, flux_xPlus, flux_yPlus, cPlus, uPlus, vPlus);
+    
+    msh.getLocalCoordinates(iMinus, x, y, xMinus, yMinus);
+    psiVal = Leg2D(xMinus, yMinus, m, *psi);
+    varsMinus = computeVariables(xMinus, yMinus, m, *UMinus);
+    flux(varsMinus, gamma, flux_xMinus, flux_yMinus, cMinus, uMinus, vMinus);
     
     VDotNMinus = uMinus*nx + vMinus*ny;
     VDotNPlus = uPlus*nx + vPlus*ny;
@@ -85,7 +99,7 @@ vec Euler::LaxFriedrichsFlux::operator()(double x, double y) const
                  fabs(VDotNPlus - cPlus), fabs(VDotNPlus), fabs(VDotNPlus + cPlus)});
     
     return 0.5*((flux_xPlus + flux_xMinus)*nx + (flux_yPlus + flux_yMinus)*ny
-                - alpha*(varsPlus - varsMinus));
+                - alpha*(varsPlus - varsMinus))*psiVal;
 }
 
 vec Euler::boundaryIntegral(int i, const vec &psi, const MeshFn &U)
@@ -152,11 +166,14 @@ vec Euler::volumeIntegral(int i, const vec &psi_x, const vec &psi_y)
     return msh.polygonIntegral(volumeTerm, i);
 }
 
-Euler::Euler(PolyMesh &m, double g)
-: Equation(m), gamma(g), volumeTerm(m, g), boundaryTerm(m, g)
-{ };
+Euler::Euler(PolyMesh &a_msh, double a_gamma)
+: Equation(a_msh),  exact(NULL), gamma(a_gamma), volumeTerm(a_msh, a_gamma), 
+  boundaryTerm(a_msh, a_gamma)
+{
+    boundaryTerm.exact = NULL;
+}
 
-MeshFn Euler::assemble(const MeshFn &U)
+MeshFn Euler::assemble(const MeshFn &U, double t)
 {
     int i, j;
     int deg = U.deg;
@@ -173,6 +190,10 @@ MeshFn Euler::assemble(const MeshFn &U)
     
     volumeTerm.m = deg+1;
     boundaryTerm.m = deg+1;
+    if(exact)
+    {
+        exact->t = t;
+    }
     
     // loop over all polygons
     for (i = 0; i < msh.np; i++)
@@ -196,10 +217,10 @@ MeshFn Euler::assemble(const MeshFn &U)
             psi_y = LegDerY(deg + 1, psi) * 2.0/h;
             
             b.a.subcube(i, 0, j, i, kEulerComponents-1, j) 
-                = volumeIntegral(i, psi, ULocal);
+                = volumeIntegral(i, psi_x, psi_y);
             b.a.subcube(i, 0, j, i, kEulerComponents-1, j) 
                 -= boundaryIntegral(i, psi, U);
-          
+            
             psi[j] = 0.0;
         }
     }

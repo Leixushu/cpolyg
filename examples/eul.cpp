@@ -24,10 +24,10 @@ int main(int argc, char ** argv)
 {
     using namespace std;
     
-    int deg = 1;
-    double h = 1;
+    int deg = 2;
+    double h = 0.4;
     
-    PolyMesh msh = quadRectangle(1, 20, 15);
+    PolyMesh msh = hexRectangle(h, 20, 15);
     msh.gnuplot();
     
     MassMatrix M(msh, deg);
@@ -36,31 +36,28 @@ int main(int argc, char ** argv)
     EulerVortex eqn(msh, kGamma);
     
     MeshFn f = eqn.initialConditions(deg);
+    MeshFn unp1 = f;
     
-    f.gnuplot("plt/u0.gnu");
+    RK4 ti(M, eqn);
+    //ForwardEuler ti(M, eqn);
     
-//     MeshFn unp1 = f;
-//     
-//     RK4 ti(M, eqn);
-//     
-//     int K;
-//     int i;
-//     double dt = h/30.0;
-//     
-//     K = M_PI/dt;
-//     
-//     cout << "Computing total of " << K << " timesteps." << endl;
-//     
-//     for (i = 0; i < K; i++)
-//     {
-//         unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
-//         unp1 = ti.advance(unp1, dt);
-//         
-//         if (i%4 == 0)
-//         {
-//             cout << "Timestep " << i << endl;
-//         }
-//     }
+    int K;
+    int i;
+    double dt = h/30.0;
+    
+    //K = M_PI/dt;
+    K = sqrt(125)/dt;
+    
+    cout << "Computing total of " << K << " timesteps." << endl;
+    
+    for (i = 0; i < K; i++)
+    {
+        unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
+        
+        cout << "Beginning timestep " << i << endl;
+        
+        unp1 = ti.advance(unp1, dt, i*dt);
+    }
     
     return 0;
 }

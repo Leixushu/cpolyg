@@ -6,12 +6,12 @@
 
 struct EulerVortex : Euler
 {
-    struct ExactSolution : VecFunctor
+    struct VortexSolution : ExactSolution
     {
         double t;
         double gamma;
         double x0, y0;
-        double theta, epsilon, r_c, MInf, uInf, rhoInf, uBar, vBar, EInf, pInf;
+        double theta, epsilon, r_c, MInf, uInf, rhoInf, uBar, vBar, pInf;
     
         double f(double x, double y) const;
         double u(double x, double y) const;
@@ -21,9 +21,9 @@ struct EulerVortex : Euler
         double rhoE(double x, double y) const;
         
         arma::vec operator()(double x, double y) const;
+        
+        VortexSolution() {};
     };
-    
-    ExactSolution exact;
     
     EulerVortex(PolyMesh &m, double g);
     

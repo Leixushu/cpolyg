@@ -13,8 +13,8 @@ struct Advection : Equation
         arma::vec u;
         PolyMesh &msh;
     
-        betaUDotGradPsi(PolyMesh &m) : msh(m) {};
-    
+        betaUDotGradPsi(PolyMesh &a_msh) : msh(a_msh) {};
+        
         double operator()(double x, double y) const;
     };
 
@@ -29,7 +29,7 @@ struct Advection : Equation
         arma::vec uMinus, uPlus;
         PolyMesh &msh;
     
-        uPsiBetaDotN(PolyMesh &m) : msh(m) {};
+        uPsiBetaDotN(PolyMesh &a_msh) : msh(a_msh) {};
     
         double operator()(double x, double y) const;
     };
@@ -39,7 +39,7 @@ struct Advection : Equation
     
     Advection(PolyMesh &m);
     
-    MeshFn assemble(const MeshFn &f);
+    MeshFn assemble(const MeshFn &f, double t = 0);
     
     double volumeIntegral(int i, arma::vec &psi_x, arma::vec &psi_y);
     double boundaryIntegral(int i, arma::vec &psi, const MeshFn &u);

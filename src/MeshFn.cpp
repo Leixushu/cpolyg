@@ -218,3 +218,26 @@ MeshFn & MeshFn::operator=(const MeshFn &fn)
     
     return *this;
 }
+
+double MeshFn::L2Difference::operator()(double x, double y) const
+{
+    return pow(fn.eval(x, y, i, c) - exact(x, y), 2);
+}
+
+double MeshFn::L2Error(const FnFunctor &exact) const
+{
+    L2Difference differenceSquared(*this, exact);
+    double error;
+    int i;
+    
+    differenceSquared.c = 0;
+    
+    error = 0;
+    for (i = 0; i < msh.np; i++)
+    {
+        differenceSquared.i = i;
+        error += msh.polygonIntegral(differenceSquared, i);
+    }
+    
+    return sqrt(error);
+}
