@@ -22,6 +22,7 @@ struct Euler : Equation
         
         virtual arma::vec operator()(double x, double y) const = 0;
         
+        ExactSolution() { nc = kEulerComponents; };
         virtual ~ExactSolution() { };
     };
     

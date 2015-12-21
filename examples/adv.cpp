@@ -8,6 +8,7 @@
 #include "Advection.h"
 #include "EulerVortex.h"
 #include "TimeIntegration.h"
+#include "Timer/CH_Timer.H"
 
 double c5(double x, double y)
 {
@@ -24,10 +25,11 @@ int main(int argc, char ** argv)
     using namespace std;
     
     int deg = 1;
-    double h = 0.025;
+    double h = 0.1;
+    
+    CH_TIMERS("AdvectionMain");
     
     PolyMesh msh = quadUnitSquare(h);
-    
     msh.gnuplot();
     
     MassMatrix M(msh, deg);
@@ -46,6 +48,8 @@ int main(int argc, char ** argv)
     
     K = 8*M_PI/h;
     dt = M_PI/K;
+    
+    K = 50;
     
     cout << "Using h = " << h << endl;
     cout << "Computing total of " << K << " timesteps." << endl;

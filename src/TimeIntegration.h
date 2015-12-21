@@ -3,6 +3,7 @@
 #include "MeshFn.h"
 #include "MassMatrix.h"
 #include "Equation.h"
+#include "Timer/CH_Timer.H"
 
 struct TimeStepper
 {
@@ -32,6 +33,7 @@ struct RK4 : TimeStepper
     
     MeshFn advance(const MeshFn &u, const double dt, const double t = 0)
     {
+        CH_TIMERS("RK4Advance");
         MeshFn k1 = dt*M.solve(eqn.assemble(u, t));
         MeshFn k2 = dt*M.solve(eqn.assemble(u + 0.5*k1, t + 0.5*dt));
         MeshFn k3 = dt*M.solve(eqn.assemble(u + 0.5*k2, t + 0.5*dt));

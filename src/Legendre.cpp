@@ -48,24 +48,24 @@ outputs:
 
 */
 
-double Leg2D(double x, double y, int m, vec c)
-{
-    int i, j, k;
-    double val = 0;
-    
-    k = 0;
-    
-    for (i = 0; i < m; i++)
-    {
-        for (j = 0; j < m-i; j++)
-        {
-            val += c[k]*gsl_sf_legendre_Pl(i, x)*gsl_sf_legendre_Pl(j, y);
-            k++;
-        }
-    }
-    
-    return val;
-}
+// inline double Leg2D(double x, double y, int m, vec c)
+// {
+//     int i, j, k;
+//     double val = 0;
+//     
+//     k = 0;
+//     
+//     for (i = 0; i < m; i++)
+//     {
+//         for (j = 0; j < m-i; j++)
+//         {
+//             val += c[k]*gsl_sf_legendre_Pl(i, x)*gsl_sf_legendre_Pl(j, y);
+//             k++;
+//         }
+//     }
+//     
+//     return val;
+// }
 
 /*
 LegDerX: compute the x derivative of the given bivariate Legendre series

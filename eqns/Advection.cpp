@@ -1,6 +1,7 @@
 #include <iostream>
 #include "Advection.h"
 #include "Legendre.h"
+#include "Timer/CH_Timer.H"
 
 using namespace arma;
 
@@ -122,6 +123,8 @@ MeshFn Advection::assemble(const MeshFn &u, double t/* = 0 */)
     vec psi_x;
     vec psi_y;
     
+    CH_TIMERS("AdvectionAssemble");
+    
     // only one component for advection equation
     MeshFn b(msh, deg, 1);
     
@@ -146,8 +149,15 @@ MeshFn Advection::assemble(const MeshFn &u, double t/* = 0 */)
             psi_x = LegDerX(deg + 1, psi) * 2.0/w;
             psi_y = LegDerY(deg + 1, psi) * 2.0/h;
             
+            CH_TIMER("VolumeIntegral",t1);
+            CH_START(t1);
             b.a(i, 0, j) = volumeIntegral(i, psi_x, psi_y);
+            CH_STOP(t1);
+            
+            CH_TIMER("BoundaryIntegral",t2);
+            CH_START(t2);
             b.a(i, 0, j) -= boundaryIntegral(i, psi, u);
+            CH_STOP(t2);
           
             psi[j] = 0.0;
         }

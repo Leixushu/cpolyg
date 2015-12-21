@@ -219,20 +219,33 @@ MeshFn & MeshFn::operator=(const MeshFn &fn)
     return *this;
 }
 
-double MeshFn::L2Difference::operator()(double x, double y) const
+vec MeshFn::L2Difference::operator()(double x, double y) const
 {
-    return pow(fn.eval(x, y, i, c) - exact(x, y), 2);
+    int c;
+    vec error(fn.nc);
+    vec exactValue = exact(x, y);
+    
+    for (c = 0; c < fn.nc; c++)
+    {
+        error[c] = pow(fn.eval(x, y, i, c) - exactValue(c), 2);
+    }
+    
+    return error;
 }
 
 double MeshFn::L2Error(const FnFunctor &exact) const
 {
-    L2Difference differenceSquared(*this, exact);
-    double error;
+    VecFnFunctor vecExact(exact);
+    
+    return L2Error(vecExact)(0);
+}
+
+vec MeshFn::L2Error(const VecFunctor &exact) const
+{
     int i;
+    vec error = zeros<vec>(nc);
+    L2Difference differenceSquared(*this, exact);
     
-    differenceSquared.c = 0;
-    
-    error = 0;
     for (i = 0; i < msh.np; i++)
     {
         differenceSquared.i = i;

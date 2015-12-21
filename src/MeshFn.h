@@ -5,16 +5,19 @@
 
 struct MeshFn
 {
-    struct L2Difference : FnFunctor
+    struct L2Difference : VecFunctor
     {
         const MeshFn &fn;
-        const FnFunctor &exact;
+        const VecFunctor &exact;
         
-        int i, c;
+        int i;
         
-        L2Difference(const MeshFn &f, const FnFunctor &e) : fn(f), exact(e) { };
+        L2Difference(const MeshFn &f, const VecFunctor &e) : fn(f), exact(e)
+        {
+            nc = fn.nc;
+        };
         
-        double operator()(double x, double y) const;
+        arma::vec operator()(double x, double y) const;
     };
     
     PolyMesh &msh;
@@ -31,6 +34,7 @@ struct MeshFn
     double eval(double x, double y, int p, int c = 0) const;
     
     double L2Error(const FnFunctor &exact) const;
+    arma::vec L2Error(const VecFunctor &exact) const;
     
     void gnuplot(std::string filename) const;
     

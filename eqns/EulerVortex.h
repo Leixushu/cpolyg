@@ -8,7 +8,6 @@ struct EulerVortex : Euler
 {
     struct VortexSolution : ExactSolution
     {
-        double t;
         double gamma;
         double x0, y0;
         double theta, epsilon, r_c, MInf, uInf, rhoInf, uBar, vBar, pInf;

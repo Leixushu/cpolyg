@@ -3,14 +3,9 @@
 #include <vector>
 #include <array>
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wall"
-
 extern "C" {
-#include "triangle.h"
+#include "triangle/triangle.h"
 }
-
-#pragma clang diagnostic pop
 
 struct Triangulation
 {

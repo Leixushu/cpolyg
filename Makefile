@@ -1,4 +1,4 @@
-VPATH= . src eqns examples
+VPATH= . src eqns examples src/triangle src/Timer
 
 # debug flags
 CFLAGS = -g -O0
@@ -7,10 +7,6 @@ CFLAGS = -g -O0
 # turn on all warnings, use C++11
 
 WARNINGFLAGS = -Wall -Wshadow -pedantic
-
-ALLWARNINGS = -Weverything -Wno-extra-semi -Wno-sign-conversion -Wno-padded \
-			  -Wno-sign-compare -Wno-shorten-64-to-32 -Wno-old-style-cast -Wno-weak-vtables \
-			  -Wno-c++98-compat -Wno-global-constructors -Wno-missing-prototypes
 
 CFLAGS += $(WARNINGFLAGS) 
 
@@ -26,36 +22,43 @@ endif
 SYSTEM_INCLUDE_DIR := /usr/local/include
 SYSTEM_LIB_DIR := /usr/local/lib
 
-INCLUDES := -I$(SYSTEM_INCLUDE_DIR) -isystemvoro++_2d/src -Isrc -Ieqns
+INCLUDES := -I$(SYSTEM_INCLUDE_DIR) -Ivoro++_2d/src -Isrc -Ieqns
 LIBS := -L$(SYSTEM_LIB_DIR) -Llib -larmadillo -lgsl -lvoro++_2d -lsuperlu
 
 CFLAGS += $(INCLUDES)
 
-LIBCSRC := triangle.c
-LIBCOBJ := $(addprefix build/, $(notdir $(patsubst %.c,%.o, $(LIBCSRC))))
+LIBCSRC := triangle/triangle.c
 LIBSRC := PolyMesh.cpp MeshFn.cpp Meshes.cpp Triangulation.cpp Functors.cpp \
 	   Quadrature.cpp Legendre.cpp MassMatrix.cpp TimeIntegration.cpp \
+	   Timer/CH_Timer.cpp \
 	   Advection.cpp Euler.cpp EulerVortex.cpp
-LIBOBJS := $(addprefix build/, $(notdir $(patsubst %.cpp,%.o, $(LIBSRC))))
+LIBOBJS := $(addprefix build/, $(notdir $(patsubst %.cpp,%.o, $(LIBSRC)))) \
+		   $(addprefix build/, $(notdir $(patsubst %.c,%.o, $(LIBCSRC))))
 OUTPUT := lib/libcpolyg.a examples/adv examples/eul
 
 ADVOBJS := build/adv.o
 EULOBJS := build/eul.o
 
-OBJS := $(LIBOBJS) $(LIBCOBJ) $(ADVOBJS) $(EULOBJS)
+OBJS := $(LIBOBJS) $(ADVOBJS) $(EULOBJS)
 DEPS := $(addprefix build/, $(notdir $(patsubst %.o,%.d, $(OBJS))))
 
-all: cpolyg adv eul Makefile
+eul: $(LIBOBJS) $(EULOBJS) Makefile
+	$(CXX) $(CFLAGS) $(LIBOBJS) $(EULOBJS) $(LIBS) -o examples/eul
 
-cpolyg: $(LIBOBJS) $(LIBCOBJ) Makefile
-	rm -f lib/libcpolyg.a
-	ar rs lib/libcpolyg.a $(LIBOBJS) $(LIBCOBJ)
+adv: $(LIBOBJS) $(ADVOBJS) Makefile
+	$(CXX) $(CFLAGS) $(LIBOBJS) $(ADVOBJS) $(LIBS) -o examples/adv
 
-adv: $(ADVOBJS) Makefile
-	$(CXX) $(CFLAGS) $(ADVOBJS) $(LIBS) -lcpolyg -o examples/adv
-
-eul: $(EULOBJS) Makefile
-	$(CXX) $(CFLAGS) $(EULOBJS) $(LIBS) -lcpolyg -o examples/eul
+# all: cpolyg adv eul Makefile
+# 
+# cpolyg: $(LIBOBJS) Makefile
+# 	rm -f lib/libcpolyg.a
+# 	ar rs lib/libcpolyg.a $(LIBOBJS)
+# 
+# adv: $(ADVOBJS) Makefile
+# 	$(CXX) $(CFLAGS) $(ADVOBJS) $(LIBS) -lcpolyg -o examples/adv
+# 
+# eul: $(EULOBJS) Makefile
+# 	$(CXX) $(CFLAGS) $(EULOBJS) $(LIBS) -lcpolyg -o examples/eul
 
 build/%.o: %.cpp Makefile
 	$(CXX) -c $(CFLAGS) $(CPPFLAGS) $< -o $@

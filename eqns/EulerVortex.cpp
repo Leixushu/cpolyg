@@ -52,8 +52,6 @@ EulerVortex::EulerVortex(PolyMesh &m, double g) : Euler(m, g)
 {
     VortexSolution *vortex = new VortexSolution;
     
-    vortex->nc = kEulerComponents;
-    
     vortex->gamma = gamma;
     vortex->x0 = 5;
     vortex->y0 = 5;
@@ -61,17 +59,18 @@ EulerVortex::EulerVortex(PolyMesh &m, double g) : Euler(m, g)
     vortex->epsilon = 0.3;
     vortex->r_c = 1.5;
     vortex->MInf = 0.5;
-    vortex->uInf = 1.0;
+    vortex->uInf = 5.0;
     vortex->rhoInf = 1.0;
     
     vortex->uBar = vortex->uInf*cos(vortex->theta);
     vortex->vBar = vortex->uInf*sin(vortex->theta);
     
     vortex->pInf = 1;
+    //vortex->t = 0;
     
     exact = vortex;
     
-    boundaryTerm.exact =exact;
+    boundaryTerm.exact = exact;
 }
 
 MeshFn EulerVortex::exactSolution(const double t, const int deg)
@@ -79,7 +78,6 @@ MeshFn EulerVortex::exactSolution(const double t, const int deg)
     MeshFn result(msh, deg, kEulerComponents);
     
     exact->t = t;
-    
     result.interp(*exact);
     
     return result;
