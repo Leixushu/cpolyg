@@ -29,7 +29,7 @@ struct MeshFn
     MeshFn(PolyMesh &a_msh, FnCallback cb, int a_deg);
     MeshFn(const MeshFn &fn);
     
-    void interp(const FnFunctor &cb, int component);
+    void interp(const FnFunctor &cb, int component = 0);
     void interp(const VecFunctor &cb, int component = 0);
     double eval(double x, double y, int p, int c = 0) const;
     

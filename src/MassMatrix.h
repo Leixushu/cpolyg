@@ -26,9 +26,11 @@ struct MassMatrix
         };
     };
     
-    arma::sp_mat matrix;
+    
+    std::vector<arma::mat> blocks;
     PolyMesh  &msh;
     int deg;
+    int basisSize;
     
     MassMatrix(PolyMesh &msh, int deg);
     

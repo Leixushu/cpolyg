@@ -10,6 +10,23 @@
 #include "TimeIntegration.h"
 #include "Timer/CH_Timer.H"
 
+struct ExactGaussian : FnFunctor
+{
+    double theta;
+    
+    double operator()(double x, double y) const
+    {
+        double x0, y0;
+        
+        x0 = 0.5 - 0.15*cos(2*theta);
+        y0 = 0.5 + 0.3*cos(theta)*sin(theta);
+        
+        return exp(-150*((x-x0)*(x-x0) + (y-y0)*(y-y0)));
+    }
+    
+    ExactGaussian(double a_theta) : theta(a_theta) {};
+};
+
 double c5(double x, double y)
 {
     return 5 + x + 7*x*y + 3*x*x*y;
@@ -25,11 +42,11 @@ int main(int argc, char ** argv)
     using namespace std;
     
     int deg = 1;
-    double h = 0.1;
+    double h = 0.05;
     
     CH_TIMERS("AdvectionMain");
     
-    PolyMesh msh = quadUnitSquare(h);
+    PolyMesh msh = hexUnitSquare(h);
     msh.gnuplot();
     
     MassMatrix M(msh, deg);
@@ -37,7 +54,10 @@ int main(int argc, char ** argv)
     
     Advection eqn(msh);
     
-    MeshFn f = MeshFn(msh, gaussian, deg);
+    ExactGaussian exact(0);
+    
+    MeshFn f = MeshFn(msh, deg, 1);
+    f.interp(exact);
     MeshFn unp1 = f;
     
     RK4 ti(M, eqn);
@@ -46,10 +66,8 @@ int main(int argc, char ** argv)
     int i;
     double dt;
     
-    K = 8*M_PI/h;
-    dt = M_PI/K;
-    
-    K = 50;
+    K = 60*M_PI/h/4;
+    dt = M_PI/4/K;
     
     cout << "Using h = " << h << endl;
     cout << "Computing total of " << K << " timesteps." << endl;
@@ -66,7 +84,8 @@ int main(int argc, char ** argv)
     cout << setprecision(20) << "Computed until final time t=" << i*dt << endl;
     
     double l2err;
-    FnCallbackFunctor exact(gaussian);
+    
+    exact.theta = i*dt;
     
     l2err = unp1.L2Error(exact);
     cout << "L^2 error = " << l2err << endl;

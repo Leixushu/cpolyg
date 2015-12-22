@@ -39,7 +39,7 @@ MeshFn::MeshFn(const MeshFn &fn) : msh(fn.msh)
     nc = fn.nc;
 }
 
-void MeshFn::interp(const FnFunctor &cb, int component)
+void MeshFn::interp(const FnFunctor &cb, int component/* = 0 */)
 {
     VecFnFunctor vecFunctor(cb);
     
