@@ -12,6 +12,9 @@ MassMatrix::MassMatrix(PolyMesh &m, int d) : msh(m), deg(d)
     ProductFunctor prod(msh);
     
     basisSize = (deg+1)*(deg+2)/2;
+    bl = basisSize;
+    nb = msh.np;
+    n_rows = nb;
     
     mat block(basisSize, basisSize);
     
@@ -44,7 +47,11 @@ MassMatrix::MassMatrix(PolyMesh &m, int d) : msh(m), deg(d)
         }
         
         blocks.push_back(block);
+        colIndices.push_back(i);
+        rowBlock.push_back(i);
     }
+    
+    rowBlock.push_back(i);
 }
 
 MeshFn MassMatrix::solve(const MeshFn &fn) const
@@ -67,25 +74,4 @@ MeshFn MassMatrix::solve(const MeshFn &fn) const
     }
     
     return result;
-}
-
-void MassMatrix::spy(std::string filename)
-{
-    int i, j, k;
-    ofstream file;
-    file.open(filename);
-    
-    for (i = 0; i < msh.np; i++)
-    {
-        for (j = 0; j < basisSize; j++)
-        {
-            for (k = 0; k < basisSize; k++)
-            {
-                file << i*basisSize + j << "\t" << i*basisSize + k << "\t"
-                     << blocks[i](j, k) << endl;
-            }
-        }
-    }
-    
-    file.close();
 }

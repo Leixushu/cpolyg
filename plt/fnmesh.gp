@@ -14,7 +14,13 @@ unset table
 unset dgrid3d
 
 set yrange [*:*]
-stats 'interpolated_data.gnu' u 3 nooutput
+
+if (!exists("meshz")) {
+    stats 'interpolated_data.gnu' u 3 nooutput
+    fn_mesh_z = STATS_min
+} else {
+    fn_mesh_z = meshz
+}
 
 splot 'interpolated_data.gnu' with pm3d title 'mesh function', \
-      'edges.gnu' u 1:2:(STATS_min) with lines linetype rgb 'gray30' title 'mesh'
+      'edges.gnu' u 1:2:(fn_mesh_z) with lines linetype rgb 'gray30' title 'mesh'

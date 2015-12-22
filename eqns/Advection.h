@@ -41,6 +41,8 @@ struct Advection : Equation
     
     MeshFn assemble(const MeshFn &f, double t = 0);
     
+    
+    
     double volumeIntegral(int i, arma::vec &psi_x, arma::vec &psi_y);
     double boundaryIntegral(int i, arma::vec &psi, const MeshFn &u);
 };

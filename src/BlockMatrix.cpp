@@ -1,5 +1,5 @@
 #include "BlockMatrix.h"
-#include "fortwrap.h"
+#include "blas/blas.h"
 
 using namespace std;
 using namespace arma;
@@ -9,7 +9,7 @@ vec BlockMatrix::matvec(const vec &b)
     vec result = zeros<vec>(b.n_rows);
     int i, j, k;
     
-    for (i = 0; i < nb; i++)
+    for (i = 0; i < n_rows; i++)
     {
         for (k = rowBlock[i]; k < rowBlock[i+1]; k++)
         {
@@ -24,14 +24,14 @@ vec BlockMatrix::matvec(const vec &b)
 
 void BlockMatrix::matvec(double *b)
 {
-    double *bCopy = new double[nb*bl];
+    double *bCopy = new double[n_rows*bl];
     int i, j, k;
     
-    copy(b, b+nb*bl, bCopy);
-    for (i = 0; i < nb*bl; i++)
+    copy(b, b+n_rows*bl, bCopy);
+    for (i = 0; i < n_rows*bl; i++)
         b[i] = 0;
     
-    for (i = 0; i < nb; i++)
+    for (i = 0; i < n_rows; i++)
     {
         for (k = rowBlock[i]; k < rowBlock[i+1]; k++)
         {
@@ -47,7 +47,8 @@ void BlockMatrix::matvec(double *b)
 
 void BlockMatrix::gmres(vec &bvec, vec &xvec, int m, double &tol, int &maxit, Preconditioner &pc)
 {
-    int n = nb*bl;
+    // GMRES code from Per-Olof Persson's 3dg
+    int n = n_rows*bl;
     double *b  = bvec.memptr();
     double *x  = xvec.memptr();
     double *v  = new double[n*(m+1)];
@@ -89,7 +90,7 @@ void BlockMatrix::gmres(vec &bvec, vec &xvec, int m, double &tol, int &maxit, Pr
             u0i=uki;
             copy(vi,vi1,vi1);
             matvec(vi1);
-            // psolve(vi1,fpar);
+            pc.solve(vi1);
             
             cdgemv('T',n,i+1,1.,v,n,vi1,1,0.,h+u0i,1);
             cdgemv('N',n,i+1,-1.,v,n,h+u0i,1,1.,vi1,1);
@@ -142,6 +143,7 @@ BlockMatrix BlockMatrix::diag(arma::mat M, int a_b)
     
     result.bl = a_b;
     result.nb = n;
+    result.n_rows = n;
     
     result.blocks.clear();
     result.colIndices.resize(n);
@@ -159,4 +161,42 @@ BlockMatrix BlockMatrix::diag(arma::mat M, int a_b)
     result.rowBlock[n] = n;
     
     return result;
+}
+
+BlockMatrix& BlockMatrix::operator *=(double scale)
+{
+    int i;
+    
+    for (i = 0; i < nb; i++)
+    {
+        blocks[i] *= scale;
+    }
+    
+    return *this;
+}
+
+void BlockMatrix::spy(std::string filename)
+{
+    int i, j, k, ii, jj;
+    ofstream file;
+    file.open(filename);
+    
+    for (i = 0; i < n_rows; i++)
+    {
+        for (k = rowBlock[i]; k < rowBlock[i+1]; k++)
+        {
+            j = colIndices[k];
+            
+            for (ii = 0; ii < bl; ii++)
+            {
+                for (jj = 0; jj < bl; jj++)
+                {
+                    file << i*bl + ii << "\t" << j*bl + jj << "\t"
+                         << blocks[k](ii, jj) << endl;
+                }
+            }
+        }
+    }
+    
+    file.close();
 }

@@ -9,7 +9,7 @@
 #ifndef __FORTWRAP
 #define __FORTWRAP
 
-#include "blas.h"
+#include "fortblas.h"
 
 /*
   General variable names:

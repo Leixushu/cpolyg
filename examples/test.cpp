@@ -9,6 +9,7 @@
 #include "EulerVortex.h"
 #include "TimeIntegration.h"
 #include "BlockMatrix.h"
+#include "Preconditioners.h"
 
 int main(int argc, char ** argv)
 {
@@ -22,31 +23,26 @@ int main(int argc, char ** argv)
     MassMatrix M(msh, deg);
     M.spy("plt/M.gnu");
     
-    //BlockMatrix B = BlockMatrix::diag(mat(M.matrix), (deg+1)*(deg+2)/2);
+    BlockMatrix &B = M;
     
     vec b(msh.np*M.basisSize); b.randu();
     
-    NoPreconditioner pc;
-    
-    vec x1 = M.solve(b);
-    vec x2 = zeros<vec>(msh.np*M.basisSize);
-    
+    NoPreconditioner noPC;
+    vec x1 = zeros<vec>(msh.np*M.basisSize);
     int maxIt = 100;
     double tol = 1.e-12;
     int m = 20;
-    //B.gmres(b, x2, m, tol, maxIt, pc);
+    B.gmres(b, x1, m, tol, maxIt, noPC);
+    cout << "Tol:  " << tol << endl;
+    cout << "Iter: " << maxIt << endl;
     
-//     vec x1 = M.matrix*b;
-//     vec x2 = b;
-//     vec x3 = B.matvec(b);
-//     B.matvec(x2.memptr());
-//     
-//     cout << (x1 - x2).max() << endl;
-//     cout << (x1 - x3).max() << endl;
+    BlockJacobi PC(B);
+    x1 = zeros<vec>(msh.np*M.basisSize);
     
-    //cout << x1 - x2 << endl;
-    
-    cout << x1 - x2 << endl << endl << endl;
+    maxIt = 100;
+    tol = 1.e-12;
+    m = 20;
+    B.gmres(b, x1, m, tol, maxIt, PC);
     
     cout << "Tol:  " << tol << endl;
     cout << "Iter: " << maxIt << endl;

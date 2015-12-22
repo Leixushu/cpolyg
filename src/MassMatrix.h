@@ -5,8 +5,9 @@
 #include "PolyMesh.h"
 #include "MeshFn.h"
 #include "Legendre.h"
+#include "BlockMatrix.h"
 
-struct MassMatrix
+struct MassMatrix : BlockMatrix
 {
     struct ProductFunctor : FnFunctor
     {
@@ -26,8 +27,6 @@ struct MassMatrix
         };
     };
     
-    
-    std::vector<arma::mat> blocks;
     PolyMesh  &msh;
     int deg;
     int basisSize;
@@ -35,5 +34,4 @@ struct MassMatrix
     MassMatrix(PolyMesh &msh, int deg);
     
     MeshFn solve(const MeshFn &fn) const;
-    void spy(std::string filename);
 };

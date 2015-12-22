@@ -1,4 +1,4 @@
-#include "fortwrap.h"
+#include "blas.h"
 
 /*
   General variable names:

@@ -1,4 +1,4 @@
-VPATH= . src eqns examples src/triangle src/Timer
+VPATH= . src eqns examples src/triangle src/Timer src/blas
 
 # debug flags
 CFLAGS = -g -O0
@@ -30,20 +30,22 @@ CFLAGS += $(INCLUDES)
 LIBCSRC := triangle/triangle.c
 LIBSRC := PolyMesh.cpp MeshFn.cpp Meshes.cpp Triangulation.cpp Functors.cpp \
 	   Quadrature.cpp Legendre.cpp MassMatrix.cpp TimeIntegration.cpp \
-	   Timer/CH_Timer.cpp BlockMatrix.cpp fortwrap.cpp\
+	   Timer/CH_Timer.cpp BlockMatrix.cpp blas/blas.cpp Preconditioners.cpp \
+	   Jacobian.cpp \
 	   Advection.cpp Euler.cpp EulerVortex.cpp
 LIBOBJS := $(addprefix build/, $(notdir $(patsubst %.cpp,%.o, $(LIBSRC)))) \
 		   $(addprefix build/, $(notdir $(patsubst %.c,%.o, $(LIBCSRC))))
-OUTPUT := lib/libcpolyg.a examples/adv examples/eul
+OUTPUT := lib/libcpolyg.a examples/adv examples/eul examples/test
 
+TESTOBJS := build/test.o
 ADVOBJS := build/adv.o
 EULOBJS := build/eul.o
 
-OBJS := $(LIBOBJS) $(ADVOBJS) $(EULOBJS)
+OBJS := $(LIBOBJS) $(ADVOBJS) $(EULOBJS) $(TESTOBJS)
 DEPS := $(addprefix build/, $(notdir $(patsubst %.o,%.d, $(OBJS))))
 
-#test: $(LIBOBJS) build/test.o Makefile
-#	$(CXX) $(CFLAGS) $(LIBOBJS) build/test.o $(LIBS) -o examples/test
+test: $(LIBOBJS) $(TESTOBJS) Makefile
+	$(CXX) $(CFLAGS) $(LIBOBJS) $(TESTOBJS) $(LIBS) -o examples/test
 
 eul: $(LIBOBJS) $(EULOBJS) Makefile
 	$(CXX) $(CFLAGS) $(LIBOBJS) $(EULOBJS) $(LIBS) -o examples/eul

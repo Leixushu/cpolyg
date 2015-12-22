@@ -8,17 +8,14 @@ struct Preconditioner
     virtual void solve(double *x) = 0;
 };
 
-struct NoPreconditioner : Preconditioner
-{
-    void solve(double *x) { }
-};
-
 struct BlockMatrix
 {
     // size of each block
     int bl;
     // number of blocks
     int nb;
+    // number of (block) rows
+    int n_rows;
     
     std::vector<arma::mat> blocks;
     std::vector<int> colIndices;
@@ -29,5 +26,11 @@ struct BlockMatrix
     void gmres(arma::vec &b, arma::vec &x, int m, double &tol, int &maxIt, 
                Preconditioner &pc);
     
+    void spy(std::string filename);
+    
     static BlockMatrix diag(arma::mat M, int a_b);
+    
+    BlockMatrix& operator *=(double scale);
+    
+    BlockMatrix() {};
 };
