@@ -23,14 +23,14 @@ SYSTEM_INCLUDE_DIR := /usr/local/include
 SYSTEM_LIB_DIR := /usr/local/lib
 
 INCLUDES := -I$(SYSTEM_INCLUDE_DIR) -Ivoro++_2d/src -Isrc -Ieqns
-LIBS := -L$(SYSTEM_LIB_DIR) -Llib -larmadillo -lgsl -lvoro++_2d -lsuperlu
+LIBS := -L$(SYSTEM_LIB_DIR) -Llib -larmadillo -lgsl -lvoro++_2d -lsuperlu -lblas -llapack
 
 CFLAGS += $(INCLUDES)
 
 LIBCSRC := triangle/triangle.c
 LIBSRC := PolyMesh.cpp MeshFn.cpp Meshes.cpp Triangulation.cpp Functors.cpp \
 	   Quadrature.cpp Legendre.cpp MassMatrix.cpp TimeIntegration.cpp \
-	   Timer/CH_Timer.cpp \
+	   Timer/CH_Timer.cpp BlockMatrix.cpp fortwrap.cpp\
 	   Advection.cpp Euler.cpp EulerVortex.cpp
 LIBOBJS := $(addprefix build/, $(notdir $(patsubst %.cpp,%.o, $(LIBSRC)))) \
 		   $(addprefix build/, $(notdir $(patsubst %.c,%.o, $(LIBCSRC))))
@@ -42,23 +42,14 @@ EULOBJS := build/eul.o
 OBJS := $(LIBOBJS) $(ADVOBJS) $(EULOBJS)
 DEPS := $(addprefix build/, $(notdir $(patsubst %.o,%.d, $(OBJS))))
 
+#test: $(LIBOBJS) build/test.o Makefile
+#	$(CXX) $(CFLAGS) $(LIBOBJS) build/test.o $(LIBS) -o examples/test
+
 eul: $(LIBOBJS) $(EULOBJS) Makefile
 	$(CXX) $(CFLAGS) $(LIBOBJS) $(EULOBJS) $(LIBS) -o examples/eul
 
 adv: $(LIBOBJS) $(ADVOBJS) Makefile
 	$(CXX) $(CFLAGS) $(LIBOBJS) $(ADVOBJS) $(LIBS) -o examples/adv
-
-# all: cpolyg adv eul Makefile
-# 
-# cpolyg: $(LIBOBJS) Makefile
-# 	rm -f lib/libcpolyg.a
-# 	ar rs lib/libcpolyg.a $(LIBOBJS)
-# 
-# adv: $(ADVOBJS) Makefile
-# 	$(CXX) $(CFLAGS) $(ADVOBJS) $(LIBS) -lcpolyg -o examples/adv
-# 
-# eul: $(EULOBJS) Makefile
-# 	$(CXX) $(CFLAGS) $(EULOBJS) $(LIBS) -lcpolyg -o examples/eul
 
 build/%.o: %.cpp Makefile
 	$(CXX) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
