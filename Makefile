@@ -44,14 +44,16 @@ EULOBJS := build/eul.o
 OBJS := $(LIBOBJS) $(ADVOBJS) $(EULOBJS) $(TESTOBJS)
 DEPS := $(addprefix build/, $(notdir $(patsubst %.o,%.d, $(OBJS))))
 
+all: adv test eul
+
+adv: $(LIBOBJS) $(ADVOBJS) Makefile
+	$(CXX) $(CFLAGS) $(LIBOBJS) $(ADVOBJS) $(LIBS) -o examples/adv
+
 test: $(LIBOBJS) $(TESTOBJS) Makefile
 	$(CXX) $(CFLAGS) $(LIBOBJS) $(TESTOBJS) $(LIBS) -o examples/test
 
 eul: $(LIBOBJS) $(EULOBJS) Makefile
 	$(CXX) $(CFLAGS) $(LIBOBJS) $(EULOBJS) $(LIBS) -o examples/eul
-
-adv: $(LIBOBJS) $(ADVOBJS) Makefile
-	$(CXX) $(CFLAGS) $(LIBOBJS) $(ADVOBJS) $(LIBS) -o examples/adv
 
 build/%.o: %.cpp Makefile
 	$(CXX) -c $(CFLAGS) $(CPPFLAGS) $< -o $@
