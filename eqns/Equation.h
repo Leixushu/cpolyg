@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include "PolyMesh.h"
 #include "MeshFn.h"
-#include "BlockMatrix.h"
+#include "Jacobian.h"
 
 struct Equation
 {
@@ -12,10 +12,11 @@ struct Equation
     Equation(PolyMesh &m) : msh(m) { };
     
     virtual MeshFn assemble(const MeshFn &f, double t) = 0;
-    virtual BlockMatrix jacobian(const MeshFn &f, double t)
+    virtual Jacobian jacobian(const MeshFn &f, double t)
     {
+        std::cout << "Jacobian matrix not implemented for this equation" << std::endl;
         abort();
-        return BlockMatrix();
+        return Jacobian(msh);
     };
     
     virtual ~Equation() {};

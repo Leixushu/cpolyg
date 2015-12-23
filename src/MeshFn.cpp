@@ -201,6 +201,17 @@ MeshFn MeshFn::operator+(const MeshFn &fn2) const
     return fn; 
 }
 
+MeshFn MeshFn::operator-(const MeshFn &fn2) const
+{
+    assert(deg == fn2.deg);
+    assert(nc == fn2.nc);
+    
+    MeshFn fn(msh, deg, nc);
+    fn.a = a - fn2.a;
+    
+    return fn; 
+}
+
 MeshFn MeshFn::operator*(const double scale) const
 {
     MeshFn result = *this;

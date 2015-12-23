@@ -1,14 +1,11 @@
 #include <cmath>
 #include <iostream>
 #include <iomanip>
-#include "PolyMesh.h"
-#include "MeshFn.h"
 #include "Meshes.h"
-#include "MassMatrix.h"
 #include "Advection.h"
-#include "EulerVortex.h"
+#include "Jacobian.h"
 #include "TimeIntegration.h"
-#include "Timer/CH_Timer.H"
+#include "Preconditioners.h"
 
 struct ExactGaussian : FnFunctor
 {
@@ -44,20 +41,19 @@ int main(int argc, char ** argv)
     int deg = 1;
     double h = 0.05;
     
-    CH_TIMERS("AdvectionMain");
-    
-    PolyMesh msh = hexUnitSquare(h);
+    PolyMesh msh = quadUnitSquare(h);
     msh.gnuplot();
     
     MassMatrix M(msh, deg);
     M.spy("plt/M.gnu");
-    
     Advection eqn(msh);
     
     ExactGaussian exact(0);
-    
     MeshFn f = MeshFn(msh, deg, 1);
     f.interp(exact);
+    
+    Jacobian B = eqn.jacobian(f);
+    
     MeshFn unp1 = f;
     
     RK4 ti(M, eqn);
@@ -66,11 +62,18 @@ int main(int argc, char ** argv)
     int i;
     double dt;
     
-    K = 60*M_PI/h/4;
-    dt = M_PI/4/K;
+    K = 10*M_PI/h;
+    dt = M_PI/K;
     
-    cout << "Using h = " << h << endl;
+    cout << "Using h = " << h << ", dt = " << dt << endl;
     cout << "Computing total of " << K << " timesteps." << endl;
+    
+    B *= -dt;
+    B += M;
+    
+    B.spy("plt/B.gnu");
+    
+    BlockJacobi pc(B);
     
     for (i = 0; i < K; i++)
     {
@@ -78,8 +81,9 @@ int main(int argc, char ** argv)
             cout << "Beginning timestep " << i << ", t=" << i*dt << endl;
         
         unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
-        unp1 = ti.advance(unp1, dt);
+        unp1 = B.solve(M.dot(unp1), pc);
     }
+    unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
     
     cout << setprecision(20) << "Computed until final time t=" << i*dt << endl;
     

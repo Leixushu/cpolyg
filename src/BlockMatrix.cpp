@@ -38,7 +38,7 @@ void BlockMatrix::matvec(double *b)
             j = colIndices[k];
             
             cdgemv('N', bl, bl, 1, blocks[k].memptr(), bl, bCopy + j*bl,
-                    1.0, 1.0, b + j*bl, 1.0);
+                    1.0, 1.0, b + i*bl, 1.0);
         }
     }
     
@@ -47,7 +47,6 @@ void BlockMatrix::matvec(double *b)
 
 void BlockMatrix::gmres(vec &bvec, vec &xvec, int m, double &tol, int &maxit, Preconditioner &pc)
 {
-    // GMRES code from Per-Olof Persson's 3dg
     int n = n_rows*bl;
     double *b  = bvec.memptr();
     double *x  = xvec.memptr();
@@ -61,12 +60,10 @@ void BlockMatrix::gmres(vec &bvec, vec &xvec, int m, double &tol, int &maxit, Pr
     double beta, hnew, rd, dd, nrm2b;
     int i=0, j, uki, u0i;
 
-    copy(b,b+n,r);
-     
+    copy(b,b+n,r); 
     pc.solve(r);
-    
     nrm2b = cdnrm2(n,r,1);
-
+    
     if (maxit%m>0)
     maxit=(maxit/m+1)*m;
 

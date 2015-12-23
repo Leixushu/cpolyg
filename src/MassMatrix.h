@@ -34,4 +34,5 @@ struct MassMatrix : BlockMatrix
     MassMatrix(PolyMesh &msh, int deg);
     
     MeshFn solve(const MeshFn &fn) const;
+    MeshFn dot(const MeshFn &fn) const;
 };

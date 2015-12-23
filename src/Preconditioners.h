@@ -11,7 +11,7 @@ struct NoPreconditioner : Preconditioner
 
 struct BlockJacobi : Preconditioner
 {
-    int nb;
+    int n;
     int bl;
     std::vector<arma::mat> blocks;
     

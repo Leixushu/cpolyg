@@ -75,3 +75,24 @@ MeshFn MassMatrix::solve(const MeshFn &fn) const
     
     return result;
 }
+
+MeshFn MassMatrix::dot(const MeshFn &fn) const
+{
+    int component;
+    int i;
+    MeshFn result(msh, deg, fn.nc);
+    
+    for (component = 0; component < fn.nc; component++)
+    {
+        mat fnComponent = fn.a.tube(0, component, result.a.n_rows - 1, component);
+        for (i = 0; i < msh.np; i++)
+        {
+            vec b = blocks[i]*fnComponent.row(i).t();
+            
+            result.a.tube(i, component, i, component) = 
+                reshape(b, basisSize, 1).t();
+        }
+    }
+    
+    return result;
+}

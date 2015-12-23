@@ -44,6 +44,7 @@ struct MeshFn
         return (*this);
     }
     MeshFn operator+(const MeshFn &fn2) const;
+    MeshFn operator-(const MeshFn &fn2) const;
     MeshFn& operator=(const MeshFn &fn);
     MeshFn operator*(const double scale) const;
     MeshFn operator/(const double scale) const
