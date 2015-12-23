@@ -10,3 +10,4 @@ The code uses:
 
 - [Triangle](https://www.cs.cmu.edu/~quake/triangle.html), from Jonathan Shewchuk
 - [Voro++](http://math.lbl.gov/voro++/), from Chris Rycroft
+- GMRES code from [Per-Olof Persson](http://persson.berkeley.edu)
