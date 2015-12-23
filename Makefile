@@ -44,6 +44,8 @@ EULOBJS := build/eul.o
 OBJS := $(LIBOBJS) $(ADVOBJS) $(EULOBJS) $(TESTOBJS)
 DEPS := $(addprefix build/, $(notdir $(patsubst %.o,%.d, $(OBJS))))
 
+.PHONY: all adv test eul clean
+
 all: adv test eul
 
 adv: $(LIBOBJS) $(ADVOBJS) Makefile
