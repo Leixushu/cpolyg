@@ -7,12 +7,14 @@ using namespace arma;
 
 double beta_x(double x, double y)
 {
-    return 2*y - 1;
+    return 2;
+    //return 2*y - 1;
 }
 
 double beta_y(double x, double y)
 {
-    return -2*x + 1;
+    return 1;
+    //return -2*x + 1;
 }
 
 double Advection::betaUDotGradPsi::operator()(double x, double y) const
