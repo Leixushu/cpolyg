@@ -10,8 +10,6 @@
 using namespace voro;
 using namespace std;
 
-#define kEPS 1.e-10
-
 template<typename T>
 std::ostream & operator<<(std::ostream & os, std::vector<T> vec)
 {

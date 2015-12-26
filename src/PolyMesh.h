@@ -9,6 +9,8 @@
 #include "Quadrature.h"
 #include "Functors.h"
 
+#define kEPS 1.e-10
+
 struct PolyMesh
 {
     int np;
