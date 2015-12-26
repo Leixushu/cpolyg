@@ -1,4 +1,5 @@
 #include "BlockMatrix.h"
+#include "Preconditioners.h"
 #include "blas/blas.h"
 
 using namespace std;
@@ -43,6 +44,37 @@ void BlockMatrix::matvec(double *b)
     }
     
     delete[] bCopy;
+}
+
+vec BlockMatrix::jacobi(arma::vec &b, double &tol, int &maxIt, Preconditioner &pc)
+{
+    int n = n_rows*bl;
+    vec Dinvb = b;
+    vec ur;
+    vec DinvAur;
+    vec r;
+    int m;
+    
+    pc.solve(Dinvb.memptr());
+    ur = zeros<vec>(n);
+    
+    for (m = 0; m < maxIt; m++)
+    {
+        DinvAur = ur;
+        matvec(DinvAur.memptr());
+        
+        r = DinvAur - b;
+        if (norm(r) < tol) break;
+        
+        pc.solve(DinvAur.memptr());
+        
+        ur = Dinvb + ur - DinvAur;
+    }
+    
+    tol = norm(r);
+    maxIt = m;
+    
+    return ur;
 }
 
 void BlockMatrix::gmres(vec &bvec, vec &xvec, int m, double &tol, int &maxit, Preconditioner &pc)

@@ -23,8 +23,10 @@ struct BlockMatrix
     
     void matvec(double *b);
     arma::vec matvec(const arma::vec &b);
+    
     void gmres(arma::vec &b, arma::vec &x, int m, double &tol, int &maxIt, 
                Preconditioner &pc);
+    arma::vec jacobi(arma::vec &b, double &tol, int &maxIt, Preconditioner &pc);
     
     void spy(std::string filename);
     

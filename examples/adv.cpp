@@ -38,10 +38,10 @@ int main(int argc, char ** argv)
 {
     using namespace std;
     
-    int deg = 1;
-    double h = 0.05;
+    int deg = 0;
+    double h = 0.02;
     
-    PolyMesh msh = quadUnitSquare(h);
+    PolyMesh msh = honeycombUnitSquare(h);
     msh.gnuplot();
     
     MassMatrix M(msh, deg);
@@ -63,7 +63,8 @@ int main(int argc, char ** argv)
     double dt;
     
     K = 10*M_PI/h;
-    dt = M_PI/K;
+    //dt = M_PI/K/20;
+    dt = 0.1;
     
     cout << "Using h = " << h << ", dt = " << dt << endl;
     cout << "Computing total of " << K << " timesteps." << endl;
@@ -81,7 +82,7 @@ int main(int argc, char ** argv)
             cout << "Beginning timestep " << i << ", t=" << i*dt << endl;
         
         unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
-        unp1 = B.solve(M.dot(unp1), pc);
+        unp1 = B.solve(M.dot(unp1), pc, kJacobiSolver);
     }
     unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
     

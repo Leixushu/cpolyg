@@ -51,7 +51,7 @@ MeshFn Jacobian::dot(const MeshFn &x)
     return result;
 }
 
-MeshFn Jacobian::solve(const MeshFn &b, Preconditioner &pc)
+MeshFn Jacobian::solve(const MeshFn &b, Preconditioner &pc, Solver s)
 {
     // right now multiple components not really implemented...!
     assert(nc == 1);
@@ -62,11 +62,19 @@ MeshFn Jacobian::solve(const MeshFn &b, Preconditioner &pc)
     vec x = zeros<vec>(bVec.n_rows);
     
     double tol = 1.e-12;
-    int maxIt = 100;
+    int maxIt = 200;
     
-    gmres(bVec, x, 20, tol, maxIt, pc);
-    
-    cout << "GMRES iters = " << maxIt << endl;
+    switch(s)
+    {
+        case kGMRESSolver:
+            gmres(bVec, x, 20, tol, maxIt, pc);
+            cout << "GMRES iterations: " << maxIt << endl;
+            break;
+        case kJacobiSolver:
+            x = jacobi(bVec, tol, maxIt, pc);
+            cout << "Jacobi iterations: " << maxIt << endl;
+            break;
+    }
     
     result.a.tube(0, 0, n_rows-1, 0) = reshape(x, bl, n_rows).t();
     
