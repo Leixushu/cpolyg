@@ -2,6 +2,11 @@
 
 #include "Equation.h"
 
+/** \addtogroup Equations
+    @{
+*/
+
+/// Two dimensional advection equation, \f$ u_t + \nabla\cdot(\beta u) = 0 \f$
 struct Advection : Equation
 {
     struct betaUDotGradPsi : FnFunctor
@@ -62,3 +67,5 @@ struct Advection : Equation
     double volumeIntegral(int i, arma::vec &psi_x, arma::vec &psi_y);
     double boundaryIntegral(int i, arma::vec &psi, const MeshFn &u);
 };
+
+/**@}*/

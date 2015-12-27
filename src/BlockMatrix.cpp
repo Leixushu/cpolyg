@@ -46,9 +46,8 @@ void BlockMatrix::matvec(double *b)
     delete[] bCopy;
 }
 
-vec BlockMatrix::jacobi(arma::vec &b, double &tol, int &maxIt, Preconditioner &pc)
+void BlockMatrix::jacobi(arma::vec &b, arma::vec &x, double &tol, int &maxIt, Preconditioner &pc)
 {
-    int n = n_rows*bl;
     vec Dinvb = b;
     vec ur;
     vec DinvAur;
@@ -56,11 +55,10 @@ vec BlockMatrix::jacobi(arma::vec &b, double &tol, int &maxIt, Preconditioner &p
     int m;
     
     pc.solve(Dinvb.memptr());
-    ur = zeros<vec>(n);
     
     for (m = 0; m < maxIt; m++)
     {
-        DinvAur = ur;
+        DinvAur = x;
         matvec(DinvAur.memptr());
         
         r = DinvAur - b;
@@ -68,13 +66,11 @@ vec BlockMatrix::jacobi(arma::vec &b, double &tol, int &maxIt, Preconditioner &p
         
         pc.solve(DinvAur.memptr());
         
-        ur = Dinvb + ur - DinvAur;
+        x = Dinvb + x - DinvAur;
     }
     
     tol = norm(r);
     maxIt = m;
-    
-    return ur;
 }
 
 void BlockMatrix::gmres(vec &bvec, vec &xvec, int m, double &tol, int &maxit, Preconditioner &pc)

@@ -71,7 +71,7 @@ MeshFn Jacobian::solve(const MeshFn &b, Preconditioner &pc, Solver s)
             cout << "GMRES iterations: " << maxIt << endl;
             break;
         case kJacobiSolver:
-            x = jacobi(bVec, tol, maxIt, pc);
+            jacobi(bVec, x, tol, maxIt, pc);
             cout << "Jacobi iterations: " << maxIt << endl;
             break;
     }

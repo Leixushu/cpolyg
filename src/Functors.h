@@ -6,6 +6,7 @@
 typedef double (*FnCallback)(double x, double y);
 typedef arma::vec (*VecCallback)(double x, double y);
 
+/// Abstract class for a functor that takes (x,y) coordinates and return a function value
 struct FnFunctor
 {
     virtual double operator()(double x, double y) const = 0;
@@ -16,6 +17,7 @@ struct FnFunctor
     virtual ~FnFunctor() {};
 };
 
+/// Functor that wraps a basic callback function
 struct FnCallbackFunctor : FnFunctor
 {   
     FnCallback cb;
@@ -28,6 +30,7 @@ struct FnCallbackFunctor : FnFunctor
     }
 };
 
+/// Abstract class for a functor that takes (x,y) coordinates and returns a vector
 struct VecFunctor
 {
     int nc;

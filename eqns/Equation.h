@@ -5,6 +5,13 @@
 #include "MeshFn.h"
 #include "Jacobian.h"
 
+/** \defgroup Equations Equations
+ *
+ *  @brief Implementations of discontinuous Galerkin discretizations of various PDEs
+ *  @{
+ */
+
+/// Abstract class for implementing a PDE
 struct Equation
 {
     PolyMesh &msh;
@@ -21,3 +28,5 @@ struct Equation
     
     virtual ~Equation() {};
 };
+
+/**@}*/
