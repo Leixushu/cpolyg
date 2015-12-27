@@ -12,7 +12,7 @@ Jacobian::Jacobian(PolyMesh &a_msh, int a_deg, int a_nc) : msh(a_msh)
     n_rows = msh.np;
     nc = a_nc;
     deg = a_deg;
-    bl = (deg + 1)*(deg + 2)/2;
+    bl = nc*(deg + 1)*(deg + 2)/2;
     
     mat zeroMat = zeros<mat>(bl, bl);
     

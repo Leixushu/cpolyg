@@ -226,5 +226,144 @@ MeshFn Euler::assemble(const MeshFn &U, double t)
     }
     
     return b;
+}
 
+Jacobian Euler::jacobian(const MeshFn &f, double t)
+{
+    int i, j, k;
+    int deg = f.deg;
+    int basisSize = (deg+1)*(deg+2)/2;
+    int diagonalBlock;
+    vec phi = zeros<vec>(basisSize);
+    vec psi = zeros<vec>(basisSize);
+    vec psi_x, psi_y;
+    double w, h;
+    
+    Jacobian J(msh, f.deg, kEulerComponents);
+    
+    volumeTerm.m = deg+1;
+    
+    for (i = 0; i < msh.np; i++)
+    {
+        w = msh.bb[i][2];
+        h = msh.bb[i][3];
+        diagonalBlock = J.rowBlock[i];
+        
+        for (j = 0; j < basisSize; j++)
+        {
+            phi(j) = 1;
+            
+            for (k = 0; k < basisSize; k++)
+            {
+                psi(k) = 1;
+                psi_x = LegDerX(deg + 1, psi) * 2.0/w;
+                psi_y = LegDerY(deg + 1, psi) * 2.0/h;
+
+                
+                psi(k) = 0;
+            }
+            
+            phi(j) = 0;
+        }
+    }
+    
+    return J;
+    
+//     int i, j, k, l, e, i2;
+//     int diagonalBlock, blockIdx, neighbor;
+//     int nv1, nv2, a1, b1, a2, b2;
+//     double w, h;
+//     vec phi = zeros<vec>(basisSize);
+//     vec psi = zeros<vec>(basisSize);
+//     vec psi_x;
+//     vec psi_y;
+//     
+//     volumeTerm.m = deg+1;
+//     boundaryDerivative.m = deg+1;
+//     
+//     Jacobian S(msh, f.deg, 1);
+//     
+//     for (i = 0; i < msh.np; i++)
+//     {
+//         w = msh.bb[i][2];
+//         h = msh.bb[i][3];
+//         diagonalBlock = S.rowBlock[i];
+//         
+//         volumeTerm.i = i;
+//         boundaryDerivative.iPhi = i;
+//         
+//         for (j = 0; j < basisSize; j++)
+//         {
+//             phi(j) = 1;
+//             
+//             volumeTerm.u = phi;
+//             boundaryDerivative.phi = &phi;
+//             
+//             for (k = 0; k < basisSize; k++)
+//             {
+//                 psi(k) = 1;
+//                 psi_x = LegDerX(deg + 1, psi) * 2.0/w;
+//                 psi_y = LegDerY(deg + 1, psi) * 2.0/h;
+//                 
+//                 boundaryDerivative.psi = &psi;
+//                 
+//                 S.blocks[diagonalBlock](k, j) += volumeIntegral(i, psi_x, psi_y);
+//                 
+//                 nv1 = msh.p[i].size();
+//     
+//                 // loop over all edges of the polygon we're in
+//                 for (e = 0; e < nv1; e++)
+//                 {
+//                     a1 = msh.p[i][e];
+//                     b1 = msh.p[i][(e+1)%nv1];
+//     
+//                     msh.getOutwardNormal(i, a1, b1, boundaryDerivative.nx,
+//                                          boundaryDerivative.ny);
+//                     
+//                     boundaryDerivative.iPhi = i;
+//                     boundaryDerivative.iPsi = i;
+//                     S.blocks[diagonalBlock](k, j) -= 
+//                         msh.lineIntegral(boundaryDerivative, a1, b1);
+//                     
+//                     neighbor = i;
+//                     for (blockIdx = S.rowBlock[i] + 1; blockIdx < S.rowBlock[i+1]; blockIdx++)
+//                     {
+//                         i2 = S.colIndices[blockIdx];
+//                         
+//                         nv2 = msh.p[i2].size();
+//                         
+//                         // loop over all edges of the neighboring polygon
+//                         for (l = 0; l < nv2; l++)
+//                         {
+//                             a2 = msh.p[i2][l];
+//                             b2 = msh.p[i2][(l+1)%nv2];
+//                             // have we found a match?
+//                             if ((a1 == a2 && b1 == b2) || (a1 == b2 && b1 == a2))
+//                             {
+//                                 neighbor = i2;
+//                                 break;
+//                             }
+//                         }
+//                         
+//                         if (neighbor != i)
+//                         {
+//                             boundaryDerivative.iPhi = neighbor;
+//                             boundaryDerivative.iPsi = i;
+//                             boundaryDerivative.nx *= -1;
+//                             boundaryDerivative.ny *= -1;
+//                             S.blocks[blockIdx](k, j) += 
+//                                 msh.lineIntegral(boundaryDerivative, a1, b1);
+//                             
+//                             break;
+//                         }
+//                     }
+//                 }
+//                 
+//                 psi(k) = 0;
+//             }
+//             phi(j) = 0;
+//         }
+//     }
+//     
+//     return S;
 }

@@ -6,6 +6,7 @@
 #define kEulerComponents 4
 
 typedef arma::vec::fixed<kEulerComponents> EulerVariables;
+typedef arma::mat::fixed<kEulerComponents, kEulerComponents> EulerJacobian;
 
 struct Euler : Equation
 {
@@ -85,8 +86,9 @@ struct Euler : Equation
     static void flux(const EulerVariables &U, double gamma, 
         arma::vec &flux_x, arma::vec &flux_y, double &c, double &u, double &v);
     
-    MeshFn assemble(const MeshFn &f, double t);
-    
     arma::vec boundaryIntegral(int i, const arma::vec &psi, const MeshFn &U);
     arma::vec volumeIntegral(int i, const arma::vec &psi_x, const arma::vec &psi_y);
+    
+    MeshFn assemble(const MeshFn &f, double t);
+    Jacobian jacobian(const MeshFn &f, double t = 0);
 };
