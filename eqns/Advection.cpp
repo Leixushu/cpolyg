@@ -126,7 +126,8 @@ double Advection::boundaryIntegral(int i, vec &psi, const MeshFn &u)
         
         msh.getOutwardNormal(i, a1, b1, boundaryTerm.nx, boundaryTerm.ny);
         boundaryTerm.iPlus = neighbor;
-        boundaryTerm.uPlus = u.a.tube(neighbor, 0);
+        //boundaryTerm.uPlus = u.a.tube(neighbor, 0);
+        boundaryTerm.uPlus = u.a.slice(neighbor);
         
         integ += msh.lineIntegral(boundaryTerm, a1, b1);
     }
@@ -156,8 +157,10 @@ MeshFn Advection::assemble(const MeshFn &u, double t/* = 0 */)
         h = msh.bb[i][3];
         
         volumeTerm.i = i;
-        volumeTerm.u = u.a.tube(i, 0);
-        boundaryTerm.uMinus = u.a.tube(i, 0);
+        //volumeTerm.u = u.a.tube(i, 0);
+        volumeTerm.u = u.a.slice(i);
+        //boundaryTerm.uMinus = u.a.tube(i, 0);
+        boundaryTerm.uMinus = u.a.slice(i);
         boundaryTerm.iMinus = i;
         
         for (j = 0; j < basisSize; j++)
@@ -167,8 +170,10 @@ MeshFn Advection::assemble(const MeshFn &u, double t/* = 0 */)
             psi_x = LegDerX(deg + 1, psi) * 2.0/w;
             psi_y = LegDerY(deg + 1, psi) * 2.0/h;
             
-            b.a(i, 0, j) = volumeIntegral(i, psi_x, psi_y);
-            b.a(i, 0, j) -= boundaryIntegral(i, psi, u);
+            //b.a(i, 0, j) = volumeIntegral(i, psi_x, psi_y);
+            b.a(j, 0, i) = volumeIntegral(i, psi_x, psi_y);
+            //b.a(i, 0, j) -= boundaryIntegral(i, psi, u);
+            b.a(j, 0, i) -= boundaryIntegral(i, psi, u);
           
             psi[j] = 0.0;
         }

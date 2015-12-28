@@ -35,18 +35,18 @@ LIBSRC := PolyMesh.cpp MeshFn.cpp Meshes.cpp Triangulation.cpp Functors.cpp \
 	   Advection.cpp Euler.cpp EulerVortex.cpp
 LIBOBJS := $(addprefix build/, $(notdir $(patsubst %.cpp,%.o, $(LIBSRC)))) \
 		   $(addprefix build/, $(notdir $(patsubst %.c,%.o, $(LIBCSRC))))
-OUTPUT := lib/libcpolyg.a examples/adv examples/eul examples/test
+		   
+EXAMPLES := examples/test examples/ExpAdv examples/ImpAdv examples/ExpEul
 
-TESTOBJS := build/test.o
-ADVOBJS := build/adv.o
-EULOBJS := build/eul.o
-
-OBJS := $(LIBOBJS) $(ADVOBJS) $(EULOBJS) $(TESTOBJS)
+OBJS := $(LIBOBJS) $(addprefix build/, $(notdir $(addsuffix .o, $(EXAMPLES))))
 DEPS := $(addprefix build/, $(notdir $(patsubst %.o,%.d, $(OBJS))))
 
 .PHONY: all adv test eul clean
 
-all: adv test eul
+all: $(EXAMPLES)
+
+examples/%: build/%.o $(LIBOBJS) Makefile
+	$(CXX) $(CFLAGS) $(LIBOBJS) $< $(LIBS) -o $@
 
 adv: $(LIBOBJS) $(ADVOBJS) Makefile
 	$(CXX) $(CFLAGS) $(LIBOBJS) $(ADVOBJS) $(LIBS) -o examples/adv
@@ -66,6 +66,6 @@ build/%.o: %.c Makefile
 	$(CC) -MM -MT '$@' $(CFLAGS) $< > build/$*.d
 
 clean:
-	rm -f $(OBJS) $(DEPS) $(OUTPUT)
+	rm -f $(OBJS) $(DEPS) $(EXAMPLES)
 
 -include $(DEPS)

@@ -15,7 +15,7 @@ MeshFn::MeshFn(PolyMesh &a_msh, int a_deg, int a_nc) : msh(a_msh)
     deg = a_deg;
     int basisSize = (deg+1)*(deg+2)/2;
     
-    a = cube(msh.np, nc, basisSize);
+    a = cube(basisSize, nc, msh.np);
 }
 
 MeshFn::MeshFn(PolyMesh &a_msh, FnCallback cb, int a_deg) : msh(a_msh)
@@ -27,7 +27,7 @@ MeshFn::MeshFn(PolyMesh &a_msh, FnCallback cb, int a_deg) : msh(a_msh)
     
     basisSize = (deg+1)*(deg+2)/2;
     
-    a = cube(msh.np, nc, basisSize);
+    a = cube(basisSize, nc, msh.np);
     
     interp(functor, 0);
 }
@@ -128,7 +128,7 @@ void MeshFn::interp(const VecFunctor &cb, int component/* = 0 */)
         
         for (i = 0; i < cb.nc; i++)
         {
-            a.tube(p, component + i) = solve(G, vals.col(i));
+            a.slice(p).col(component + i) = solve(G, vals.col(i));
         }
     }
 }
@@ -140,7 +140,7 @@ double MeshFn::eval(double x, double y, int p, int c/* = 0 */) const
     
     msh.getLocalCoordinates(p, x, y, xx, yy);
     
-    coeffs = a.tube(p, c);
+    coeffs = a.slice(p).col(c);
     
     return Leg2D(xx, yy, deg+1, coeffs);
 }

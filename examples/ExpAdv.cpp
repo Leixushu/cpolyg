@@ -38,8 +38,8 @@ int main(int argc, char ** argv)
 {
     using namespace std;
     
-    int deg = 0;
-    double h = 0.02;
+    int deg = 1;
+    double h = 0.05;
     
     PolyMesh msh = honeycombUnitSquare(h);
     msh.gnuplot();
@@ -52,8 +52,6 @@ int main(int argc, char ** argv)
     MeshFn f = MeshFn(msh, deg, 1);
     f.interp(exact);
     
-    Jacobian B = eqn.jacobian(f);
-    
     MeshFn unp1 = f;
     
     RK4 ti(M, eqn);
@@ -62,19 +60,11 @@ int main(int argc, char ** argv)
     int i;
     double dt;
     
-    K = 10*M_PI/h;
-    //dt = M_PI/K/20;
-    dt = 0.1;
+    dt = h/10;
+    K = M_PI/dt;
     
     cout << "Using h = " << h << ", dt = " << dt << endl;
     cout << "Computing total of " << K << " timesteps." << endl;
-    
-    B *= -dt;
-    B += M;
-    
-    B.spy("plt/B.gnu");
-    
-    BlockJacobi pc(B);
     
     for (i = 0; i < K; i++)
     {
@@ -82,7 +72,7 @@ int main(int argc, char ** argv)
             cout << "Beginning timestep " << i << ", t=" << i*dt << endl;
         
         unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
-        unp1 = B.solve(M.dot(unp1), pc, kJacobiSolver);
+        unp1 = ti.advance(unp1, dt);
     }
     unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
     

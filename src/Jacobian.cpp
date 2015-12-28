@@ -43,10 +43,9 @@ MeshFn Jacobian::dot(const MeshFn &x)
     assert(nc == 1);
     
     MeshFn result(msh, deg, nc);
-    mat component = x.a.tube(0, 0, n_rows-1, 0);
-    vec b = matvec(vectorise(component, 1).t());
+    vec b = matvec(vectorise(x.a));
     
-    result.a.tube(0, 0, n_rows-1, 0) = reshape(b, bl, n_rows).t();
+    result.a.tube(0, 0, bl-1, 0) = reshape(b, bl, msh.np);
     
     return result;
 }
@@ -57,8 +56,7 @@ MeshFn Jacobian::solve(const MeshFn &b, Preconditioner &pc, Solver s)
     assert(nc == 1);
     
     MeshFn result(msh, deg, nc);
-    mat component = b.a.tube(0, 0, n_rows-1, 0);
-    vec bVec = vectorise(component, 1).t();
+    vec bVec = vectorise(b.a);
     vec x = zeros<vec>(bVec.n_rows);
     
     double tol = 1.e-12;
@@ -76,7 +74,7 @@ MeshFn Jacobian::solve(const MeshFn &b, Preconditioner &pc, Solver s)
             break;
     }
     
-    result.a.tube(0, 0, n_rows-1, 0) = reshape(x, bl, n_rows).t();
+    result.a.tube(0, 0, bl-1, 0) = reshape(x, bl, msh.np);
     
     return result;
 }

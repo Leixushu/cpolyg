@@ -62,14 +62,12 @@ MeshFn MassMatrix::solve(const MeshFn &fn) const
     
     for (component = 0; component < fn.nc; component++)
     {
-        mat fnComponent = fn.a.tube(0, component, result.a.n_rows - 1, component);
         for (i = 0; i < msh.np; i++)
         {
-            vec b = fnComponent.row(i).t();
+            vec b = fn.a.slice(i).col(component);
             vec x = arma::solve(blocks[i], b);
             
-            result.a.tube(i, component, i, component) = 
-                reshape(x, basisSize, 1).t();
+            result.a.slice(i).col(component) = x;
         }
     }
     
@@ -84,13 +82,11 @@ MeshFn MassMatrix::dot(const MeshFn &fn) const
     
     for (component = 0; component < fn.nc; component++)
     {
-        mat fnComponent = fn.a.tube(0, component, result.a.n_rows - 1, component);
         for (i = 0; i < msh.np; i++)
         {
-            vec b = blocks[i]*fnComponent.row(i).t();
+            vec b = blocks[i]*fn.a.slice(i).col(component);
             
-            result.a.tube(i, component, i, component) = 
-                reshape(b, basisSize, 1).t();
+            result.a.slice(i).col(component) = b;
         }
     }
     

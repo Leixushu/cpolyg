@@ -7,10 +7,10 @@ using namespace std;
 EulerVariables Euler::computeVariables(double x, double y, int m, const mat &U)
 {
     EulerVariables values;
-    values(0) = Leg2D(x, y, m, U.row(0).t());
-    values(1) = Leg2D(x, y, m, U.row(1).t());
-    values(2) = Leg2D(x, y, m, U.row(2).t());
-    values(3) = Leg2D(x, y, m, U.row(3).t());
+    values(0) = Leg2D(x, y, m, U.col(0));
+    values(1) = Leg2D(x, y, m, U.col(1));
+    values(2) = Leg2D(x, y, m, U.col(2));
+    values(3) = Leg2D(x, y, m, U.col(3));
     
     return values;
 }
@@ -146,7 +146,8 @@ vec Euler::boundaryIntegral(int i, const vec &psi, const MeshFn &U)
             if (neighbor != i) break;
         }
         
-        UNeighbor = U.a.tube(neighbor, 0, neighbor, kEulerComponents-1);
+        //UNeighbor = U.a.tube(neighbor, 0, neighbor, kEulerComponents-1);
+        UNeighbor = U.a.slice(neighbor);
         
         msh.getOutwardNormal(i, a1, b1, boundaryTerm.nx, boundaryTerm.ny);
         boundaryTerm.iPlus = neighbor;
@@ -201,8 +202,9 @@ MeshFn Euler::assemble(const MeshFn &U, double t)
         w = msh.bb[i][2];
         h = msh.bb[i][3];
         
-        // extract the local coefficients for this component
-        ULocal = U.a.tube(i, 0, i, kEulerComponents-1);
+        // extract the local coefficients for all components in this polygon
+        //ULocal = U.a.tube(i, 0, i, kEulerComponents-1);
+        ULocal = U.a.slice(i);
         
         volumeTerm.i = i;
         volumeTerm.U = &ULocal;
@@ -216,10 +218,12 @@ MeshFn Euler::assemble(const MeshFn &U, double t)
             psi_x = LegDerX(deg + 1, psi) * 2.0/w;
             psi_y = LegDerY(deg + 1, psi) * 2.0/h;
             
-            b.a.subcube(i, 0, j, i, kEulerComponents-1, j) 
-                = volumeIntegral(i, psi_x, psi_y);
-            b.a.subcube(i, 0, j, i, kEulerComponents-1, j) 
-                -= boundaryIntegral(i, psi, U);
+            b.a.slice(i).row(j) = volumeIntegral(i, psi_x, psi_y).t();
+            //b.a.subcube(i, 0, j, i, kEulerComponents-1, j) 
+            //    = volumeIntegral(i, psi_x, psi_y);
+            b.a.slice(i).row(j) -= boundaryIntegral(i, psi, U).t();
+            //b.a.subcube(i, 0, j, i, kEulerComponents-1, j) 
+            //    -= boundaryIntegral(i, psi, U);
             
             psi[j] = 0.0;
         }
