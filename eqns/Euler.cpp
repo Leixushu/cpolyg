@@ -43,14 +43,14 @@ void Euler::flux(const EulerVariables &U, double gamma, vec &flux_x, vec &flux_y
     c = sqrt(gamma*P/rho);
 }
 
-vec Euler::FluxDotGradPsi::operator()(double x, double y) const
+mat Euler::FluxDotGradPsi::operator()(double x, double y) const
 {
     double xx, yy, c, u, v;
     EulerVariables vars, flux_x, flux_y;
     
     msh.getLocalCoordinates(i, x, y, xx, yy);
     
-    vars = computeVariables(xx, yy, m, *U);
+    vars = computeVariables(xx, yy, m, U);
     
     flux(vars, gamma, flux_x, flux_y, c, u, v);
     
@@ -58,7 +58,7 @@ vec Euler::FluxDotGradPsi::operator()(double x, double y) const
          + Leg2D(xx, yy, m, *psi_y)*flux_y;
 }
 
-vec Euler::LaxFriedrichsFlux::operator()(double x, double y) const
+mat Euler::LaxFriedrichsFlux::operator()(double x, double y) const
 {
     EulerVariables varsMinus, varsPlus, flux_xMinus, flux_yMinus, flux_xPlus, flux_yPlus;
     double xMinus, yMinus, xPlus, yPlus;
@@ -71,7 +71,7 @@ vec Euler::LaxFriedrichsFlux::operator()(double x, double y) const
     if (iPlus != iMinus || exact == NULL)
     {
         msh.getLocalCoordinates(iPlus, x, y, xPlus, yPlus);
-        varsPlus = computeVariables(xPlus, yPlus, m, *UPlus);
+        varsPlus = computeVariables(xPlus, yPlus, m, UPlus);
     } else
     {
         rhoPlus = exact->rho(x, y);
@@ -89,7 +89,7 @@ vec Euler::LaxFriedrichsFlux::operator()(double x, double y) const
     
     msh.getLocalCoordinates(iMinus, x, y, xMinus, yMinus);
     psiVal = Leg2D(xMinus, yMinus, m, *psi);
-    varsMinus = computeVariables(xMinus, yMinus, m, *UMinus);
+    varsMinus = computeVariables(xMinus, yMinus, m, UMinus);
     flux(varsMinus, gamma, flux_xMinus, flux_yMinus, cMinus, uMinus, vMinus);
     
     VDotNMinus = uMinus*nx + vMinus*ny;
@@ -102,272 +102,18 @@ vec Euler::LaxFriedrichsFlux::operator()(double x, double y) const
                 - alpha*(varsPlus - varsMinus))*psiVal;
 }
 
-vec Euler::boundaryIntegral(int i, const vec &psi, const MeshFn &U)
+Euler::Euler(PolyMesh &a_msh, double a_gamma) : Equation(a_msh)
 {
-    int a1, b1, a2, b2;
-    int nv1, nv2;
-    int j, k, l, i2;
-    int neighbor;
-    vec::fixed<kEulerComponents> integ;
-    mat UNeighbor;
-    
-    integ.fill(0);
-    
-    boundaryTerm.psi = &psi;
-    
-    nv1 = msh.p[i].size();
-    // loop over all edges of the polygon we're in
-    for (j = 0; j < nv1; j++)
-    {
-        a1 = msh.p[i][j];
-        b1 = msh.p[i][(j+1)%nv1];
-        
-        neighbor = i;
-        
-        // loop over all neighboring polygons to find the one that shares this edge
-        for (k = 0; k < msh.p2p[i].size(); k++)
-        {
-            i2 = msh.p2p[i][k];
-            nv2 = msh.p[i2].size();
-            // loop over all edges of the neighboring polygon
-            for (l = 0; l < nv2; l++)
-            {
-                a2 = msh.p[i2][l];
-                b2 = msh.p[i2][(l+1)%nv2];
-                // have we found a match?
-                if ((a1 == a2 && b1 == b2) || (a1 == b2 && b1 == a2))
-                {
-                    neighbor = i2;
-                    break;
-                }
-            }
-            
-            // if we've found a match, don't need to keep looking
-            if (neighbor != i) break;
-        }
-        
-        //UNeighbor = U.a.tube(neighbor, 0, neighbor, kEulerComponents-1);
-        UNeighbor = U.a.slice(neighbor);
-        
-        msh.getOutwardNormal(i, a1, b1, boundaryTerm.nx, boundaryTerm.ny);
-        boundaryTerm.iPlus = neighbor;
-        boundaryTerm.UPlus = &UNeighbor;
-        
-        integ += msh.lineIntegral(boundaryTerm, a1, b1);
-    }
-    
-    return integ;
+    nc = kEulerComponents;
+    gamma = a_gamma;
+    exact = NULL;
+    volumeTerm = new FluxDotGradPsi(a_msh, gamma);
+    boundaryTerm = new LaxFriedrichsFlux(a_msh, gamma);
 }
 
-vec Euler::volumeIntegral(int i, const vec &psi_x, const vec &psi_y)
+Euler::~Euler()
 {
-    volumeTerm.psi_x = &psi_x;
-    volumeTerm.psi_y = &psi_y;
-    
-    return msh.polygonIntegral(volumeTerm, i);
-}
-
-Euler::Euler(PolyMesh &a_msh, double a_gamma)
-: Equation(a_msh),  exact(NULL), gamma(a_gamma), volumeTerm(a_msh, a_gamma), 
-  boundaryTerm(a_msh, a_gamma)
-{
-    boundaryTerm.exact = NULL;
-}
-
-MeshFn Euler::assemble(const MeshFn &U, double t)
-{
-    int i, j;
-    int deg = U.deg;
-    int basisSize = (deg+1)*(deg+2)/2;
-    double w, h;
-    mat ULocal;
-    
-    vec psi = zeros<vec>(basisSize);
-    vec psi_x;
-    vec psi_y;
-    
-    // four components for 2D Euler equations
-    MeshFn b(msh, deg, kEulerComponents);
-    
-    volumeTerm.m = deg+1;
-    boundaryTerm.m = deg+1;
-    if(exact)
-    {
-        exact->t = t;
-    }
-    
-    // loop over all polygons
-    for (i = 0; i < msh.np; i++)
-    {
-        w = msh.bb[i][2];
-        h = msh.bb[i][3];
-        
-        // extract the local coefficients for all components in this polygon
-        //ULocal = U.a.tube(i, 0, i, kEulerComponents-1);
-        ULocal = U.a.slice(i);
-        
-        volumeTerm.i = i;
-        volumeTerm.U = &ULocal;
-        boundaryTerm.UMinus = &ULocal;
-        boundaryTerm.iMinus = i;
-        
-        for (j = 0; j < basisSize; j++)
-        {
-            psi[j] = 1.0;
-            
-            psi_x = LegDerX(deg + 1, psi) * 2.0/w;
-            psi_y = LegDerY(deg + 1, psi) * 2.0/h;
-            
-            b.a.slice(i).row(j) = volumeIntegral(i, psi_x, psi_y).t();
-            //b.a.subcube(i, 0, j, i, kEulerComponents-1, j) 
-            //    = volumeIntegral(i, psi_x, psi_y);
-            b.a.slice(i).row(j) -= boundaryIntegral(i, psi, U).t();
-            //b.a.subcube(i, 0, j, i, kEulerComponents-1, j) 
-            //    -= boundaryIntegral(i, psi, U);
-            
-            psi[j] = 0.0;
-        }
-    }
-    
-    return b;
-}
-
-Jacobian Euler::jacobian(const MeshFn &f, double t)
-{
-    int i, j, k;
-    int deg = f.deg;
-    int basisSize = (deg+1)*(deg+2)/2;
-    int diagonalBlock;
-    vec phi = zeros<vec>(basisSize);
-    vec psi = zeros<vec>(basisSize);
-    vec psi_x, psi_y;
-    double w, h;
-    
-    Jacobian J(msh, f.deg, kEulerComponents);
-    
-    volumeTerm.m = deg+1;
-    
-    for (i = 0; i < msh.np; i++)
-    {
-        w = msh.bb[i][2];
-        h = msh.bb[i][3];
-        diagonalBlock = J.rowBlock[i];
-        
-        for (j = 0; j < basisSize; j++)
-        {
-            phi(j) = 1;
-            
-            for (k = 0; k < basisSize; k++)
-            {
-                psi(k) = 1;
-                psi_x = LegDerX(deg + 1, psi) * 2.0/w;
-                psi_y = LegDerY(deg + 1, psi) * 2.0/h;
-
-                
-                psi(k) = 0;
-            }
-            
-            phi(j) = 0;
-        }
-    }
-    
-    return J;
-    
-//     int i, j, k, l, e, i2;
-//     int diagonalBlock, blockIdx, neighbor;
-//     int nv1, nv2, a1, b1, a2, b2;
-//     double w, h;
-//     vec phi = zeros<vec>(basisSize);
-//     vec psi = zeros<vec>(basisSize);
-//     vec psi_x;
-//     vec psi_y;
-//     
-//     volumeTerm.m = deg+1;
-//     boundaryDerivative.m = deg+1;
-//     
-//     Jacobian S(msh, f.deg, 1);
-//     
-//     for (i = 0; i < msh.np; i++)
-//     {
-//         w = msh.bb[i][2];
-//         h = msh.bb[i][3];
-//         diagonalBlock = S.rowBlock[i];
-//         
-//         volumeTerm.i = i;
-//         boundaryDerivative.iPhi = i;
-//         
-//         for (j = 0; j < basisSize; j++)
-//         {
-//             phi(j) = 1;
-//             
-//             volumeTerm.u = phi;
-//             boundaryDerivative.phi = &phi;
-//             
-//             for (k = 0; k < basisSize; k++)
-//             {
-//                 psi(k) = 1;
-//                 psi_x = LegDerX(deg + 1, psi) * 2.0/w;
-//                 psi_y = LegDerY(deg + 1, psi) * 2.0/h;
-//                 
-//                 boundaryDerivative.psi = &psi;
-//                 
-//                 S.blocks[diagonalBlock](k, j) += volumeIntegral(i, psi_x, psi_y);
-//                 
-//                 nv1 = msh.p[i].size();
-//     
-//                 // loop over all edges of the polygon we're in
-//                 for (e = 0; e < nv1; e++)
-//                 {
-//                     a1 = msh.p[i][e];
-//                     b1 = msh.p[i][(e+1)%nv1];
-//     
-//                     msh.getOutwardNormal(i, a1, b1, boundaryDerivative.nx,
-//                                          boundaryDerivative.ny);
-//                     
-//                     boundaryDerivative.iPhi = i;
-//                     boundaryDerivative.iPsi = i;
-//                     S.blocks[diagonalBlock](k, j) -= 
-//                         msh.lineIntegral(boundaryDerivative, a1, b1);
-//                     
-//                     neighbor = i;
-//                     for (blockIdx = S.rowBlock[i] + 1; blockIdx < S.rowBlock[i+1]; blockIdx++)
-//                     {
-//                         i2 = S.colIndices[blockIdx];
-//                         
-//                         nv2 = msh.p[i2].size();
-//                         
-//                         // loop over all edges of the neighboring polygon
-//                         for (l = 0; l < nv2; l++)
-//                         {
-//                             a2 = msh.p[i2][l];
-//                             b2 = msh.p[i2][(l+1)%nv2];
-//                             // have we found a match?
-//                             if ((a1 == a2 && b1 == b2) || (a1 == b2 && b1 == a2))
-//                             {
-//                                 neighbor = i2;
-//                                 break;
-//                             }
-//                         }
-//                         
-//                         if (neighbor != i)
-//                         {
-//                             boundaryDerivative.iPhi = neighbor;
-//                             boundaryDerivative.iPsi = i;
-//                             boundaryDerivative.nx *= -1;
-//                             boundaryDerivative.ny *= -1;
-//                             S.blocks[blockIdx](k, j) += 
-//                                 msh.lineIntegral(boundaryDerivative, a1, b1);
-//                             
-//                             break;
-//                         }
-//                     }
-//                 }
-//                 
-//                 psi(k) = 0;
-//             }
-//             phi(j) = 0;
-//         }
-//     }
-//     
-//     return S;
+    delete volumeTerm;
+    delete boundaryTerm;
+    if(exact) delete exact;
 }

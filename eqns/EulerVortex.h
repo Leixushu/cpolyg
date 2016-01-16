@@ -19,7 +19,7 @@ struct EulerVortex : Euler
         double p(double x, double y) const;
         double rhoE(double x, double y) const;
         
-        arma::vec operator()(double x, double y) const;
+        arma::mat operator()(double x, double y) const;
         
         VortexSolution() {};
     };

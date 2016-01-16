@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdlib>
+#include <armadillo>
 #include "PolyMesh.h"
 #include "MeshFn.h"
 #include "Jacobian.h"
@@ -14,19 +15,81 @@
 /// Abstract class for implementing a PDE
 struct Equation
 {
-    PolyMesh &msh;
-    
-    Equation(PolyMesh &m) : msh(m) { };
-    
-    virtual MeshFn assemble(const MeshFn &f, double t) = 0;
-    virtual Jacobian jacobian(const MeshFn &f, double t)
+    struct VolumeTermFunctor : VecFunctor
     {
-        std::cout << "Jacobian matrix not implemented for this equation" << std::endl;
-        abort();
-        return Jacobian(msh);
+        int m;
+        int i;
+        
+        const arma::vec *psi_x, *psi_y;
+        arma::mat U;
+        PolyMesh &msh;
+        
+        VolumeTermFunctor(PolyMesh &a_msh) : msh(a_msh) { };
+        
+        virtual arma::mat operator()(double x, double y) const = 0;
     };
     
-    virtual ~Equation() {};
+    struct NumericalFluxFunctor : VecFunctor
+    {
+        double nx, ny;
+        int m;
+        int iMinus;
+        int iPlus;
+        
+        const arma::vec *psi;
+        arma::mat UMinus, UPlus;
+        
+        PolyMesh &msh;
+        
+        NumericalFluxFunctor(PolyMesh &a_msh) : msh(a_msh) { };
+        
+        virtual arma::mat operator()(double x, double y) const = 0;
+    };
+    
+    struct VolumeTermJacobianFunctor : VecFunctor
+    {
+        int m;
+        int i;
+        
+        const arma::vec *psi_x, *psi_y, *phi;
+        PolyMesh &msh;
+        
+        VolumeTermJacobianFunctor(PolyMesh &a_msh) : msh(a_msh) { };
+        
+        virtual arma::mat operator()(double x, double y) const = 0;
+    };
+    
+    struct NumericalFluxJacobianFunctor : VecFunctor
+    {
+        double nx, ny;
+        int m;
+        int iPhi, iPsi;
+        
+        const arma::vec *psi, *phi;
+        PolyMesh &msh;
+        
+        NumericalFluxJacobianFunctor(PolyMesh &a_msh) : msh(a_msh) { };
+        
+        virtual arma::mat operator()(double x, double y) const = 0;
+    };
+    
+    PolyMesh &msh;
+    
+    VolumeTermFunctor *volumeTerm;
+    NumericalFluxFunctor *boundaryTerm;
+    
+    VolumeTermJacobianFunctor *volumeJacobian;
+    NumericalFluxJacobianFunctor *boundaryDerivative;
+    
+    int nc;
+    
+    Equation(PolyMesh &a_msh);
+    
+    arma::vec boundaryIntegral(int i, const arma::vec &psi, const MeshFn &U);
+    arma::vec volumeIntegral(int i, const arma::vec &psi_x, const arma::vec &psi_y);
+    
+    MeshFn assemble(const MeshFn &f, double t);
+    Jacobian jacobian(const MeshFn &f, double t);
 };
 
 /**@}*/

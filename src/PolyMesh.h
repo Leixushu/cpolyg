@@ -43,7 +43,7 @@ struct PolyMesh
     
     inline double polygonIntegral(FnFunctor &cb, int pi)
     {
-        int i, k;
+        unsigned int i, k;
         double area, integ, x1, x2, x3, y1, y2, y3, x, y, z;
         auto &qr = Quadratures::tri6;
         
@@ -78,7 +78,7 @@ struct PolyMesh
     
     inline arma::vec polygonIntegral(VecFunctor &cb, int pi)
     {
-        int i, k;
+        unsigned int i, k;
         double area, x1, x2, x3, y1, y2, y3, x, y;
         auto &qr = Quadratures::tri6;
         
@@ -114,7 +114,7 @@ struct PolyMesh
     
     inline double lineIntegral(FnFunctor &cb, int a, int b)
     {
-        int k;
+        unsigned int k;
         double integ, x1, y1, x2, y2, x, y, length;
         auto &qr = Quadratures::lin6;
         
@@ -140,7 +140,7 @@ struct PolyMesh
     
     inline arma::vec lineIntegral(VecFunctor &cb, int a, int b)
     {
-        int k;
+        unsigned int k;
         double x1, y1, x2, y2, x, y, length;
         auto &qr = Quadratures::lin6;
         

@@ -7,7 +7,6 @@ using namespace std;
 MassMatrix::MassMatrix(PolyMesh &m, int d) : msh(m), deg(d)
 {
     int i, j, k;
-    int N;
     double integ;
     ProductFunctor prod(msh);
     
@@ -22,8 +21,6 @@ MassMatrix::MassMatrix(PolyMesh &m, int d) : msh(m), deg(d)
     prod.psi = zeros<vec>(basisSize);
     
     prod.m = deg+1;
-    
-    N = msh.np*basisSize;
     
     for (i = 0; i < msh.np; i++)
     {

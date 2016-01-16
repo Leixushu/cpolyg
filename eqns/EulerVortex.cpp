@@ -36,7 +36,7 @@ double EulerVortex::VortexSolution::rhoE(double x, double y) const
 	return p(x, y)/(gamma - 1) + 0.5*rho(x, y)*(pow(u(x,y),2) + pow(v(x,y),2));
 }
 
-vec EulerVortex::VortexSolution::operator()(double x, double y) const
+mat EulerVortex::VortexSolution::operator()(double x, double y) const
 {
     vec result(kEulerComponents);
     
@@ -66,11 +66,11 @@ EulerVortex::EulerVortex(PolyMesh &m, double g) : Euler(m, g)
     vortex->vBar = vortex->uInf*sin(vortex->theta);
     
     vortex->pInf = 1;
-    //vortex->t = 0;
+    vortex->t = 0;
     
     exact = vortex;
     
-    boundaryTerm.exact = exact;
+    ((LaxFriedrichsFlux*)(boundaryTerm))->exact = exact;
 }
 
 MeshFn EulerVortex::exactSolution(const double t, const int deg)

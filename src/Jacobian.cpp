@@ -6,7 +6,7 @@ using namespace arma;
 Jacobian::Jacobian(PolyMesh &a_msh, int a_deg, int a_nc) : msh(a_msh)
 {
     int i;
-    int j;
+    unsigned int j;
     int numBlocks;
     
     n_rows = msh.np;

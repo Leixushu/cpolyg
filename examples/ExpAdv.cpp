@@ -38,10 +38,10 @@ int main(int argc, char ** argv)
 {
     using namespace std;
     
-    int deg = 1;
-    double h = 0.05;
+    int deg = 0;
+    double h = 0.02;
     
-    PolyMesh msh = honeycombUnitSquare(h);
+    PolyMesh msh = hexUnitSquare(h);
     msh.gnuplot();
     
     MassMatrix M(msh, deg);
@@ -54,14 +54,17 @@ int main(int argc, char ** argv)
     
     MeshFn unp1 = f;
     
-    RK4 ti(M, eqn);
+    //RK4 ti(M, eqn);
+    ForwardEuler ti(M, eqn);
     
     int K;
     int i;
     double dt;
     
-    dt = h/10;
-    K = M_PI/dt;
+    //dt = h/10;
+    dt = h/5;
+    //K = M_PI/dt;
+    K = 120;
     
     cout << "Using h = " << h << ", dt = " << dt << endl;
     cout << "Computing total of " << K << " timesteps." << endl;

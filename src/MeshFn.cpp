@@ -147,7 +147,8 @@ double MeshFn::eval(double x, double y, int p, int c/* = 0 */) const
 
 void MeshFn::gnuplot(std::string filename) const
 {
-    int i, j, k, c;
+    int i, c;
+    unsigned int j, k;
     int oldPrecision;
     double x1, x2, x3, y1, y2, y3, x, y, val;
     ofstream plotFile;
@@ -230,7 +231,7 @@ MeshFn & MeshFn::operator=(const MeshFn &fn)
     return *this;
 }
 
-vec MeshFn::L2Difference::operator()(double x, double y) const
+mat MeshFn::L2Difference::operator()(double x, double y) const
 {
     int c;
     vec error(fn.nc);

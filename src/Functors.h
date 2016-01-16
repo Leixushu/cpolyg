@@ -34,7 +34,7 @@ struct FnCallbackFunctor : FnFunctor
 struct VecFunctor
 {
     int nc;
-    virtual arma::vec operator()(double x, double y) const = 0;
+    virtual arma::mat operator()(double x, double y) const = 0;
     virtual ~VecFunctor() {};
 };
 
@@ -47,7 +47,7 @@ struct VecCallbackFunctor : VecFunctor
         nc = a_nc;
     }
     
-    arma::vec operator()(double x, double y) const
+    arma::mat operator()(double x, double y) const
     {
         return cb(x, y);
     }
@@ -61,7 +61,7 @@ struct VecFnFunctor : VecFunctor
         nc = 1;
     }
     
-    arma::vec operator()(double x, double y) const
+    arma::mat operator()(double x, double y) const
     {
         return arma::vec({fncb(x, y)});
     }

@@ -115,7 +115,7 @@ void PolyMesh::computeTriangulation()
 
 int PolyMesh::addVertex(array<double, 2> vertex)
 {
-    int i;
+    unsigned int i;
     
     for (i = 0; i < v.size(); i++)
     {
@@ -131,7 +131,7 @@ int PolyMesh::addVertex(array<double, 2> vertex)
 
 PolyMesh::PolyMesh(vector<array<double, 2> > points, double width, double height)
 {
-    int i;
+    unsigned int i;
     double x,y;
     array<double, 2> vertex;
     vector<int> polygon;
@@ -232,8 +232,8 @@ template <typename T> int sgn(T val)
 
 void PolyMesh::getOutwardNormal(int i, int a, int b, double &x, double &y)
 {
-    double dx, dy, cx, cy, d, length;
-    int j;
+    double dx, dy, cx, cy, length;
+    unsigned int j;
     int s;
     
     cx = 0;
@@ -251,7 +251,6 @@ void PolyMesh::getOutwardNormal(int i, int a, int b, double &x, double &y)
     
     length = sqrt(dx*dx + dy*dy);
     
-    d = -dy*(v[a][0] - cx) + dx*(v[a][1] - cy);
     s = sgn(-dy*(v[a][0] - cx) + dx*(v[a][1] - cy));
     
     x = -s*dy/length;

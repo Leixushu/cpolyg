@@ -17,7 +17,7 @@ struct MeshFn
             nc = fn.nc;
         };
         
-        arma::vec operator()(double x, double y) const;
+        arma::mat operator()(double x, double y) const;
     };
     
     PolyMesh &msh;

@@ -14,6 +14,7 @@ void Triangulation::doTriangulation()
     
     char switches[] = "zQ";
     int i;
+    unsigned int j;
     
     in.numberofpointattributes = 0;
     in.pointattributelist = NULL;
@@ -22,10 +23,10 @@ void Triangulation::doTriangulation()
     in.numberofpoints = points.size();
     in.pointlist = (double *)malloc(sizeof(double)*2*points.size());
     
-    for (i = 0; i < points.size(); i++)
+    for (j = 0; j < points.size(); j++)
     {
-        in.pointlist[2*i] = points[i][0];
-        in.pointlist[2*i+1] = points[i][1];
+        in.pointlist[2*j] = points[j][0];
+        in.pointlist[2*j+1] = points[j][1];
     }
     
     in.trianglelist = NULL;

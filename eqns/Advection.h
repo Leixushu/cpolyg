@@ -9,63 +9,35 @@
 /// Two dimensional advection equation, \f$ u_t + \nabla\cdot(\beta u) = 0 \f$
 struct Advection : Equation
 {
-    struct betaUDotGradPsi : FnFunctor
+    struct betaUDotGradPsi : VolumeTermFunctor
     {
-        int m;
-        int i;
-    
-        arma::vec *psi_x, *psi_y;
-        arma::vec u;
-        PolyMesh &msh;
-    
-        betaUDotGradPsi(PolyMesh &a_msh) : msh(a_msh) {};
-        
-        double operator()(double x, double y) const;
-    };
-
-    struct phiPsiBetaDotN : FnFunctor
-    {
-        double nx, ny;
-        int m;
-        
-        int iPhi, iPsi;
-    
-        arma::vec *psi;
-        arma::vec *phi;
-        PolyMesh &msh;
-    
-        phiPsiBetaDotN(PolyMesh &a_msh) : msh(a_msh) {};
-    
-        double operator()(double x, double y) const;
-    };
-
-    struct uPsiBetaDotN : FnFunctor
-    {
-        double nx, ny;
-        int m;
-    
-        int iMinus, iPlus;
-    
-        arma::vec *psi;
-        arma::vec uMinus, uPlus;
-        PolyMesh &msh;
-    
-        uPsiBetaDotN(PolyMesh &a_msh) : msh(a_msh) {};
-    
-        double operator()(double x, double y) const;
+        betaUDotGradPsi(PolyMesh &a_msh) : VolumeTermFunctor(a_msh) { nc = 1; };
+        arma::mat operator()(double x, double y) const;
     };
     
-    betaUDotGradPsi volumeTerm;
-    uPsiBetaDotN boundaryTerm;
-    phiPsiBetaDotN boundaryDerivative;
+    struct uPsiBetaDotN : NumericalFluxFunctor
+    {
+        uPsiBetaDotN(PolyMesh &a_msh) : NumericalFluxFunctor(a_msh) { nc = 1; };
+        arma::mat operator()(double x, double y) const;
+    };
+    
+    struct JacobianBetaUDotGradPsi : VolumeTermJacobianFunctor
+    {
+        JacobianBetaUDotGradPsi(PolyMesh &a_msh) : VolumeTermJacobianFunctor(a_msh)
+        {
+            nc = 1;
+        };
+        arma::mat operator()(double x, double y) const;
+    };
+    
+    struct phiPsiBetaDotN : NumericalFluxJacobianFunctor
+    {
+        phiPsiBetaDotN(PolyMesh &a_msh) : NumericalFluxJacobianFunctor(a_msh) { nc = 1; };
+        arma::mat operator()(double x, double y) const;
+    };
     
     Advection(PolyMesh &m);
-    
-    MeshFn assemble(const MeshFn &f, double t = 0);
-    Jacobian jacobian(const MeshFn &f, double t = 0);
-    
-    double volumeIntegral(int i, arma::vec &psi_x, arma::vec &psi_y);
-    double boundaryIntegral(int i, arma::vec &psi, const MeshFn &u);
+    ~Advection();
 };
 
 /**@}*/
