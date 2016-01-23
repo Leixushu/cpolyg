@@ -141,7 +141,9 @@ Jacobian Equation::jacobian(const MeshFn &f, double t)
         diagonalBlock = J.rowBlock[i];
         
         volumeJacobian->i = i;
+        volumeJacobian->U = f.a.slice(i);
         boundaryDerivative->iPhi = i;
+        boundaryDerivative->U = f.a.slice(i);
         
         for (j = 0; j < basisSize; j++)
         {
@@ -170,16 +172,16 @@ Jacobian Equation::jacobian(const MeshFn &f, double t)
                 {
                     a1 = msh.p[i][e];
                     b1 = msh.p[i][(e+1)%nv1];
-    
+                    
+                    // get the outward facing normal vector
                     msh.getOutwardNormal(i, a1, b1, boundaryDerivative->nx,
                                          boundaryDerivative->ny);
                     
                     boundaryDerivative->iPhi = i;
-                    boundaryDerivative->iPsi = i;
-                    J.blocks[diagonalBlock](componentIndices*k, componentIndices*j) -= 
-                        msh.lineIntegral(*boundaryDerivative, a1, b1);
                     
+                    // find the neighboring polygon (or otherwise we're on the exterior)
                     neighbor = i;
+                    boundaryDerivative->neighbor = i;
                     for (blockIdx = J.rowBlock[i] + 1; blockIdx < J.rowBlock[i+1]; blockIdx++)
                     {
                         i2 = J.colIndices[blockIdx];
@@ -201,8 +203,9 @@ Jacobian Equation::jacobian(const MeshFn &f, double t)
                         
                         if (neighbor != i)
                         {
-                            boundaryDerivative->iPhi = neighbor;
-                            boundaryDerivative->iPsi = i;
+                            boundaryDerivative->neighbor = neighbor;
+                            boundaryDerivative->UNeighbor = f.a.slice(neighbor);
+                            boundaryDerivative->iPsi = neighbor;
                             boundaryDerivative->nx *= -1;
                             boundaryDerivative->ny *= -1;
                             J.blocks[blockIdx](componentIndices*k, componentIndices*j) += 
@@ -211,6 +214,14 @@ Jacobian Equation::jacobian(const MeshFn &f, double t)
                             break;
                         }
                     }
+                    
+                    boundaryDerivative->UNeighbor = f.a.slice(neighbor);
+                    boundaryDerivative->nx *= -1;
+                    boundaryDerivative->ny *= -1;
+                    boundaryDerivative->iPsi = i;
+                    J.blocks[diagonalBlock](componentIndices*k, componentIndices*j) -= 
+                        msh.lineIntegral(*boundaryDerivative, a1, b1);
+                    
                 }
                 
                 psi(k) = 0;

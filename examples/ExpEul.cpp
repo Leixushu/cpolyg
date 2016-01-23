@@ -5,21 +5,10 @@
 #include "MeshFn.h"
 #include "Meshes.h"
 #include "MassMatrix.h"
-#include "Advection.h"
 #include "EulerVortex.h"
 #include "TimeIntegration.h"
 
 #define kGamma 1.4
-
-double c5(double x, double y)
-{
-    return 5 + x + 7*x*y + 3*x*x*y;
-}
-
-double gaussian(double x, double y)
-{
-    return exp(-150*((x-0.35)*(x-0.35) + (y-0.5)*(y-0.5)));
-}
 
 int main(int argc, char ** argv)
 {

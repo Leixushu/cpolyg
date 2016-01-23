@@ -52,6 +52,8 @@ struct Equation
         int i;
         
         const arma::vec *psi_x, *psi_y, *phi;
+        arma::mat U;
+        
         PolyMesh &msh;
         
         VolumeTermJacobianFunctor(PolyMesh &a_msh) : msh(a_msh) { };
@@ -63,9 +65,10 @@ struct Equation
     {
         double nx, ny;
         int m;
-        int iPhi, iPsi;
+        int iPhi, iPsi, neighbor;
         
         const arma::vec *psi, *phi;
+        arma::mat U, UNeighbor;
         PolyMesh &msh;
         
         NumericalFluxJacobianFunctor(PolyMesh &a_msh) : msh(a_msh) { };
