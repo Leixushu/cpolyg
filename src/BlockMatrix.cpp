@@ -54,6 +54,28 @@ void BlockMatrix::jacobi(arma::vec &b, arma::vec &x, double &tol, int &maxIt, Pr
     vec r;
     int m;
     
+    // compute the eigenvalues of the Jacobi iteration matrix RJ
+    /* mat RJ(n_rows*bl, n_rows*bl);
+    mat D(n_rows*bl, n_rows*bl);
+    int i, j, k;
+    
+    for (i = 0; i < n_rows; i++)
+    {
+        for (k = rowBlock[i]; k < rowBlock[i+1]; k++)
+        {
+            j = colIndices[k];
+            
+            if (j == i)
+            {
+                D.submat(i*bl, i*bl, size(bl, bl)) = blocks[k];
+            }
+            
+            RJ.submat(i*bl, j*bl, size(bl, bl)) = blocks[k];
+        }
+    }
+    RJ = eye(n_rows*bl, n_rows*bl) - inv(D)*RJ;
+    cx_vec evs = eig_gen(RJ); */
+    
     pc.solve(Dinvb.memptr());
     
     for (m = 0; m < maxIt; m++)

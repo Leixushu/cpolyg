@@ -24,14 +24,11 @@ struct ExactGaussian : FnFunctor
     ExactGaussian(double a_theta) : theta(a_theta) {};
 };
 
-double c5(double x, double y)
+double planarWave(double x, double y)
 {
-    return 5 + x + 7*x*y + 3*x*x*y;
-}
-
-double gaussian(double x, double y)
-{
-    return exp(-150*((x-0.35)*(x-0.35) + (y-0.5)*(y-0.5)));
+    int nx = 10;
+    int ny = 10;
+    return sin(nx*x + ny*y);
 }
 
 int main(int argc, char ** argv)
@@ -41,14 +38,17 @@ int main(int argc, char ** argv)
     int deg = 0;
     double h = 0.02;
     
-    PolyMesh msh = hexUnitSquare(h);
+    PolyMesh msh = triUnitSquare(h);
     msh.gnuplot();
     
     MassMatrix M(msh, deg);
     M.spy("plt/M.gnu");
     Advection eqn(msh);
     
+    //FnCallbackFunctor exact(planarWave);
+    
     ExactGaussian exact(0);
+    
     MeshFn f = MeshFn(msh, deg, 1);
     f.interp(exact);
     
@@ -61,14 +61,14 @@ int main(int argc, char ** argv)
     int i;
     double dt;
     
-    K = 50;
-    dt = h/5;
+    dt = 0.05;
+    K = 100;
     
     cout << "Using h = " << h << ", dt = " << dt << endl;
     cout << "Computing total of " << K << " timesteps." << endl;
     
-//     B *= -dt;
-//     B += M;
+    B *= -dt;
+    B += M;
     
     B.spy("plt/B.gnu");
     
@@ -80,9 +80,7 @@ int main(int argc, char ** argv)
             cout << "Beginning timestep " << i << ", t=" << i*dt << endl;
         
         unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
-        //unp1 = B.solve(M.dot(unp1), pc, kJacobiSolver);
-        
-        unp1 += dt*M.solve(B.dot(unp1));
+        unp1 = B.solve(M.dot(unp1), pc, kJacobiSolver);
     }
     unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
     
@@ -91,7 +89,6 @@ int main(int argc, char ** argv)
     double l2err;
     
     exact.theta = i*dt;
-    
     l2err = unp1.L2Error(exact);
     cout << "L^2 error = " << l2err << endl;
     

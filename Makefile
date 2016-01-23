@@ -1,10 +1,10 @@
 VPATH= . src eqns examples src/triangle src/Timer src/blas
 
 # clang compilers
-#CC=clang
-#CXX=clang++
-CC=gcc-5
-CXX=g++-5
+CC=clang
+CXX=clang++
+#CC=gcc-5
+#CXX=g++-5
 
 # debug flags
 CFLAGS = -g -O0

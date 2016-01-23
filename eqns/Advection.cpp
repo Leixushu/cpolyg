@@ -7,14 +7,14 @@ using namespace arma;
 
 double beta_x(double x, double y)
 {
-    return 2;
-    //return 2*y - 1;
+    //return 2;
+    return 2*y - 1;
 }
 
 double beta_y(double x, double y)
 {
-    return 1;
-    //return -2*x + 1;
+    //return 1;
+    return -2*x + 1;
 }
 
 mat Advection::betaUDotGradPsi::operator()(double x, double y) const
@@ -24,7 +24,7 @@ mat Advection::betaUDotGradPsi::operator()(double x, double y) const
     msh.getLocalCoordinates(i, x, y, xx, yy);
     
     result(0) = Leg2D(xx, yy, m, U)*(beta_x(x, y)*Leg2D(xx, yy, m, *psi_x) 
-                              + beta_y(x, y)*Leg2D(xx, yy, m, *psi_y));
+                                   + beta_y(x, y)*Leg2D(xx, yy, m, *psi_y));
     return result;
 }
 
@@ -35,7 +35,7 @@ mat Advection::JacobianBetaUDotGradPsi::operator()(double x, double y) const
     msh.getLocalCoordinates(i, x, y, xx, yy);
     
     result(0) = Leg2D(xx, yy, m, *phi)*(beta_x(x, y)*Leg2D(xx, yy, m, *psi_x) 
-                              + beta_y(x, y)*Leg2D(xx, yy, m, *psi_y));
+                                      + beta_y(x, y)*Leg2D(xx, yy, m, *psi_y));
     return result;
 }
 

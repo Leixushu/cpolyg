@@ -192,13 +192,10 @@ void PolyMesh::gnuplot()
     ofstream pointFile, edgeFile;
     int i, j, nv;
     
-    //pointFile.open("plt/points.gnu");
     edgeFile.open("plt/edges.gnu");
     
     for (i = 0; i < np; i++)
     {
-        //pointFile << i << "\t" << v[i][0] << "\t" << v[i][1] << endl;
-        
         nv = p[i].size();
         
         for (j = 0; j <= nv; j++)
@@ -208,7 +205,6 @@ void PolyMesh::gnuplot()
         edgeFile << endl << endl;
     }
     
-    //pointFile.close();
     edgeFile.close();
 }
 

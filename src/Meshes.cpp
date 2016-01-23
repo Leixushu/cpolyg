@@ -31,14 +31,14 @@ PolyMesh hexRectangle(double h, double width, double height)
     vector<array<double, 2> > generatingPoints;
     int yi;
 
-    for(x = 0; x <= width + kEPS; x += h)
+    for(x = 0; x <= width + kEPS; x += 3*h)
     {
         yi = 0;
-        for(y = 0; y <= height + kEPS; y += h)
+        for(y = 0; y <= height + kEPS; y += 0.5*sqrt(3)*h)
         {
             if (x + 0.5*h*yi <= width + kEPS)
             {
-                pt[0] = x + 0.5*h*yi;
+                pt[0] = x + 1.5*h*yi;
                 pt[1] = y;
                 generatingPoints.push_back(pt);
             }
@@ -57,9 +57,9 @@ PolyMesh quadRectangle(double h, double width, double height)
     array<double, 2> pt;
     vector<array<double, 2> > generatingPoints;
     
-    for(x = 0; x <= width; x += h)
+    for(x = 0.5*h; x <= width; x += h)
     {
-        for(y = 0; y <= height; y += h)
+        for(y = 0.5*h; y <= height; y += h)
         {
             pt[0] = x;
             pt[1] = y;
