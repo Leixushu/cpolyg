@@ -37,29 +37,39 @@ Jacobian::Jacobian(PolyMesh &a_msh, int a_deg, int a_nc) : msh(a_msh)
     nb = numBlocks;
 }
 
+Jacobian& Jacobian::operator=(const Jacobian &J2)
+{
+    BlockMatrix::operator=(J2);
+    
+    msh = J2.msh;
+    nc = J2.nc;
+    deg = J2.deg;
+    
+    return *this;
+}
+
 MeshFn Jacobian::dot(const MeshFn &x)
 {
-    // right now multiple components not really implemented...!
-    assert(nc == 1);
+    int basisSize = (deg + 1)*(deg + 2)/2;
     
     MeshFn result(msh, deg, nc);
     vec b = matvec(vectorise(x.a));
+    cube bCube(b.n_rows, 1, 1);
+    bCube.slice(0) = b;
     
-    result.a.tube(0, 0, bl-1, 0) = reshape(b, bl, msh.np);
+    result.a = reshape(bCube, basisSize, nc, msh.np);
     
     return result;
 }
 
 MeshFn Jacobian::solve(const MeshFn &b, Preconditioner &pc, Solver s)
 {
-    // right now multiple components not really implemented...!
-    assert(nc == 1);
-    
     MeshFn result(msh, deg, nc);
     vec bVec = vectorise(b.a);
     vec x = zeros<vec>(bVec.n_rows);
+    int basisSize = (deg + 1)*(deg + 2)/2;
     
-    double tol = 1.e-12;
+    double tol = 1.e-13;
     int maxIt = 200;
     
     switch(s)
@@ -74,18 +84,26 @@ MeshFn Jacobian::solve(const MeshFn &b, Preconditioner &pc, Solver s)
             break;
     }
     
-    result.a.tube(0, 0, bl-1, 0) = reshape(x, bl, msh.np);
+    // hack to reshape vector into cube...
+    cube xCube(x.n_rows, 1, 1);
+    xCube.slice(0) = x;
+    
+    result.a = reshape(xCube, basisSize, nc, msh.np);
     
     return result;
 }
 
-Jacobian& Jacobian::operator +=(MassMatrix &M)
+Jacobian& Jacobian::operator +=(const MassMatrix &M)
 {
-    int i;
+    int i, c, b;
+    b = M.basisSize;
     
     for (i = 0; i < n_rows; i++)
     {
-        blocks[rowBlock[i]] += M.blocks[i];
+        for (c = 0; c < nc; c++)
+        {
+            blocks[rowBlock[i]].submat(c*b, c*b, (c+1)*b-1, (c+1)*b-1) += M.blocks[i];
+        }
     }
     
     return *this;

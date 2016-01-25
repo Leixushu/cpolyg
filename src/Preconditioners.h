@@ -22,6 +22,5 @@ struct BlockJacobi : Preconditioner
 
 struct BlockILU0 : Preconditioner
 {
-    
     BlockILU0(BlockMatrix &M);
 };

@@ -14,7 +14,21 @@ struct MeshFn
         
         L2Difference(const MeshFn &f, const VecFunctor &e) : fn(f), exact(e)
         {
-            nc = fn.nc;
+            n_rows = fn.nc;
+        };
+        
+        arma::mat operator()(double x, double y) const;
+    };
+    
+    struct L2Functor : VecFunctor
+    {
+        const MeshFn &fn;
+        
+        int i;
+        
+        L2Functor(const MeshFn &f) : fn(f)
+        {
+            n_rows = fn.nc;
         };
         
         arma::mat operator()(double x, double y) const;
@@ -33,6 +47,8 @@ struct MeshFn
     void interp(const VecFunctor &cb, int component = 0);
     double eval(double x, double y, int p, int c = 0) const;
     
+    arma::vec L2Norm() const;
+    
     double L2Error(const FnFunctor &exact) const;
     arma::vec L2Error(const VecFunctor &exact) const;
     
@@ -43,6 +59,13 @@ struct MeshFn
         a += fn2.a;
         return (*this);
     }
+    
+    MeshFn& operator-=(const MeshFn fn2)
+    {
+        a -= fn2.a;
+        return (*this);
+    }
+    
     MeshFn operator+(const MeshFn &fn2) const;
     MeshFn operator-(const MeshFn &fn2) const;
     MeshFn& operator=(const MeshFn &fn);

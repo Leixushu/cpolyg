@@ -23,7 +23,7 @@ struct Euler : Equation
         
         virtual arma::mat operator()(double x, double y) const = 0;
         
-        ExactSolution() { nc = kEulerComponents; t = 0; };
+        ExactSolution() { n_rows = kEulerComponents; t = 0; };
         virtual ~ExactSolution() { };
     };
     
@@ -34,7 +34,7 @@ struct Euler : Equation
         FluxDotGradPsi(PolyMesh &a_msh, double a_gamma) : VolumeTermFunctor(a_msh)
         {
             gamma = a_gamma;
-            nc = kEulerComponents;
+            n_rows = kEulerComponents;
         }
     
         arma::mat operator()(double x, double y) const;
@@ -48,7 +48,7 @@ struct Euler : Equation
         LaxFriedrichsFlux(PolyMesh &a_msh, double a_gamma) : NumericalFluxFunctor(a_msh)
         {
             gamma = a_gamma;
-            nc = kEulerComponents;
+            n_rows = kEulerComponents;
             exact = NULL;
         }
     
@@ -62,7 +62,8 @@ struct Euler : Equation
         JacobianFluxDotGradPsi(PolyMesh &a_msh, double a_gamma)
          : VolumeTermJacobianFunctor(a_msh), gamma(a_gamma)
         {
-            nc = 4;
+            n_rows = kEulerComponents;
+            n_cols = kEulerComponents;
         };
         arma::mat operator()(double x, double y) const;
     };
@@ -71,11 +72,13 @@ struct Euler : Equation
     {
         double gamma;
         arma::mat::fixed<kEulerComponents, kEulerComponents> Id;
+        ExactSolution *exact;
         
         JacobianLaxFriedrichsFlux(PolyMesh &a_msh, double a_gamma)
          : NumericalFluxJacobianFunctor(a_msh), gamma(a_gamma)
         {
-            nc = 4;
+            n_rows = kEulerComponents;
+            n_cols = kEulerComponents;
             Id.eye();
         };
         arma::mat operator()(double x, double y) const;
@@ -90,11 +93,14 @@ struct Euler : Equation
         arma::vec &flux_x, arma::vec &flux_y, double &c, double &u, double &v);
     static void fluxJacobian(const EulerVariables &U, double gamma, 
         EulerJacobian &J1, EulerJacobian &J2);
-    static arma::rowvec alphaDerivative(const EulerVariables &vars1, 
-                                        const EulerVariables &vars2,
-                                        double &alpha,
-                                        double gamma, double nx, double ny);
+    static EulerVariables alphaDerivative(const EulerVariables &vars1, 
+                                          const EulerVariables &vars2,
+                                          double &alpha,
+                                          double gamma, double nx, double ny);
     
     Euler(PolyMesh &m, double g);
     ~Euler();
+    
+    Jacobian jacobian(const MeshFn &f, double t);
+    MeshFn assemble(const MeshFn &f, double t);
 };

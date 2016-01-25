@@ -11,13 +11,13 @@ struct Advection : Equation
 {
     struct betaUDotGradPsi : VolumeTermFunctor
     {
-        betaUDotGradPsi(PolyMesh &a_msh) : VolumeTermFunctor(a_msh) { nc = 1; };
+        betaUDotGradPsi(PolyMesh &a_msh) : VolumeTermFunctor(a_msh) { n_rows = 1; };
         arma::mat operator()(double x, double y) const;
     };
     
     struct uPsiBetaDotN : NumericalFluxFunctor
     {
-        uPsiBetaDotN(PolyMesh &a_msh) : NumericalFluxFunctor(a_msh) { nc = 1; };
+        uPsiBetaDotN(PolyMesh &a_msh) : NumericalFluxFunctor(a_msh) { n_rows = 1; };
         arma::mat operator()(double x, double y) const;
     };
     
@@ -25,14 +25,14 @@ struct Advection : Equation
     {
         JacobianBetaUDotGradPsi(PolyMesh &a_msh) : VolumeTermJacobianFunctor(a_msh)
         {
-            nc = 1;
+            n_rows = 1;
         };
         arma::mat operator()(double x, double y) const;
     };
     
     struct phiPsiBetaDotN : NumericalFluxJacobianFunctor
     {
-        phiPsiBetaDotN(PolyMesh &a_msh) : NumericalFluxJacobianFunctor(a_msh) { nc = 1; };
+        phiPsiBetaDotN(PolyMesh &a_msh) : NumericalFluxJacobianFunctor(a_msh) { n_rows = 1; };
         arma::mat operator()(double x, double y) const;
     };
     

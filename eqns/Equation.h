@@ -6,13 +6,6 @@
 #include "MeshFn.h"
 #include "Jacobian.h"
 
-/** \defgroup Equations Equations
- *
- *  @brief Implementations of discontinuous Galerkin discretizations of various PDEs
- *  @{
- */
-
-/// Abstract class for implementing a PDE
 struct Equation
 {
     struct VolumeTermFunctor : VecFunctor
@@ -91,8 +84,6 @@ struct Equation
     arma::vec boundaryIntegral(int i, const arma::vec &psi, const MeshFn &U);
     arma::vec volumeIntegral(int i, const arma::vec &psi_x, const arma::vec &psi_y);
     
-    MeshFn assemble(const MeshFn &f, double t);
-    Jacobian jacobian(const MeshFn &f, double t);
+    virtual MeshFn assemble(const MeshFn &f, double t);
+    virtual Jacobian jacobian(const MeshFn &f, double t);
 };
-
-/**@}*/

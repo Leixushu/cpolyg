@@ -33,12 +33,12 @@ void Euler::flux(const EulerVariables &U, double gamma, vec &flux_x, vec &flux_y
     flux_x[0] = rhoU;
     flux_x[1] = rhoU*u + P;
     flux_x[2] = rhoU*v;
-    flux_x[3] = rhoE*u + P*u;
+    flux_x[3] = (rhoE + P)*u;
     
     flux_y[0] = rhoV;
     flux_y[1] = rhoU*v;
     flux_y[2] = rhoV*v + P;
-    flux_y[3] = rhoE*v + P*v; 
+    flux_y[3] = (rhoE + P)*v; 
     
     c = sqrt(gamma*P/rho);
 }
@@ -62,25 +62,26 @@ void Euler::fluxJacobian(const EulerVariables &U, double gamma, EulerJacobian &J
     P = (gamma - 1)*rho*e;
     H = E + P/rho;
     
-    J1 << 0 << 1 << 0 << 0 << endr
-       << -u*u + 0.5*(gamma-1)*usq << (3-gamma)*u << -(gamma-1)*v << gamma-1 << endr
-       << -u*v << v << u << 0 << endr
+    J1 << 0                         << 1                 << 0              << 0       << endr
+       << -u*u + 0.5*(gamma-1)*usq  << (3-gamma)*u       << -(gamma-1)*v   << gamma-1 << endr
+       << -u*v                      << v                 << u              << 0       << endr
        << u*(0.5*(gamma-1)*usq - H) << H - (gamma-1)*usq << -(gamma-1)*u*v << gamma*u << endr;
        
     
-    J2 << 0 << 0 << 1 << 0 << endr
-       << -u*v << v << u << 0 << endr
-       << -v*v + 0.5*(gamma - 1)*usq << -(gamma - 1)*u << (3 - gamma)*v << gamma - 1 << endr
-       << v*(0.5*(gamma - 1)*usq - H) << -(gamma - 1)*u*v << H - (gamma - 1)*v*v << gamma*v << endr;
+    J2 << 0                           << 0                << 1                   << 0         << endr
+       << -u*v                        << v                << u                   << 0         << endr
+       << -v*v + 0.5*(gamma - 1)*usq  << -(gamma - 1)*u   << (3 - gamma)*v       << gamma - 1 << endr
+       << v*(0.5*(gamma - 1)*usq - H) << -(gamma - 1)*u*v << H - (gamma - 1)*v*v << gamma*v   << endr;
 }
 
-rowvec Euler::alphaDerivative(const EulerVariables &vars1, const EulerVariables &vars2, 
-                           double &alpha, double gamma, double nx, double ny)
+EulerVariables Euler::alphaDerivative(const EulerVariables &vars1, const EulerVariables &vars2, 
+                                      double &alpha, double gamma, double nx, double ny)
 {
     double u1, v1, u2, v2, c1, c2, P1, P2, vDotN1, vDotN2, rho, usq, a, b, E;
     uword alphaIdx;
     vec::fixed<6> eigs;
-    vec::fixed<kEulerComponents> derivative = zeros(4);
+    EulerVariables derivative;
+    derivative.zeros();
     
     u1 = vars1(1)/vars1(0);
     v1 = vars1(2)/vars1(0);
@@ -106,7 +107,7 @@ rowvec Euler::alphaDerivative(const EulerVariables &vars1, const EulerVariables 
         rho = vars1(0);
         E = vars1(3)/rho;
         
-        derivative(0) = -u1/rho*nx + -v1/rho*ny;
+        derivative(0) = -u1/rho*nx - v1/rho*ny;
         derivative(1) = 1/rho*nx;
         derivative(2) = 1/rho*ny;
         
@@ -179,7 +180,6 @@ mat Euler::LaxFriedrichsFlux::operator()(double x, double y) const
         varsPlus(2) = rhoPlus*vPlus;
         varsPlus(3) = rhoEPlus;
     }
-    
     flux(varsPlus, gamma, flux_xPlus, flux_yPlus, cPlus, uPlus, vPlus);
     
     msh.getLocalCoordinates(iMinus, x, y, xMinus, yMinus);
@@ -194,7 +194,7 @@ mat Euler::LaxFriedrichsFlux::operator()(double x, double y) const
                  fabs(VDotNPlus - cPlus), fabs(VDotNPlus), fabs(VDotNPlus + cPlus)});
     
     return 0.5*((flux_xPlus + flux_xMinus)*nx + (flux_yPlus + flux_yMinus)*ny
-                - alpha*(varsPlus - varsMinus))*psiVal;
+                + alpha*(varsMinus - varsPlus))*psiVal;
 }
 
 mat Euler::JacobianFluxDotGradPsi::operator()(double x, double y) const
@@ -216,7 +216,7 @@ mat Euler::JacobianFluxDotGradPsi::operator()(double x, double y) const
 mat Euler::JacobianLaxFriedrichsFlux::operator()(double x, double y) const
 {
     double xPhi, yPhi, xPsi, yPsi, xNeighbor, yNeighbor, psiVal, phiVal;
-    EulerVariables vars, varsNeighbor, alphaPrime;
+    EulerVariables vars, vars2, alphaPrime;
     EulerJacobian J1, J2;
     int sgn;
     double alpha;
@@ -227,33 +227,36 @@ mat Euler::JacobianLaxFriedrichsFlux::operator()(double x, double y) const
     phiVal = Leg2D(xPhi, yPhi, m, *phi);
     psiVal = Leg2D(xPsi, yPsi, m, *psi);
     
-    vars = computeVariables(xPhi, yPhi, m, U);
+    vars = computeVariables(xPsi, yPsi, m, U);
     
-    fluxJacobian(vars, gamma, J1, J2);
-    
-    // if we're not on an exterior edge
-    if (iPhi != neighbor)
+    // if we're not on an exterior edge, take the value of the neighboring cell
+    if (iPsi != neighbor)
     {
         msh.getLocalCoordinates(neighbor, x, y, xNeighbor, yNeighbor);
-        varsNeighbor = computeVariables(xNeighbor, yNeighbor, m, UNeighbor);
-        
-        if (iPhi == iPsi)
-        {
-            sgn = 1;
-        } else
-        {
-            sgn = -1;
-        }
-        
-        alphaPrime = alphaDerivative(vars, varsNeighbor, alpha, gamma, nx, ny);
-        
-        return 0.5*phiVal*psiVal*sgn*(J1*nx + J2*ny + alpha*Id
-                                    + (vars - varsNeighbor)*alphaPrime);
-        
+        vars2 = computeVariables(xNeighbor, yNeighbor, m, UNeighbor);
     } else
     {
-        return phiVal*psiVal*(J1*nx + J2*ny);
+        // if we are on an exterior edge, use the exact solution at the boundary
+        vars2(0) = exact->rho(x, y);
+        vars2(1) = exact->u(x, y)*vars2(0);
+        vars2(2) = exact->v(x, y)*vars2(0);
+        vars2(3) = exact->rhoE(x, y);
     }
+    
+    if (iPsi == iPhi)
+    {
+        fluxJacobian(vars, gamma, J1, J2);
+        alphaPrime = alphaDerivative(vars, vars2, alpha, gamma, nx, ny);
+        sgn = 1;
+    } else
+    {
+        fluxJacobian(vars2, gamma, J1, J2);
+        alphaPrime = alphaDerivative(vars2, vars, alpha, gamma, nx, ny);
+        sgn = -1;
+    }
+    
+    return 0.5*phiVal*psiVal*(J1*nx + J2*ny + sgn*alpha*Id
+                            + (vars - vars2)*alphaPrime.t());
 }
 
 Euler::Euler(PolyMesh &a_msh, double a_gamma) : Equation(a_msh)
@@ -274,4 +277,16 @@ Euler::~Euler()
     delete volumeJacobian;
     delete boundaryDerivative;
     if(exact) delete exact;
+}
+
+Jacobian Euler::jacobian(const MeshFn &f, double t)
+{
+    exact->t = t;
+    return Equation::jacobian(f, t);
+}
+
+MeshFn Euler::assemble(const MeshFn &f, double t)
+{
+    exact->t = t;
+    return Equation::assemble(f, t);
 }

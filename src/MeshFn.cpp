@@ -59,6 +59,10 @@ void MeshFn::interp(const VecFunctor &cb, int component/* = 0 */)
     mat vals;
     mat G;
     
+    // the function that we're interpolating should be scalar or vector -- not matrix
+    // so we enforce one column only in the functor
+    assert(cb.n_cols == 1);
+    
     // get the size of the basis given the degree
     basisSize = (deg+1)*(deg+2)/2;
     
@@ -107,7 +111,7 @@ void MeshFn::interp(const VecFunctor &cb, int component/* = 0 */)
         c[k] = 0.0;
     }
     
-    vals = mat(numQuadPts, cb.nc);
+    vals = mat(numQuadPts, cb.n_rows);
     
     for (p = 0; p < msh.np; p++)
     {
@@ -126,7 +130,7 @@ void MeshFn::interp(const VecFunctor &cb, int component/* = 0 */)
             }
         }
         
-        for (i = 0; i < cb.nc; i++)
+        for (i = 0; i < cb.n_rows; i++)
         {
             a.slice(p).col(component + i) = solve(G, vals.col(i));
         }
@@ -239,10 +243,23 @@ mat MeshFn::L2Difference::operator()(double x, double y) const
     
     for (c = 0; c < fn.nc; c++)
     {
-        error[c] = pow(fn.eval(x, y, i, c) - exactValue(c), 2);
+        error(c) = pow(fn.eval(x, y, i, c) - exactValue(c), 2);
     }
     
     return error;
+}
+
+mat MeshFn::L2Functor::operator()(double x, double y) const
+{
+    int c;
+    vec result(fn.nc);
+    
+    for (c = 0; c < fn.nc; c++)
+    {
+        result(c) = pow(fn.eval(x, y, i, c), 2);
+    }
+    
+    return result;
 }
 
 double MeshFn::L2Error(const FnFunctor &exact) const
@@ -265,4 +282,19 @@ vec MeshFn::L2Error(const VecFunctor &exact) const
     }
     
     return sqrt(error);
+}
+
+vec MeshFn::L2Norm() const
+{
+    L2Functor functor(*this);
+    vec l2 = zeros<vec>(nc);
+    int i;
+    
+    for (i = 0; i < msh.np; i++)
+    {
+        functor.i = i;
+        l2 += msh.polygonIntegral(functor, i);
+    }
+    
+    return sqrt(l2);
 }

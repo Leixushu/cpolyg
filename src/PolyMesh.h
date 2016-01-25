@@ -76,14 +76,14 @@ struct PolyMesh
         return integ;
     }
     
-    inline arma::vec polygonIntegral(VecFunctor &cb, int pi)
+    inline arma::mat polygonIntegral(VecFunctor &cb, int pi)
     {
         unsigned int i, k;
         double area, x1, x2, x3, y1, y2, y3, x, y;
         auto &qr = Quadratures::tri6;
         
-        arma::vec z = arma::zeros<arma::vec>(cb.nc);
-        arma::vec integ = arma::zeros<arma::vec>(cb.nc);
+        arma::mat z = arma::zeros<arma::mat>(cb.n_rows, cb.n_cols);
+        arma::mat integ = arma::zeros<arma::mat>(cb.n_rows, cb.n_cols);
         
         // loop over triangles in triangulation of polygon
         for (i = 0; i < tri[pi].triangles.size(); i++)
@@ -138,13 +138,13 @@ struct PolyMesh
         return integ*0.5*length;
     }
     
-    inline arma::vec lineIntegral(VecFunctor &cb, int a, int b)
+    inline arma::mat lineIntegral(VecFunctor &cb, int a, int b)
     {
         unsigned int k;
         double x1, y1, x2, y2, x, y, length;
         auto &qr = Quadratures::lin6;
         
-        arma::vec integ = arma::zeros<arma::vec>(cb.nc);
+        arma::mat integ = arma::zeros<arma::mat>(cb.n_rows, cb.n_cols);
         
         x1 = v[a][0];
         y1 = v[a][1];

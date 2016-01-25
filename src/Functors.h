@@ -33,7 +33,11 @@ struct FnCallbackFunctor : FnFunctor
 /// Abstract class for a functor that takes (x,y) coordinates and returns a vector
 struct VecFunctor
 {
-    int nc;
+    int n_rows;
+    int n_cols;
+    
+    VecFunctor() : n_rows(1), n_cols(1) { };
+    
     virtual arma::mat operator()(double x, double y) const = 0;
     virtual ~VecFunctor() {};
 };
@@ -44,7 +48,7 @@ struct VecCallbackFunctor : VecFunctor
     
     VecCallbackFunctor(VecCallback fn, int a_nc) : cb(fn)
     {
-        nc = a_nc;
+        n_rows = a_nc;
     }
     
     arma::mat operator()(double x, double y) const
@@ -56,10 +60,7 @@ struct VecCallbackFunctor : VecFunctor
 struct VecFnFunctor : VecFunctor
 {
     const FnFunctor &fncb;
-    VecFnFunctor(const FnFunctor &fn) : fncb(fn)
-    {
-        nc = 1;
-    }
+    VecFnFunctor(const FnFunctor &fn) : fncb(fn) { };
     
     arma::mat operator()(double x, double y) const
     {

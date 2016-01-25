@@ -24,5 +24,6 @@ struct Jacobian : BlockMatrix
     MeshFn dot(const MeshFn &x);
     MeshFn solve(const MeshFn &b, Preconditioner &pc, Solver s=kGMRESSolver);
     
-    Jacobian& operator +=(MassMatrix &M);
+    Jacobian& operator +=(const MassMatrix &M);
+    Jacobian& operator=(const Jacobian &J2);
 };

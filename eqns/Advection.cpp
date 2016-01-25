@@ -74,15 +74,19 @@ mat Advection::phiPsiBetaDotN::operator()(double x, double y) const
     double xPhi, yPhi, xPsi, yPsi;
     double betaDotN;
     vec::fixed<1> result;
+    int sgn;
     
-    betaDotN = (nx*beta_x(x, y) + ny*beta_y(x, y));
+    if (iPhi == iPsi) sgn = 1; else sgn = -1;
     
-    if (betaDotN > 0)
+    betaDotN = nx*beta_x(x, y) + ny*beta_y(x, y);
+    
+    if (sgn*betaDotN > 0)
     {
         msh.getLocalCoordinates(iPhi, x, y, xPhi, yPhi);
         msh.getLocalCoordinates(iPsi, x, y, xPsi, yPsi);
         
         result(0) = betaDotN*Leg2D(xPsi, yPsi, m, *psi)*Leg2D(xPhi, yPhi, m, *phi);
+        
     } else
     {
         result(0) = 0;

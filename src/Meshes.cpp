@@ -36,7 +36,7 @@ PolyMesh hexRectangle(double h, double width, double height)
         yi = 0;
         for(y = 0; y <= height + kEPS; y += 0.5*sqrt(3)*h)
         {
-            if (x + 0.5*h*yi <= width + kEPS)
+            if (x + 1.5*h*yi <= width + kEPS)
             {
                 pt[0] = x + 1.5*h*yi;
                 pt[1] = y;

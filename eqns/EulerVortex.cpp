@@ -59,7 +59,7 @@ EulerVortex::EulerVortex(PolyMesh &m, double g) : Euler(m, g)
     vortex->epsilon = 0.3;
     vortex->r_c = 1.5;
     vortex->MInf = 0.5;
-    vortex->uInf = 5.0;
+    vortex->uInf = 1.0;
     vortex->rhoInf = 1.0;
     
     vortex->uBar = vortex->uInf*cos(vortex->theta);
@@ -71,6 +71,7 @@ EulerVortex::EulerVortex(PolyMesh &m, double g) : Euler(m, g)
     exact = vortex;
     
     ((LaxFriedrichsFlux*)(boundaryTerm))->exact = exact;
+    ((JacobianLaxFriedrichsFlux*)(boundaryDerivative))->exact = exact;
 }
 
 MeshFn EulerVortex::exactSolution(const double t, const int deg)

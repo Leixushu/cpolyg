@@ -1,4 +1,10 @@
 #include "TimeIntegration.h"
+#include "Preconditioners.h"
+
+#define kNewtonMaxIterations 100
+#define kNewtonTolerance 1.e-12
+
+using namespace std;
 
 MeshFn ForwardEuler::advance(const MeshFn &u, const double dt, const double t)
 {
@@ -22,4 +28,43 @@ MeshFn RK2::advance(const MeshFn &u, const double dt, const double t)
     MeshFn k2 = dt*M.solve(eqn.assemble(u + 0.5*k1, t + 0.5*dt));
     
     return u + 0.5*(k1 + k2);
+}
+
+MeshFn BackwardEuler::advance(const MeshFn &u, const double dt, const double t)
+{
+    MeshFn unp1 = u;
+    MeshFn r(u.msh, u.deg, u.nc);
+    MeshFn b(u.msh, u.deg, u.nc);
+    int k;
+    
+    // Newton solve
+    cout << "Beginning Newton solve" << endl;
+    for (k = 0; k < kNewtonMaxIterations; k++)
+    {
+        unp1.gnuplot("plt/newton" + to_string(k) + ".gnu");
+        
+        b = eqn.assemble(unp1, t + dt);
+        r = M.dot(unp1 - u) - dt*b;
+        
+        r.gnuplot("plt/residual" + to_string(k) + ".gnu");
+        b.gnuplot("plt/b" + to_string(k) + ".gnu");
+        
+        cout << "    Iteration number " << k << ", residual norm = "
+             << r.L2Norm().max() << endl;
+        
+        if (r.L2Norm().max() < kNewtonTolerance)
+        {
+            cout << "    Converged to tolerance" << endl;
+            break;
+        }
+        
+        Jacobian B = eqn.jacobian(unp1, t + dt);
+        B *= -dt;
+        B += M;
+        BlockJacobi pc(B);
+        
+        unp1 -= B.solve(r, pc);
+    }
+    
+    return unp1;
 }

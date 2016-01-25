@@ -127,7 +127,7 @@ Jacobian Equation::jacobian(const MeshFn &f, double t)
     vec psi = zeros<vec>(basisSize);
     vec psi_x;
     vec psi_y;
-    uvec componentIndices = linspace<uvec>(1, nc, nc);
+    uvec componentIndices = linspace<uvec>(0, (nc-1)*basisSize, nc);
     
     volumeJacobian->m = deg+1;
     boundaryDerivative->m = deg+1;
@@ -142,7 +142,7 @@ Jacobian Equation::jacobian(const MeshFn &f, double t)
         
         volumeJacobian->i = i;
         volumeJacobian->U = f.a.slice(i);
-        boundaryDerivative->iPhi = i;
+        boundaryDerivative->iPsi = i;
         boundaryDerivative->U = f.a.slice(i);
         
         for (j = 0; j < basisSize; j++)
@@ -162,7 +162,7 @@ Jacobian Equation::jacobian(const MeshFn &f, double t)
                 volumeJacobian->psi_y = &psi_y;
                 boundaryDerivative->psi = &psi;
                 
-                J.blocks[diagonalBlock](componentIndices*k, componentIndices*j) 
+                J.blocks[diagonalBlock](componentIndices+k, componentIndices+j) 
                     += msh.polygonIntegral(*volumeJacobian, i);
                 
                 nv1 = msh.p[i].size();
@@ -176,8 +176,6 @@ Jacobian Equation::jacobian(const MeshFn &f, double t)
                     // get the outward facing normal vector
                     msh.getOutwardNormal(i, a1, b1, boundaryDerivative->nx,
                                          boundaryDerivative->ny);
-                    
-                    boundaryDerivative->iPhi = i;
                     
                     // find the neighboring polygon (or otherwise we're on the exterior)
                     neighbor = i;
@@ -201,25 +199,21 @@ Jacobian Equation::jacobian(const MeshFn &f, double t)
                             }
                         }
                         
+                        // compute the contribution of the neighbor on this element
                         if (neighbor != i)
                         {
                             boundaryDerivative->neighbor = neighbor;
                             boundaryDerivative->UNeighbor = f.a.slice(neighbor);
-                            boundaryDerivative->iPsi = neighbor;
-                            boundaryDerivative->nx *= -1;
-                            boundaryDerivative->ny *= -1;
-                            J.blocks[blockIdx](componentIndices*k, componentIndices*j) += 
+                            boundaryDerivative->iPhi = neighbor;
+                            J.blocks[blockIdx](componentIndices+k, componentIndices+j) -= 
                                 msh.lineIntegral(*boundaryDerivative, a1, b1);
                             
                             break;
                         }
                     }
                     
-                    boundaryDerivative->UNeighbor = f.a.slice(neighbor);
-                    boundaryDerivative->nx *= -1;
-                    boundaryDerivative->ny *= -1;
-                    boundaryDerivative->iPsi = i;
-                    J.blocks[diagonalBlock](componentIndices*k, componentIndices*j) -= 
+                    boundaryDerivative->iPhi = i;
+                    J.blocks[diagonalBlock](componentIndices+k, componentIndices+j) -= 
                         msh.lineIntegral(*boundaryDerivative, a1, b1);
                     
                 }
