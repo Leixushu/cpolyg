@@ -163,7 +163,7 @@ PolyMesh::PolyMesh(vector<array<double, 2> > points, double width, double height
                 
                 int vi = addVertex(vertex);
                 
-//                if(std::find(polygon.begin(), polygon.end(), vi) == polygon.end())
+                if(std::find(polygon.begin(), polygon.end(), vi) == polygon.end())
                 {
                     polygon.push_back(vi);
                 }
