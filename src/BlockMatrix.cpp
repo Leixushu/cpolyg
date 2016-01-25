@@ -180,6 +180,7 @@ void BlockMatrix::gmres(vec &bvec, vec &xvec, int m, double &tol, int &maxit, Pr
     delete[] s;
 }
 
+// construct a block-diagonal matrix from the diagonal blocks of M of size a_b
 BlockMatrix BlockMatrix::diag(arma::mat M, int a_b)
 {
     BlockMatrix result;
@@ -214,6 +215,7 @@ BlockMatrix& BlockMatrix::operator *=(double scale)
 {
     int i;
     
+    // multiply each block by a scalar
     for (i = 0; i < nb; i++)
     {
         blocks[i] *= scale;

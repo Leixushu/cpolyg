@@ -35,7 +35,7 @@ struct PolyMesh
     void getOutwardNormal(int i, int a, int b, double &x, double &y);
     
     inline void getLocalCoordinates(int pi, double x_in, double y_in,
-                                           double &x_out, double &y_out) const
+                                            double &x_out, double &y_out) const
     {
         x_out = 2.0*(x_in - bb[pi][0])/bb[pi][2] - 1;
         y_out = 2.0*(y_in - bb[pi][1])/bb[pi][3] - 1;

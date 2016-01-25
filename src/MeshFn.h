@@ -3,6 +3,11 @@
 #include <armadillo>
 #include "PolyMesh.h"
 
+// Represent a function defined on a polygonal mesh, given by the coefficients 
+// of its local basis expansion.
+// The coefficients are represented as a cube of dimension (basisSize, nc, np)
+// where nc is the number of components, and np is the number of polygons in the mesh.
+
 struct MeshFn
 {
     struct L2Difference : VecFunctor

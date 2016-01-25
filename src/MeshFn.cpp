@@ -9,7 +9,8 @@
 using namespace std;
 using namespace arma;
 
-MeshFn::MeshFn(PolyMesh &a_msh, int a_deg, int a_nc) : msh(a_msh)
+// Allocate a MeshFn with the given degree polynomial basis and given number of components
+MeshFn::MeshFn(PolyMesh &a_msh, int a_deg, int a_nc /* = 1 */) : msh(a_msh)
 {
     nc = a_nc;
     deg = a_deg;
@@ -18,6 +19,8 @@ MeshFn::MeshFn(PolyMesh &a_msh, int a_deg, int a_nc) : msh(a_msh)
     a = cube(basisSize, nc, msh.np);
 }
 
+// Create a (scalar) MeshFn by interpolating the given function with degree a_deg 
+// polynomials
 MeshFn::MeshFn(PolyMesh &a_msh, FnCallback cb, int a_deg) : msh(a_msh)
 {
     FnCallbackFunctor functor(cb);
@@ -32,6 +35,7 @@ MeshFn::MeshFn(PolyMesh &a_msh, FnCallback cb, int a_deg) : msh(a_msh)
     interp(functor, 0);
 }
 
+// copy constructor
 MeshFn::MeshFn(const MeshFn &fn) : msh(fn.msh)
 {
     deg = fn.deg;
@@ -39,6 +43,7 @@ MeshFn::MeshFn(const MeshFn &fn) : msh(fn.msh)
     nc = fn.nc;
 }
 
+// interpolate a scalar function given by a functor
 void MeshFn::interp(const FnFunctor &cb, int component/* = 0 */)
 {
     VecFnFunctor vecFunctor(cb);
@@ -46,6 +51,7 @@ void MeshFn::interp(const FnFunctor &cb, int component/* = 0 */)
     interp(vecFunctor, component);
 }
 
+// interpolate a vector function given by a functor
 void MeshFn::interp(const VecFunctor &cb, int component/* = 0 */)
 {
     gsl_integration_glfixed_table *glpts;
@@ -137,6 +143,7 @@ void MeshFn::interp(const VecFunctor &cb, int component/* = 0 */)
     }
 }
 
+// Evaluate the given component of a MeshFn at x, y points in polynomial p
 double MeshFn::eval(double x, double y, int p, int c/* = 0 */) const
 {
     double xx, yy;
@@ -149,6 +156,7 @@ double MeshFn::eval(double x, double y, int p, int c/* = 0 */) const
     return Leg2D(xx, yy, deg+1, coeffs);
 }
 
+// Write out a 'plot' of the function in a format readable by gnuplot 
 void MeshFn::gnuplot(std::string filename) const
 {
     int i, c;
@@ -284,6 +292,7 @@ vec MeshFn::L2Error(const VecFunctor &exact) const
     return sqrt(error);
 }
 
+// return the L2 norm of the function (as a vector of the L2 norm of the components)
 vec MeshFn::L2Norm() const
 {
     L2Functor functor(*this);

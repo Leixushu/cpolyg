@@ -2,7 +2,7 @@
 #include "Preconditioners.h"
 
 #define kNewtonMaxIterations 100
-#define kNewtonTolerance 1.e-12
+#define kNewtonTolerance 5.e-14
 
 using namespace std;
 

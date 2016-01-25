@@ -7,8 +7,10 @@
 #include "Legendre.h"
 #include "BlockMatrix.h"
 
+// Implement the mass matrix as a special type of block matrix
 struct MassMatrix : BlockMatrix
 {
+    // Use the product functor to integrate the product of basis functions
     struct ProductFunctor : FnFunctor
     {
         arma::vec phi, psi;
@@ -31,8 +33,11 @@ struct MassMatrix : BlockMatrix
     int deg;
     int basisSize;
     
+    // Compute the entries of the mass matrix
     MassMatrix(PolyMesh &msh, int deg);
     
+    // Compute M x = fn, for given fn, return x
     MeshFn solve(const MeshFn &fn) const;
+    // Compute M fn = x for given fn, return x
     MeshFn dot(const MeshFn &fn) const;
 };

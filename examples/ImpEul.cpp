@@ -15,8 +15,8 @@ int main(int argc, char ** argv)
     using namespace arma;
     
     int i;
-    int deg = 1;
-    double h = 0.5;
+    int deg = 2;
+    double h = 1.0;
     
     cout << "Using h = " << h << endl;
     
@@ -33,29 +33,11 @@ int main(int argc, char ** argv)
     
     f.gnuplot("plt/f.gnu");
     
-//     int polyIdx = 11;
-//     double h2 = 1.e-7;
-//     Jacobian B = eqn.jacobian(f, 0);
-//     B.spy("plt/B.gnu");
-//     f.a(0,0,polyIdx) -= h2;
-//     MeshFn b1 = eqn.assemble(f, 0);
-//     f.a(0,0,polyIdx) += 2*h2;
-//     MeshFn b2 = eqn.assemble(f, 0);
-//     
-//     cout.precision(11);
-//     
-//     ((vectorise(b2.a.slice(polyIdx)) - vectorise(b1.a.slice(polyIdx)))/(2*h2)).raw_print();
-//     
-//     cout << endl;
-//     
-//     B.blocks[B.rowBlock[polyIdx]].raw_print();
-//     exit(0);
-    
     BackwardEuler ti(M, eqn);
     
-    double dt = h/10;
+    double dt = 1.0;
     
-    int K = 10;
+    int K = 100;
     
     cout << "Computing total of " << K << " timesteps." << endl;
     
