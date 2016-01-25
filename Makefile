@@ -1,6 +1,5 @@
 VPATH= . src eqns examples src/triangle src/Timer src/blas
 
-# clang compilers
 CC=clang
 CXX=clang++
 #CC=gcc-5
