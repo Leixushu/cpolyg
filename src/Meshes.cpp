@@ -4,26 +4,6 @@
 
 using namespace std;
 
-PolyMesh quadUnitSquare(double h)
-{
-    return quadRectangle(h, 1, 1);
-}
-
-PolyMesh hexUnitSquare(double h)
-{
-    return hexRectangle(h, 1, 1);
-}
-
-PolyMesh triUnitSquare(double h)
-{
-    return triRectangle(h, 1, 1);
-}
-
-PolyMesh honeycombUnitSquare(double h)
-{
-    return honeycombRectangle(h, 1, 1);
-}
-
 PolyMesh hexRectangle(double h, double width, double height)
 {
     double x, y;
@@ -118,4 +98,24 @@ PolyMesh honeycombRectangle(double h, double width, double height)
     
     msh.triangulate(generatingPoints);
     return msh;
+}
+
+PolyMesh quadUnitSquare(double h)
+{
+    return quadRectangle(h, 1, 1);
+}
+
+PolyMesh hexUnitSquare(double h)
+{
+    return hexRectangle(h, 1, 1);
+}
+
+PolyMesh triUnitSquare(double h)
+{
+    return triRectangle(h, 1, 1);
+}
+
+PolyMesh honeycombUnitSquare(double h)
+{
+    return honeycombRectangle(h, 1, 1);
 }
