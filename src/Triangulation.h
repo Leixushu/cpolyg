@@ -7,6 +7,7 @@ extern "C" {
 #include "triangle/triangle.h"
 }
 
+// wrap Jonathan Shewchuk's triangle Delaunay triangulation code
 struct Triangulation
 {
     std::vector<std::array<double, 2> > points;
