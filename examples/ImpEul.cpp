@@ -7,38 +7,34 @@
 #include "TimeIntegration.h"
 #include "Preconditioners.h"
 
+using namespace std;
+using namespace arma;
+
 #define kGamma 1.4
 
 int main(int argc, char ** argv)
 {
-    using namespace std;
-    using namespace arma;
-    
     int i;
     int deg = 2;
     double h = 1.0;
     
     cout << "Using h = " << h << endl;
-    
     PolyMesh msh = hexRectangle(h, 20, 15);
     msh.gnuplot();
+    
+    EulerVortex eqn(msh, kGamma);
     
     MassMatrix M(msh, deg);
     M.spy("plt/M.gnu");
     
-    EulerVortex eqn(msh, kGamma);
-    
     MeshFn f = eqn.initialConditions(deg);
     MeshFn unp1 = f;
-    
     f.gnuplot("plt/f.gnu");
     
     BackwardEuler ti(M, eqn);
     
     double dt = 1.0;
-    
     int K = 100;
-    
     cout << "Computing total of " << K << " timesteps." << endl;
     
     for (i = 0; i < K; i++)
