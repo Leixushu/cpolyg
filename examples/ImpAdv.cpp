@@ -28,7 +28,7 @@ double planarWave(double x, double y)
 {
     int nx = 10;
     int ny = 10;
-    return sin(nx*x + ny*y);
+    return sin(nx*x*2*M_PI + ny*y*2*M_PI);
 }
 
 int main(int argc, char ** argv)
@@ -36,17 +36,18 @@ int main(int argc, char ** argv)
     using namespace std;
     
     int deg = 0;
-    double h = 0.02;
+    double h = 0.018;
     
-    PolyMesh msh = triUnitSquare(h);
+    PolyMesh msh = hexUnitSquare(h);
     msh.gnuplot();
     
     MassMatrix M(msh, deg);
     M.spy("plt/M.gnu");
     Advection eqn(msh);
     
-    //FnCallbackFunctor exact(planarWave);
+    cout << msh.np << endl;
     
+    //FnCallbackFunctor exact(planarWave);
     ExactGaussian exact(0);
     
     MeshFn f = MeshFn(msh, deg, 1);
@@ -61,8 +62,8 @@ int main(int argc, char ** argv)
     int i;
     double dt;
     
-    dt = 0.05;
-    K = 100;
+    dt = 0.025;
+    K = 10;
     
     cout << "Using h = " << h << ", dt = " << dt << endl;
     cout << "Computing total of " << K << " timesteps." << endl;
@@ -86,11 +87,11 @@ int main(int argc, char ** argv)
     
     cout << setprecision(20) << "Computed until final time t=" << i*dt << endl;
     
-    double l2err;
-    
-    exact.theta = i*dt;
-    l2err = unp1.L2Error(exact);
-    cout << "L^2 error = " << l2err << endl;
+//     double l2err;
+//     
+//     exact.theta = i*dt;
+//     l2err = unp1.L2Error(exact);
+//     cout << "L^2 error = " << l2err << endl;
     
     return 0;
 }

@@ -57,9 +57,9 @@ PolyMesh triRectangle(double h, double width, double height)
     vector<array<double, 2> > generatingPoints;
     PolyMesh msh;
     
-    for(x = 0; x <= width; x += h)
+    for(x = 0.5*h; x <= width; x += h)
     {
-        for(y = 0; y <= height; y += h)
+        for(y = 0.5*h; y <= height; y += h)
         {
             pt[0] = x;
             pt[1] = y;
@@ -68,6 +68,7 @@ PolyMesh triRectangle(double h, double width, double height)
     }
     
     msh.triangulate(generatingPoints);
+    
     return msh;
 }
 
@@ -80,20 +81,17 @@ PolyMesh honeycombRectangle(double h, double width, double height)
     int yi;
     PolyMesh msh;
 
-    for(x = 0; x <= width; x += h)
+    yi = 0;
+    for(x = 0; x <= width + kEPS; x += sqrt(3)*h/2)
     {
-        yi = 0;
-        for(y = 0; y <= height; y += h)
+        for(y = yi*0.5*h; y <= height + kEPS; y += h)
         {
-            if (x + 0.5*h*yi < width)
-            {
-                pt[0] = x + 0.5*h*yi;
-                pt[1] = y;
-                generatingPoints.push_back(pt);
-            }
-            
-            yi = !yi;
+            pt[0] = x;
+            pt[1] = y;
+            generatingPoints.push_back(pt);
         }
+        
+        yi = !yi;
     }
     
     msh.triangulate(generatingPoints);
