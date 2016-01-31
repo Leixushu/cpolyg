@@ -12,6 +12,10 @@ The code uses:
 
 ## Build Instructions
 
-`cpolyg` can be built by invoking `make` in the main directory. Edit the Makefile to 
-specify the compiler, (`CC` and `CXX`), and the system include and library directories,
-which are required to link against Armadillo, GSL, SuperLU, BLAS, and LAPACK.
+Building `cpolyg` requires `libvoro++_2d`. This can be built by running `make` in the 
+directory `voro++_2d`. Then, copy the file `libvoro++_2d.a` from `voro++_2d/src` into 
+the `lib` directory.
+
+`cpolyg` can then be built by invoking `make` in the main directory. Edit the Makefile 
+to specify the compiler, (`CC` and `CXX`), and the system include and library 
+directories, which are required to link against Armadillo, GSL, BLAS, and LAPACK.
