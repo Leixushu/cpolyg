@@ -53,6 +53,7 @@ void BlockMatrix::jacobi(arma::vec &b, arma::vec &x, double &tol, int &maxIt, Pr
     vec DinvAur;
     vec r;
     int m;
+    double omega = 1.0;
     
     // compute the eigenvalues of the Jacobi iteration matrix RJ
     /* mat RJ(n_rows*bl, n_rows*bl);
@@ -88,7 +89,7 @@ void BlockMatrix::jacobi(arma::vec &b, arma::vec &x, double &tol, int &maxIt, Pr
         
         pc.solve(DinvAur.memptr());
         
-        x = Dinvb + x - DinvAur;
+        x = omega*Dinvb + x - omega*DinvAur;
     }
     
     tol = norm(r);
