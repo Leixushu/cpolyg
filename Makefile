@@ -25,7 +25,7 @@ SYSTEM_INCLUDE_DIR := /usr/local/include
 SYSTEM_LIB_DIR := /usr/local/lib
 
 INCLUDES := -I$(SYSTEM_INCLUDE_DIR) -Ivoro++_2d/src -Isrc -Ieqns
-LIBS := -L$(SYSTEM_LIB_DIR) -Llib -larmadillo -lgsl -lvoro++_2d -lsuperlu -lblas -llapack
+LIBS := -L$(SYSTEM_LIB_DIR) -Llib -larmadillo -lgsl -lvoro++_2d -lblas -llapack
 CFLAGS += $(INCLUDES)
 
 LIBCSRC := triangle/triangle.c
