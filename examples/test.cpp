@@ -2,6 +2,7 @@
 #include "Meshes.h"
 #include "Advection.h"
 #include "TimeIntegration.h"
+#include "Preconditioners.h"
 
 // Initial conditions
 double gaussian(double x, double y)
@@ -11,10 +12,11 @@ double gaussian(double x, double y)
 
 int main(int argc, char ** argv)
 {
+    using namespace std;
     // specify the degree of polynomials to use
     int deg = 2;
     // specify the size of each element in the mesh
-    double h = 0.02;
+    double h = 0.04;
     // specify the time step
     double dt = 0.1;
     
@@ -22,15 +24,15 @@ int main(int argc, char ** argv)
     // of the unit square
     PolyMesh msh = hexUnitSquare(h);
     
+    // create a mesh function by interpolating the 
+    // initial conditions defined by the function above
+    MeshFn f = MeshFn(msh, gaussian, deg);
+    
     // specify the advection equation
     Advection eqn(msh);
     
     // compute the mass matrix
     MassMatrix M(msh, deg);
-    
-    // create a mesh function by interpolating the 
-    // initial conditions defined by the function above
-    MeshFn f = MeshFn(msh, gaussian, deg);
     
     // create the time integration object
     BackwardEuler ti(M, eqn);
@@ -47,7 +49,22 @@ int main(int argc, char ** argv)
 
 
 
-
+//     cout << "Computing the Jacobian" << endl;
+//     Jacobian J = eqn.jacobian(f, 0);
+//     
+//     cout << "Extracting the block diagonal" << endl;
+//     BlockMatrix DJ = BlockMatrix::diag(J);
+//     BlockMatrix OJ = BlockMatrix::offDiag(J);
+//     
+//     J.spy("plt/J.gnu");
+//     DJ.spy("plt/DJ.gnu");
+//     OJ.spy("plt/OJ.gnu");
+//     
+//     BlockILU0 ilu(J);
+//     
+//     ilu.DD.spy("plt/DD.gnu");
+//     ilu.DU.spy("plt/DU.gnu");
+//     ilu.L.spy("plt/L.gnu");
 
 
 

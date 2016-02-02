@@ -35,17 +35,17 @@ int main(int argc, char ** argv)
 {
     using namespace std;
     
-    int deg = 0;
-    double h = 0.018;
+    int deg = 2;
+    double h = 0.025;
     
-    PolyMesh msh = hexUnitSquare(h);
+    PolyMesh msh = quadUnitSquare(h);
+    //PolyMesh msh = perturbedQuadRectangle(h, 0.4, 1, 1);
+    //PolyMesh msh = perturbedTriRectangle(h, 0.25, 1, 1);
     msh.gnuplot();
     
     MassMatrix M(msh, deg);
     M.spy("plt/M.gnu");
     Advection eqn(msh);
-    
-    cout << msh.np << endl;
     
     //FnCallbackFunctor exact(planarWave);
     ExactGaussian exact(0);
@@ -73,7 +73,8 @@ int main(int argc, char ** argv)
     
     B.spy("plt/B.gnu");
     
-    BlockJacobi pc(B);
+    BlockILU0 pc(B);
+    //BlockJacobi pc(B);
     
     for (i = 0; i < K; i++)
     {
@@ -81,7 +82,7 @@ int main(int argc, char ** argv)
             cout << "Beginning timestep " << i << ", t=" << i*dt << endl;
         
         unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
-        unp1 = B.solve(M.dot(unp1), pc, kJacobiSolver);
+        unp1 = B.solve(M.dot(unp1), pc, kGMRESSolver);
     }
     unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
     
