@@ -188,6 +188,7 @@ BlockMatrix BlockMatrix::diag(arma::mat M, int a_b)
     mat block;
     int i;
     int b = a_b;
+    // number of rows of blocks is number of rows in matrix divided by block size
     int n = M.n_rows/b;
     
     result.bl = a_b;
@@ -212,6 +213,78 @@ BlockMatrix BlockMatrix::diag(arma::mat M, int a_b)
     return result;
 }
 
+// extract the diagonal blocks from a BlockMatrix
+BlockMatrix BlockMatrix::diag(BlockMatrix &M)
+{
+    BlockMatrix result;
+    int i, k, j;
+    int n = M.n_rows;
+    
+    result = BlockMatrix(M.bl, n);
+    result.colIndices.resize(n);
+    
+    for (i = 0; i < n; i++)
+    {
+        result.rowBlock[i] = result.nb;
+        // search the blocks in the row for the column on the diagonal
+        for (k = M.rowBlock[i]; k < M.rowBlock[i+1]; k++)
+        {
+            j = M.colIndices[k];
+            
+            // if we're on the diagonal, add this block
+            if (i == j)
+            {
+                result.blocks.push_back(M.blocks[k]);
+                result.colIndices[result.nb] = i;
+                result.nb++;
+                break;
+            }
+        }
+    }
+    
+    // make sure to end the rowBlock vector
+    result.rowBlock[n] = result.nb;
+    
+    return result;
+}
+
+// extract the off-diagonal blocks from a BlockMatrix
+BlockMatrix BlockMatrix::offDiag(BlockMatrix &M)
+{
+    BlockMatrix result;
+    int i, k, j;
+    int n = M.n_rows;
+    
+    // use the same block size, and same number of rows
+    result = BlockMatrix(M.bl, n);
+    
+    for (i = 0; i < n; i++)
+    {
+        result.rowBlock[i] = result.nb;
+        
+        // search the blocks in this row for off-diagonal columns
+        for (k = M.rowBlock[i]; k < M.rowBlock[i+1]; k++)
+        {
+            j = M.colIndices[k];
+            
+            // if we're not on the diagonal
+            if (i != j)
+            {
+                // add the block
+                result.blocks.push_back(M.blocks[k]);
+                result.colIndices.push_back(j);
+                result.nb++;
+            }
+        }
+    }
+    
+    // make sure to end the rowBlock vector
+    result.rowBlock[n] = result.nb;
+    
+    return result;
+}
+
+
 BlockMatrix& BlockMatrix::operator *=(double scale)
 {
     int i;
@@ -225,28 +298,47 @@ BlockMatrix& BlockMatrix::operator *=(double scale)
     return *this;
 }
 
+// write the matrix to a file in a format readable by gnuplot
 void BlockMatrix::spy(std::string filename)
 {
     int i, j, k, ii, jj;
     ofstream file;
     file.open(filename);
     
+    // loop over the rows
     for (i = 0; i < n_rows; i++)
     {
+        // loop over the blocks in each row
         for (k = rowBlock[i]; k < rowBlock[i+1]; k++)
         {
             j = colIndices[k];
             
+            // loop over the entries of each block
             for (ii = 0; ii < bl; ii++)
             {
                 for (jj = 0; jj < bl; jj++)
                 {
-                    file << i*bl + ii << "\t" << j*bl + jj << "\t"
-                         << blocks[k](ii, jj) << endl;
+                    // write only the nonzero entries
+                    if (blocks[k](ii, jj) != 0)
+                    {
+                        file << i*bl + ii << "\t" << j*bl + jj << "\t"
+                             << blocks[k](ii, jj) << endl;
+                    }
                 }
             }
         }
     }
     
     file.close();
+}
+
+BlockMatrix::BlockMatrix(int a_bl, int a_n)
+{
+    bl = a_bl;
+    n_rows = a_n;
+    nb = 0;
+    
+    blocks.clear();
+    colIndices.clear();
+    rowBlock = vector<int>(a_n + 1, 0);
 }

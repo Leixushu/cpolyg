@@ -62,6 +62,13 @@ struct BlockMatrix
     
     /// return BlockMatrix consisting of the diagonal blocks of M, block size a_b
     static BlockMatrix diag(arma::mat M, int a_b);
+    /// return BlockMatrix consisting of the diagonal blocks of M
+    static BlockMatrix diag(BlockMatrix &M);
+    /// return BlockMatrix consisting of the off-diagonal blocks of M
+    static BlockMatrix offDiag(BlockMatrix &M);
+    
     /// default constructor
     BlockMatrix() {};
+    
+    BlockMatrix(int a_bl, int a_n);
 };
