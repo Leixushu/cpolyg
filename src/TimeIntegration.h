@@ -8,9 +8,9 @@
 struct TimeStepper
 {
     Equation &eqn;
-    const MassMatrix &M;
+    MassMatrix &M;
     
-    TimeStepper(const MassMatrix &a_M, Equation &a_eqn)
+    TimeStepper(MassMatrix &a_M, Equation &a_eqn)
     : eqn(a_eqn), M(a_M) { };
     
     virtual MeshFn advance(const MeshFn &u, const double dt, const double t) = 0;
@@ -19,28 +19,28 @@ struct TimeStepper
 
 struct ForwardEuler : TimeStepper
 {
-    ForwardEuler(const MassMatrix &a_M, Equation &a_eqn) : TimeStepper(a_M, a_eqn) { };
+    ForwardEuler(MassMatrix &a_M, Equation &a_eqn) : TimeStepper(a_M, a_eqn) { };
     
     MeshFn advance(const MeshFn &u, const double dt, const double t = 0);
 };
 
 struct BackwardEuler : TimeStepper
 {
-    BackwardEuler(const MassMatrix &a_M, Equation &a_eqn) : TimeStepper(a_M, a_eqn) { };
+    BackwardEuler(MassMatrix &a_M, Equation &a_eqn) : TimeStepper(a_M, a_eqn) { };
     
     MeshFn advance(const MeshFn &u, const double dt, const double t = 0);
 };
 
 struct RK4 : TimeStepper
 {
-    RK4(const MassMatrix &a_M, Equation &a_eqn) : TimeStepper(a_M, a_eqn) { };
+    RK4(MassMatrix &a_M, Equation &a_eqn) : TimeStepper(a_M, a_eqn) { };
     
     MeshFn advance(const MeshFn &u, const double dt, const double t = 0);
 };
 
 struct RK2 : TimeStepper
 {
-    RK2(const MassMatrix &a_M, Equation &a_eqn) : TimeStepper(a_M, a_eqn) { };
+    RK2(MassMatrix &a_M, Equation &a_eqn) : TimeStepper(a_M, a_eqn) { };
     
     MeshFn advance(const MeshFn &u, const double dt, const double t = 0);
 };
