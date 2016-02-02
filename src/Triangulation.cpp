@@ -12,7 +12,7 @@ void Triangulation::doTriangulation()
 {
     struct triangulateio in, out;
     
-    char switches[] = "zQ";
+    char switches[] = "zQq";
     int i;
     unsigned int j;
     
