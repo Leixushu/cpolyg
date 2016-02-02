@@ -1,5 +1,5 @@
-#include "Jacobian.h"
 #include <cassert>
+#include "Jacobian.h"
 
 using namespace arma;
 
@@ -50,14 +50,8 @@ Jacobian& Jacobian::operator=(const Jacobian &J2)
 
 MeshFn Jacobian::dot(const MeshFn &x)
 {
-    int basisSize = (deg + 1)*(deg + 2)/2;
-    
-    MeshFn result(msh, deg, nc);
-    vec b = matvec(vectorise(x.a));
-    cube bCube(b.n_rows, 1, 1);
-    bCube.slice(0) = b;
-    
-    result.a = reshape(bCube, basisSize, nc, msh.np);
+    MeshFn result = x;
+    matvec(result.a.memptr());
     
     return result;
 }
