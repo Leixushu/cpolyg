@@ -1,8 +1,9 @@
 #pragma once
 
-#include "BlockMatrix.h"
 #include <armadillo>
 #include <vector>
+#include "BlockMatrix.h"
+#include "Jacobian.h"
 
 struct NoPreconditioner : Preconditioner
 {
@@ -22,5 +23,11 @@ struct BlockJacobi : Preconditioner
 
 struct BlockILU0 : Preconditioner
 {
-    BlockILU0(BlockMatrix &M);
+    int n;
+    int bl;
+    
+    BlockMatrix DD, L, DU;
+    BlockILU0(Jacobian &A);
+    
+    void solve(double *x);
 };
