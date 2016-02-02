@@ -5,6 +5,7 @@
 #include "MeshFn.h"
 #include "Quadrature.h"
 #include "Legendre.h"
+#include "Timer/CH_Timer.H"
 
 using namespace std;
 using namespace arma;
@@ -165,6 +166,8 @@ void MeshFn::gnuplot(std::string filename) const
     double x1, x2, x3, y1, y2, y3, x, y, val;
     ofstream plotFile;
     auto &qr = Quadratures::tri2;
+    
+    CH_TIMERS("MeshFn gnuplot");
     
     plotFile.open(filename);
     
