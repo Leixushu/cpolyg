@@ -74,7 +74,6 @@ PolyMesh perturbedTriRectangle(double h, double p, double width, double height)
     double x, y;
     array<double, 2> pt;
     vector<array<double, 2> > generatingPoints;
-    PolyMesh msh;
     
     for(x = 0.5*h; x <= width + kEPS; x += h)
     {
@@ -93,8 +92,7 @@ PolyMesh perturbedTriRectangle(double h, double p, double width, double height)
         }
     }
     
-    msh.triangulate(generatingPoints);
-    return msh;
+    return PolyMesh::triangulate(generatingPoints);
 }
 
 PolyMesh triRectangle(double h, double width, double height)
@@ -138,8 +136,6 @@ PolyMesh triRectangle(double h, double width, double height)
     msh.computebb();
     msh.computeTriangulation();
     
-    //msh.triangulate(generatingPoints);
-    
     return msh;
 }
 
@@ -150,7 +146,6 @@ PolyMesh honeycombRectangle(double h, double width, double height)
     array<double, 2> pt;
     vector<array<double, 2> > generatingPoints;
     int yi;
-    PolyMesh msh;
 
     yi = 0;
     for(x = 0; x <= width + kEPS; x += sqrt(3)*h/2)
@@ -165,8 +160,7 @@ PolyMesh honeycombRectangle(double h, double width, double height)
         yi = !yi;
     }
     
-    msh.triangulate(generatingPoints);
-    return msh;
+    return PolyMesh::triangulate(generatingPoints);
 }
 
 PolyMesh quadUnitSquare(double h)

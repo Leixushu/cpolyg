@@ -22,8 +22,7 @@ struct PolyMesh
     
     PolyMesh() {};
     PolyMesh(std::vector<std::array<double, 2> > pts, double width = 1, double height = 1);
-    
-    void triangulate(std::vector<std::array<double, 2> > pts);
+    static PolyMesh triangulate(std::vector<std::array<double, 2> > pts);
     
     int addVertex(std::array<double, 2> vertex);
     void computep2p();

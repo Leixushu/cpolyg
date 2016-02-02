@@ -254,8 +254,9 @@ void PolyMesh::getOutwardNormal(int i, int a, int b, double &x, double &y)
     y = s*dx/length;
 }
 
-void PolyMesh::triangulate(std::vector<std::array<double, 2> > points)
+PolyMesh PolyMesh::triangulate(std::vector<std::array<double, 2> > points)
 {
+    PolyMesh msh;
     int i, j;
     
     cout << "Constructing Delaunay Triangulation from " << points.size()
@@ -263,23 +264,24 @@ void PolyMesh::triangulate(std::vector<std::array<double, 2> > points)
     
     Triangulation delaunay(points);
     
-    v = delaunay.points;
-    np = delaunay.triangles.size();
-    p.resize(np, vector<int>(3));
+    msh.v = delaunay.points;
+    msh.np = delaunay.triangles.size();
+    msh.p.resize(msh.np, vector<int>(3));
     
-    for (i = 0; i < np; i++)
+    for (i = 0; i < msh.np; i++)
     {
         for (j = 0; j < 3; j++)
         {
-            p[i][j] = delaunay.triangles[i][j];
+            msh.p[i][j] = delaunay.triangles[i][j];
         }
     }
         
-    cout << "Resulting in " << v.size() << " vertices, "
-                            << p.size() << " polygons." << endl;
+    cout << "Resulting in " << msh.v.size() << " vertices, "
+                            << msh.p.size() << " polygons." << endl;
     
-    np = p.size();
-    computep2p();
-    computebb();
-    computeTriangulation();
+    msh.computep2p();
+    msh.computebb();
+    msh.computeTriangulation();
+    
+    return msh;
 }
