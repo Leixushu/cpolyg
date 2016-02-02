@@ -29,15 +29,17 @@ struct MassMatrix : BlockMatrix
         };
     };
     
+    std::vector<arma::mat> LU;
+    std::vector<arma::Col<int>> ipvt;
+    
     PolyMesh  &msh;
     int deg;
-    int basisSize;
     
     // Compute the entries of the mass matrix
     MassMatrix(PolyMesh &msh, int deg);
     
     // Compute M x = fn, for given fn, return x
-    MeshFn solve(const MeshFn &fn) const;
+    MeshFn solve(const MeshFn &fn);
     // Compute M fn = x for given fn, return x
     MeshFn dot(const MeshFn &fn) const;
 };
