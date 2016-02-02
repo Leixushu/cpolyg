@@ -38,8 +38,8 @@ int main(int argc, char ** argv)
 {
     using namespace std;
     
-    int deg = 0;
-    double h = 0.02;
+    int deg = 3;
+    double h = 0.03;
     
     PolyMesh msh = hexUnitSquare(h);
     msh.gnuplot();
@@ -55,36 +55,39 @@ int main(int argc, char ** argv)
     MeshFn unp1 = f;
     
     //RK4 ti(M, eqn);
-    ForwardEuler ti(M, eqn);
+    //ForwardEuler ti(M, eqn);
     
-    int K;
+    int K = 500;
     int i;
-    double dt;
-    
-    //dt = h/10;
-    dt = h/5;
-    //K = M_PI/dt;
-    K = 120;
+    double dt = 1.0/K;
     
     cout << "Using h = " << h << ", dt = " << dt << endl;
     cout << "Computing total of " << K << " timesteps." << endl;
     
+    Jacobian B = eqn.jacobian(f, 0);
+    BlockILU0 pc(B);
+    
     for (i = 0; i < K; i++)
     {
-        if (i%10 == 0)
+        if (i%25 == 0)
             cout << "Beginning timestep " << i << ", t=" << i*dt << endl;
+            unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
         
-        unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
-        unp1 = ti.advance(unp1, dt);
+        MeshFn k1 = dt*M.solve(B.dot(unp1));
+        MeshFn k2 = dt*M.solve(B.dot(unp1 + 0.5*k1));
+        MeshFn k3 = dt*M.solve(B.dot(unp1 + 0.5*k2));
+        MeshFn k4 = dt*M.solve(B.dot(unp1 + k3));
+        
+        unp1 += (k1 + 2*k2 + 2*k3 + k4)/6;
+        
+        //unp1 = ti.advance(unp1, dt);
     }
     unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
     
     cout << setprecision(20) << "Computed until final time t=" << i*dt << endl;
     
     double l2err;
-    
     exact.theta = i*dt;
-    
     l2err = unp1.L2Error(exact);
     cout << "L^2 error = " << l2err << endl;
     

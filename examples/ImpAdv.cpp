@@ -36,9 +36,11 @@ int main(int argc, char ** argv)
     using namespace std;
     
     int deg = 2;
-    double h = 0.025;
+    double h = 0.035;
     
-    PolyMesh msh = quadUnitSquare(h);
+    cout << "Create mesh with h = " << h << endl;
+    PolyMesh msh = hexUnitSquare(h);
+    //PolyMesh msh = honeycombUnitSquare(h);
     //PolyMesh msh = perturbedQuadRectangle(h, 0.4, 1, 1);
     //PolyMesh msh = perturbedTriRectangle(h, 0.25, 1, 1);
     msh.gnuplot();
@@ -53,19 +55,17 @@ int main(int argc, char ** argv)
     MeshFn f = MeshFn(msh, deg, 1);
     f.interp(exact);
     
+    cout << "Computing Jacobian matrix" << endl;
     Jacobian B = eqn.jacobian(f, 0);
     B.spy("plt/J.gnu");
     
     MeshFn unp1 = f;
     
-    int K;
+    int K = 4000;
     int i;
-    double dt;
+    double dt = 1.5/K;
     
-    dt = 0.025;
-    K = 10;
-    
-    cout << "Using h = " << h << ", dt = " << dt << endl;
+    cout << "Using dt = " << dt << endl;
     cout << "Computing total of " << K << " timesteps." << endl;
     
     B *= -dt;
@@ -88,11 +88,11 @@ int main(int argc, char ** argv)
     
     cout << setprecision(20) << "Computed until final time t=" << i*dt << endl;
     
-//     double l2err;
-//     
-//     exact.theta = i*dt;
-//     l2err = unp1.L2Error(exact);
-//     cout << "L^2 error = " << l2err << endl;
+    double l2err;
+    
+    exact.theta = i*dt;
+    l2err = unp1.L2Error(exact);
+    cout << "L^2 error = " << l2err << endl;
     
     return 0;
 }
