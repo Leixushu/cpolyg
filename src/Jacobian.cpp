@@ -1,5 +1,6 @@
 #include <cassert>
 #include "Jacobian.h"
+#include "Timer/CH_Timer.H"
 
 using namespace arma;
 
@@ -50,6 +51,7 @@ Jacobian& Jacobian::operator=(const Jacobian &J2)
 
 MeshFn Jacobian::dot(const MeshFn &x)
 {
+    CH_TIMERS("Jacobian matvec");
     MeshFn result = x;
     matvec(result.a.memptr());
     
@@ -90,7 +92,7 @@ MeshFn Jacobian::solve(const MeshFn &b, Preconditioner &pc, Solver s)
 Jacobian& Jacobian::operator +=(const MassMatrix &M)
 {
     int i, c, b;
-    b = M.basisSize;
+    b = M.bl;
     
     for (i = 0; i < n_rows; i++)
     {
