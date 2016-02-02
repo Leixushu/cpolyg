@@ -61,7 +61,8 @@ MeshFn BackwardEuler::advance(const MeshFn &u, const double dt, const double t)
         Jacobian B = eqn.jacobian(unp1, t + dt);
         B *= -dt;
         B += M;
-        BlockJacobi pc(B);
+        //BlockJacobi pc(B);
+        BlockILU0 pc(B);
         
         unp1 -= B.solve(r, pc);
     }
