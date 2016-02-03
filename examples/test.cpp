@@ -16,9 +16,9 @@ int main(int argc, char ** argv)
     // specify the degree of polynomials to use
     int deg = 2;
     // specify the size of each element in the mesh
-    double h = 0.04;
+    double h = 0.1;
     // specify the time step
-    double dt = 0.1;
+    double dt = h/10;
     
     // create the mesh, in this case hexagonal tessellation
     // of the unit square
@@ -35,10 +35,11 @@ int main(int argc, char ** argv)
     MassMatrix M(msh, deg);
     
     // create the time integration object
-    BackwardEuler ti(M, eqn);
+    ForwardEuler ti(M, eqn);
     
-    for (int i = 0; i < 10; i++)
+    for (int i = 0; i < 200; i++)
     {
+        cout << "Beginning timestep " << i << endl;
         f = ti.advance(f, dt, i*dt);
         f.gnuplot("plt/u" + std::to_string(i) + ".gnu");
     }

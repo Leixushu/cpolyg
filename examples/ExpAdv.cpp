@@ -70,8 +70,10 @@ int main(int argc, char ** argv)
     for (i = 0; i < K; i++)
     {
         if (i%25 == 0)
+        {
             cout << "Beginning timestep " << i << ", t=" << i*dt << endl;
             unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
+        }
         
         MeshFn k1 = dt*M.solve(B.dot(unp1));
         MeshFn k2 = dt*M.solve(B.dot(unp1 + 0.5*k1));

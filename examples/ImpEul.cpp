@@ -16,7 +16,7 @@ int main(int argc, char ** argv)
 {
     int i;
     int deg = 2;
-    double h = 1.0;
+    double h = 0.75;
     
     cout << "Using h = " << h << endl;
     PolyMesh msh = hexRectangle(h, 20, 15);

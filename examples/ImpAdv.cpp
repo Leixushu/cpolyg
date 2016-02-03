@@ -39,7 +39,7 @@ int main(int argc, char ** argv)
     double h = 0.035;
     
     cout << "Create mesh with h = " << h << endl;
-    PolyMesh msh = hexUnitSquare(h);
+    PolyMesh msh = quadUnitSquare(h);
     //PolyMesh msh = honeycombUnitSquare(h);
     //PolyMesh msh = perturbedQuadRectangle(h, 0.4, 1, 1);
     //PolyMesh msh = perturbedTriRectangle(h, 0.25, 1, 1);
