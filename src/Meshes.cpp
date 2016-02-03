@@ -139,6 +139,92 @@ PolyMesh triRectangle(double h, double width, double height)
     return msh;
 }
 
+PolyMesh periodicRectangle(double h, double width, double height)
+{
+    double x, y;
+    array<double, 2> pt;
+    vector<array<double, 2> > generatingPoints;
+    PolyMesh msh;
+    vector<int> polygon;
+    int idx1, idx2, idx3, idx4;
+    int Nx, Ny;
+    int ix, iy, i;
+    
+    Nx = width/h;
+    Ny = height/h;
+    
+    for(iy = 0; iy < Ny; iy++)
+    {
+        for(ix = 0; ix < Nx; ix++)
+        {
+        
+            x = ix*h;
+            y = iy*h;
+            
+            pt[0] = x;
+            pt[1] = y;
+            idx1 = msh.addVertex(pt);
+            
+            pt[0] = x+h;
+            pt[1] = y;
+            idx2 = msh.addVertex(pt);
+            
+            pt[0] = x+h;
+            pt[1] = y+h;
+            idx3 = msh.addVertex(pt);
+            
+            pt[0] = x;
+            pt[1] = y+h;
+            idx4 = msh.addVertex(pt);
+            
+            polygon = {idx1, idx2, idx3, idx4};
+            msh.p.push_back(polygon);
+        }
+    }
+    msh.np = msh.p.size();
+    msh.p2p.resize(msh.np);
+    
+    i = 0;
+    for(iy = 0; iy < Ny; iy++)
+    {
+        for(ix = 0; ix < Nx; ix++)
+        {
+            // bottom edge
+            if (iy == 0) msh.p2p[i].push_back(-(Nx*(Ny-1) + ix) - 1);
+            else msh.p2p[i].push_back(i-Nx);
+            
+            // right edge
+            if (ix == Nx-1) msh.p2p[i].push_back(-(i - Nx + 1) - 1);
+            else msh.p2p[i].push_back(i+1);
+            
+            // top edge
+            if (iy == Ny-1) msh.p2p[i].push_back(-ix - 1);
+            else msh.p2p[i].push_back(i+Nx);
+            
+            // left edge
+            if (ix == 0) msh.p2p[i].push_back(-(i + Nx - 1) - 1);
+            else msh.p2p[i].push_back(i-1);
+            
+            i++;
+        }
+    }
+    
+    for (i = 0; i < msh.np; i++)
+    {
+        cout << "Polygon " << i << ", neighbors =   ";
+        int k;
+        for (k = 0; k < msh.p2p[i].size(); k++)
+        {
+            cout << msh.p2p[i][k] << ", ";
+        }
+        cout << endl;
+    }
+    
+    msh.computebb();
+    msh.computeTriangulation();
+    
+    return msh;
+}
 
 PolyMesh honeycombRectangle(double h, double width, double height)
 {

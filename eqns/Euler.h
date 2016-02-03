@@ -14,7 +14,6 @@ struct Euler : Equation
     {
         double t;
         
-        virtual double f(double x, double y) const = 0;
         virtual double u(double x, double y) const = 0;
         virtual double v(double x, double y) const = 0;
         virtual double rho(double x, double y) const = 0;

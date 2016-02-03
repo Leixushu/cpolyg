@@ -33,12 +33,12 @@ LIBSRC := PolyMesh.cpp MeshFn.cpp Meshes.cpp Triangulation.cpp Functors.cpp \
 	   Quadrature.cpp Legendre.cpp MassMatrix.cpp TimeIntegration.cpp \
 	   Timer/CH_Timer.cpp BlockMatrix.cpp blas/blas.cpp Preconditioners.cpp \
 	   Jacobian.cpp \
-	   Equation.cpp Advection.cpp Euler.cpp EulerVortex.cpp
+	   Equation.cpp Advection.cpp Euler.cpp EulerVortex.cpp KelvinHelmholtz.cpp
 LIBOBJS := $(addprefix build/, $(notdir $(patsubst %.cpp,%.o, $(LIBSRC)))) \
 		   $(addprefix build/, $(notdir $(patsubst %.c,%.o, $(LIBCSRC))))
 		   
 EXAMPLES := examples/test examples/ExpAdv examples/ImpAdv \
-			examples/ExpEul examples/ImpEul
+			examples/ExpEul examples/ImpEul examples/KH
 
 OBJS := $(LIBOBJS) $(addprefix build/, $(notdir $(addsuffix .o, $(EXAMPLES))))
 DEPS := $(addprefix build/, $(notdir $(patsubst %.o,%.d, $(OBJS))))

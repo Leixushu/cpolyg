@@ -41,12 +41,12 @@ MeshFn BackwardEuler::advance(const MeshFn &u, const double dt, const double t)
     cout << "Beginning Newton solve" << endl;
     for (k = 0; k < kNewtonMaxIterations; k++)
     {
-        unp1.gnuplot("plt/newton" + to_string(k) + ".gnu");
+        //unp1.gnuplot("plt/newton" + to_string(k) + ".gnu");
         
         b = eqn.assemble(unp1, t + dt);
         r = M.dot(unp1 - u) - dt*b;
         
-        r.gnuplot("plt/residual" + to_string(k) + ".gnu");
+        //r.gnuplot("plt/residual" + to_string(k) + ".gnu");
         b.gnuplot("plt/b" + to_string(k) + ".gnu");
         
         cout << "    Iteration number " << k << ", residual norm = "
@@ -61,7 +61,6 @@ MeshFn BackwardEuler::advance(const MeshFn &u, const double dt, const double t)
         Jacobian B = eqn.jacobian(unp1, t + dt);
         B *= -dt;
         B += M;
-        //BlockJacobi pc(B);
         BlockILU0 pc(B);
         
         unp1 -= B.solve(r, pc);

@@ -28,9 +28,12 @@ Jacobian::Jacobian(PolyMesh &a_msh, int a_deg, int a_nc) : msh(a_msh)
         
         for (j = 0; j < msh.p2p[i].size(); j++)
         {
-            blocks.push_back(zeroMat);
-            colIndices.push_back(msh.p2p[i][j]);
-            numBlocks++;
+            if (msh.p2p[i][j] >= 0)
+            {
+                blocks.push_back(zeroMat);
+                colIndices.push_back(msh.p2p[i][j]);
+                numBlocks++;
+            }
         }
     }
     

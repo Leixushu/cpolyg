@@ -4,6 +4,7 @@
 #include <array>
 #include <cmath>
 #include <armadillo>
+#include <cassert>
 
 #include "Triangulation.h"
 #include "Quadrature.h"
@@ -38,6 +39,50 @@ struct PolyMesh
     {
         x_out = 2.0*(x_in - bb[pi][0])/bb[pi][2] - 1;
         y_out = 2.0*(y_in - bb[pi][1])/bb[pi][3] - 1;
+    }
+    
+    inline void getPeriodicCoordinates(int p1, int neighbor, double xIn, double yIn,
+                                       double &xOut, double &yOut) const
+    {
+        int e1, e2, p2;
+        double x1, y1, x2, y2, x3, y3, x4, y4, xNew, yNew;
+        
+        p2 = -neighbor - 1;
+        for (e1 = 0; e1 < p2p[p1].size(); e1++)
+        {
+            if (p2p[p1][e1] == neighbor)
+            {
+                break;
+            }
+        }
+        assert(e1 < p2p[p1].size());
+        
+        for (e2 = 0; e2 < p2p[p2].size(); e2++)
+        {
+            if (p2p[p2][e2] == -p1 - 1)
+            {
+                break;
+            }
+        }
+        assert(e2 < p2p[p2].size());
+        
+        x1 = v[p[p1][e1]][0];
+        y1 = v[p[p1][e1]][1];
+        
+        x2 = v[p[p2][e2]][0];
+        y2 = v[p[p2][e2]][1];
+        
+        x3 = v[p[p1][e1+1]][0];
+        y3 = v[p[p1][e1+1]][1];
+        
+        x4 = v[p[p2][e2+1]][0];
+        y4 = v[p[p2][e2+1]][1];
+        
+        xNew = (x4*y1 - x2*y3)/(x3*y1 - x1*y3)*xIn + (x2*x3 - x1*x4)/(x3*y1 - x1*y3)*yIn;
+        yNew = (y2*y3 - y1*y4)/(-(x3*y1) + x1*y3)*xIn + (x3*y2 - x1*y4)/(x3*y1 - x1*y3)*yIn;
+        
+        xOut = 2.0*(xNew - bb[p2][0])/bb[p2][2] - 1;
+        yOut = 2.0*(yNew - bb[p2][1])/bb[p2][3] - 1;
     }
     
     inline double polygonIntegral(FnFunctor &cb, int pi)

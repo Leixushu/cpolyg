@@ -30,17 +30,6 @@ mat Advection::betaUDotGradPsi::operator()(double x, double y) const
     return result;
 }
 
-mat Advection::JacobianBetaUDotGradPsi::operator()(double x, double y) const
-{
-    double xx, yy;
-    vec::fixed<1> result;
-    msh.getLocalCoordinates(i, x, y, xx, yy);
-    
-    result(0) = Leg2D(xx, yy, m, *phi)*(beta_x(x, y)*Leg2D(xx, yy, m, *psi_x) 
-                                      + beta_y(x, y)*Leg2D(xx, yy, m, *psi_y));
-    return result;
-}
-
 mat Advection::uPsiBetaDotN::operator()(double x, double y) const
 {
     double xMinus, xPlus, yMinus, yPlus;
@@ -59,7 +48,8 @@ mat Advection::uPsiBetaDotN::operator()(double x, double y) const
         return result;
     } else
     {
-        if (iMinus == iPlus)
+        // negative iPlus indicates exterior boundary
+        if (iPlus < 0)
         {
             result(0) = 0;
         } else
@@ -69,6 +59,17 @@ mat Advection::uPsiBetaDotN::operator()(double x, double y) const
         }
         return result;
     }
+}
+
+mat Advection::JacobianBetaUDotGradPsi::operator()(double x, double y) const
+{
+    double xx, yy;
+    vec::fixed<1> result;
+    msh.getLocalCoordinates(i, x, y, xx, yy);
+    
+    result(0) = Leg2D(xx, yy, m, *phi)*(beta_x(x, y)*Leg2D(xx, yy, m, *psi_x) 
+                                      + beta_y(x, y)*Leg2D(xx, yy, m, *psi_y));
+    return result;
 }
 
 mat Advection::phiPsiBetaDotN::operator()(double x, double y) const

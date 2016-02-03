@@ -24,6 +24,7 @@ void PolyMesh::computep2p(void)
     int i, j, k, l;
     int a1, b1, a2, b2;
     int nv1, nv2;
+    bool found;
     
     p2p.resize(np);
     
@@ -37,8 +38,11 @@ void PolyMesh::computep2p(void)
             a1 = p[i][j];
             b1 = p[i][(j+1)%nv1];
             
-            for (k = i+1; k < np; k++)
+            found = false;
+            for (k = 0; k < np; k++)
             {
+                if (i == k) continue;
+                
                 nv2 = p[k].size();
                 // loop over all edges
                 for (l = 0; l < nv2; l++)
@@ -49,15 +53,23 @@ void PolyMesh::computep2p(void)
                     if ((a1 == a2 && b1 == b2) || (a1 == b2 && b1 == a2))
                     {
                         p2p[i].push_back(k);
-                        p2p[k].push_back(i);
+                        //p2p[k].push_back(i);
+                        found = true;
                         break;
                     }
-                    
                 }
+                
+                if (found) break;
             }
             
+            // if this edge of the polygon has no neighboring polygons, it is on the 
+            // exterior of the domain, so we mark it with a negative number
+            if (!found)
+            {
+                p2p[i].push_back(-1);
+            }
         }
-    }
+    }    
 }
 
 void PolyMesh::computebb()

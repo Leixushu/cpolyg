@@ -164,12 +164,14 @@ mat Euler::LaxFriedrichsFlux::operator()(double x, double y) const
     double VDotNMinus, VDotNPlus;
     double alpha;
     
-    if (iPlus != iMinus || exact == NULL)
+    if (iPlus >= 0 || exact == NULL)
     {
         msh.getLocalCoordinates(iPlus, x, y, xPlus, yPlus);
         varsPlus = computeVariables(xPlus, yPlus, m, UPlus);
     } else
     {
+        //msh.getPeriodicCoordinates(iMinus, iPlus, x, y, xPlus, yPlus);
+        //varsPlus = computeVariables(xPlus, yPlus, m, UPlus);
         rhoPlus = exact->rho(x, y);
         uPlus = exact->u(x, y);
         vPlus = exact->v(x, y);
@@ -230,7 +232,7 @@ mat Euler::JacobianLaxFriedrichsFlux::operator()(double x, double y) const
     vars = computeVariables(xPsi, yPsi, m, U);
     
     // if we're not on an exterior edge, take the value of the neighboring cell
-    if (iPsi != neighbor)
+    if (neighbor >= 0)
     {
         msh.getLocalCoordinates(neighbor, x, y, xNeighbor, yNeighbor);
         vars2 = computeVariables(xNeighbor, yNeighbor, m, UNeighbor);

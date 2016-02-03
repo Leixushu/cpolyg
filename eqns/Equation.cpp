@@ -13,13 +13,9 @@ Equation::Equation(PolyMesh &a_msh) : msh(a_msh)
 
 vec Equation::boundaryIntegral(int i, const vec &psi, const MeshFn &U)
 {
-    int a1, b1, a2, b2;
-    int nv1, nv2;
-    int j, l, i2;
-    unsigned int k;
-    int neighbor;
+    int nv1, a1, b1;
+    int j;
     vec integ = zeros<vec>(nc);
-    mat UNeighbor;
     
     boundaryTerm->psi = &psi;
     
@@ -30,34 +26,14 @@ vec Equation::boundaryIntegral(int i, const vec &psi, const MeshFn &U)
         a1 = msh.p[i][j];
         b1 = msh.p[i][(j+1)%nv1];
         
-        neighbor = i;
         
-        // loop over all neighboring polygons to find the one that shares this edge
-        for (k = 0; k < msh.p2p[i].size(); k++)
+        boundaryTerm->iPlus = msh.p2p[i][j];
+        if(msh.p2p[i][j] >= 0)
         {
-            i2 = msh.p2p[i][k];
-            nv2 = msh.p[i2].size();
-            // loop over all edges of the neighboring polygon
-            for (l = 0; l < nv2; l++)
-            {
-                a2 = msh.p[i2][l];
-                b2 = msh.p[i2][(l+1)%nv2];
-                // have we found a match?
-                if ((a1 == a2 && b1 == b2) || (a1 == b2 && b1 == a2))
-                {
-                    neighbor = i2;
-                    break;
-                }
-            }
-            
-            // if we've found a match, don't need to keep looking
-            if (neighbor != i) break;
+            boundaryTerm->UPlus = U.a.slice(msh.p2p[i][j]);
         }
         
         msh.getOutwardNormal(i, a1, b1, boundaryTerm->nx, boundaryTerm->ny);
-        boundaryTerm->iPlus = neighbor;
-        boundaryTerm->UPlus = U.a.slice(neighbor);
-        
         integ += msh.lineIntegral(*boundaryTerm, a1, b1);
     }
     
@@ -117,11 +93,11 @@ MeshFn Equation::assemble(const MeshFn &u, double t/* = 0 */)
 
 Jacobian Equation::jacobian(const MeshFn &f, double t)
 {
-    int i, j, k, l, e, i2;
-    int diagonalBlock, blockIdx, neighbor;
+    int i, j, k, e;
+    int diagonalBlock, blockIdx;
     int deg = f.deg;
     int basisSize = (deg+1)*(deg+2)/2;
-    int nv1, nv2, a1, b1, a2, b2;
+    int nv1, a1, b1, neighbor;
     double w, h;
     vec phi = zeros<vec>(basisSize);
     vec psi = zeros<vec>(basisSize);
@@ -166,7 +142,9 @@ Jacobian Equation::jacobian(const MeshFn &f, double t)
                     += msh.polygonIntegral(*volumeJacobian, i);
                 
                 nv1 = msh.p[i].size();
-    
+                
+                blockIdx = diagonalBlock + 1;
+                
                 // loop over all edges of the polygon we're in
                 for (e = 0; e < nv1; e++)
                 {
@@ -177,39 +155,18 @@ Jacobian Equation::jacobian(const MeshFn &f, double t)
                     msh.getOutwardNormal(i, a1, b1, boundaryDerivative->nx,
                                          boundaryDerivative->ny);
                     
-                    // find the neighboring polygon (or otherwise we're on the exterior)
-                    neighbor = i;
-                    boundaryDerivative->neighbor = i;
-                    for (blockIdx = J.rowBlock[i] + 1; blockIdx < J.rowBlock[i+1]; blockIdx++)
+                    // get the neighbor corresponding to this edge
+                    neighbor = msh.p2p[i][e];
+                    boundaryDerivative->neighbor = neighbor;
+                    
+                    // negative index indicates exterior edge
+                    if (neighbor >= 0)
                     {
-                        i2 = J.colIndices[blockIdx];
-                        
-                        nv2 = msh.p[i2].size();
-                        
-                        // loop over all edges of the neighboring polygon
-                        for (l = 0; l < nv2; l++)
-                        {
-                            a2 = msh.p[i2][l];
-                            b2 = msh.p[i2][(l+1)%nv2];
-                            // have we found a match?
-                            if ((a1 == a2 && b1 == b2) || (a1 == b2 && b1 == a2))
-                            {
-                                neighbor = i2;
-                                break;
-                            }
-                        }
-                        
-                        // compute the contribution of the neighbor on this element
-                        if (neighbor != i)
-                        {
-                            boundaryDerivative->neighbor = neighbor;
-                            boundaryDerivative->UNeighbor = f.a.slice(neighbor);
-                            boundaryDerivative->iPhi = neighbor;
-                            J.blocks[blockIdx](componentIndices+k, componentIndices+j) -= 
-                                msh.lineIntegral(*boundaryDerivative, a1, b1);
-                            
-                            break;
-                        }
+                        boundaryDerivative->UNeighbor = f.a.slice(neighbor);
+                        boundaryDerivative->iPhi = neighbor;
+                        J.blocks[blockIdx](componentIndices+k, componentIndices+j) -= 
+                            msh.lineIntegral(*boundaryDerivative, a1, b1);
+                        blockIdx++;
                     }
                     
                     boundaryDerivative->iPhi = i;
