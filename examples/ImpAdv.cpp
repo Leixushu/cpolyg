@@ -35,14 +35,18 @@ int main(int argc, char ** argv)
 {
     using namespace std;
     
-    int deg = 2;
-    double h = 0.035;
+    int deg = 0;
+    double h = 0.05;
     
     cout << "Create mesh with h = " << h << endl;
-    PolyMesh msh = quadUnitSquare(h);
+    
+    //PolyMesh msh = quadUnitSquare(h*0.5*sqrt(sqrt(3)));
+    //PolyMesh msh = triUnitSquare(h*sqrt(sqrt(3)/2));
     //PolyMesh msh = honeycombUnitSquare(h);
-    //PolyMesh msh = perturbedQuadRectangle(h, 0.4, 1, 1);
-    //PolyMesh msh = perturbedTriRectangle(h, 0.25, 1, 1);
+    PolyMesh msh = hexUnitSquare(h/sqrt(6.0));
+    
+    cout << "Total degrees of freedom: " << msh.np*0.5*(deg+1)*(deg+2) << endl;
+    
     msh.gnuplot();
     
     MassMatrix M(msh, deg);
@@ -61,9 +65,10 @@ int main(int argc, char ** argv)
     
     MeshFn unp1 = f;
     
-    int K = 4000;
+    int K = 10;
     int i;
-    double dt = 1.5/K;
+    //double dt = h*2;
+    double dt = h;
     
     cout << "Using dt = " << dt << endl;
     cout << "Computing total of " << K << " timesteps." << endl;
@@ -73,8 +78,10 @@ int main(int argc, char ** argv)
     
     B.spy("plt/B.gnu");
     
-    BlockILU0 pc(B);
-    //BlockJacobi pc(B);
+    //BlockILU0 pc(B);
+    BlockJacobi pc(B);
+    
+    //BackwardEuler ti(M, eqn);
     
     for (i = 0; i < K; i++)
     {
@@ -82,7 +89,8 @@ int main(int argc, char ** argv)
             cout << "Beginning timestep " << i << ", t=" << i*dt << endl;
         
         unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
-        unp1 = B.solve(M.dot(unp1), pc, kGMRESSolver);
+        unp1 = B.solve(M.dot(unp1), pc, kJacobiSolver);
+        //unp1 = ti.advance(unp1, dt, i*dt);
     }
     unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
     

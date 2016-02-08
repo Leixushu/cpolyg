@@ -15,8 +15,11 @@ struct ExactGaussian : FnFunctor
     {
         double x0, y0;
         
-        x0 = 0.5 - 0.15*cos(2*theta);
-        y0 = 0.5 + 0.3*cos(theta)*sin(theta);
+        //x0 = 0.5 - 0.15*cos(2*theta);
+        //y0 = 0.5 + 0.3*cos(theta)*sin(theta);
+        
+        x0 = 0.5 + theta;
+        y0 = 0.5;
         
         return exp(-150*((x-x0)*(x-x0) + (y-y0)*(y-y0)));
     }
@@ -38,10 +41,11 @@ int main(int argc, char ** argv)
 {
     using namespace std;
     
-    int deg = 3;
-    double h = 0.03;
+    int deg = 6;
+    double h = 0.1/2.0;
     
-    PolyMesh msh = hexUnitSquare(h);
+    double h2 = h*sqrt(2.0/3.0/sqrt(3.0));
+    PolyMesh msh = hexUnitSquare(h2);
     msh.gnuplot();
     
     MassMatrix M(msh, deg);
@@ -59,7 +63,7 @@ int main(int argc, char ** argv)
     
     int K = 500;
     int i;
-    double dt = 1.0/K;
+    double dt = 0.35/K;
     
     cout << "Using h = " << h << ", dt = " << dt << endl;
     cout << "Computing total of " << K << " timesteps." << endl;
@@ -90,6 +94,11 @@ int main(int argc, char ** argv)
     
     double l2err;
     exact.theta = i*dt;
+    
+    MeshFn theExact = MeshFn(msh, deg, 1);
+    theExact.interp(exact);
+    theExact.gnuplot("plt/exact.gnu");
+    
     l2err = unp1.L2Error(exact);
     cout << "L^2 error = " << l2err << endl;
     
