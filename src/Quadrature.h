@@ -1,18 +1,18 @@
 #pragma once
 
-#include <array>
+#include <armadillo>
 
 // Provide quadrature points and weights for various degree polynomials
 // For integrals over lines and triangles
 struct Quadratures
 {
-    static std::array<std::array<double, 2>, 2> lin2;
-    static std::array<std::array<double, 2>, 4> lin4;
-    static std::array<std::array<double, 2>, 6> lin6;
-    static std::array<std::array<double, 2>, 10> lin10;
+    static arma::mat lin2;
+    static arma::mat lin4;
+    static arma::mat lin6;
+    static arma::mat lin10;
     
-    static std::array<std::array<double, 3>, 3> tri2;
-    static std::array<std::array<double, 3>, 6> tri4;
-    static std::array<std::array<double, 3>, 12> tri6;
-    static std::array<std::array<double, 3>, 25> tri10;
+    static arma::mat tri2;
+    static arma::mat tri4;
+    static arma::mat tri6;
+    static arma::mat tri10;
 };

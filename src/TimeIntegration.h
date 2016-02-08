@@ -5,13 +5,13 @@
 #include "Equation.h"
 #include "Timer/CH_Timer.H"
 
+// Abstract class for time stepping
 struct TimeStepper
 {
     Equation &eqn;
     MassMatrix &M;
     
-    TimeStepper(MassMatrix &a_M, Equation &a_eqn)
-    : eqn(a_eqn), M(a_M) { };
+    TimeStepper(MassMatrix &a_M, Equation &a_eqn) : eqn(a_eqn), M(a_M) { };
     
     virtual MeshFn advance(const MeshFn &u, const double dt, const double t) = 0;
     virtual ~TimeStepper() {};

@@ -89,7 +89,7 @@ struct PolyMesh
     {
         unsigned int i, k;
         double area, integ, x1, x2, x3, y1, y2, y3, x, y, z;
-        auto &qr = Quadratures::tri6;
+        auto &qr = Quadratures::tri10;
         
         integ = 0;
         
@@ -106,12 +106,12 @@ struct PolyMesh
             area = 0.5*fabs(x1*y2 + x2*y3 + x3*y1 - x1*y3 - x3*y2 - x2*y1);
             
             z = 0;
-            for (k = 0; k < qr.size(); k++)
+            for (k = 0; k < qr.n_rows; k++)
             {
-                x = x1*(1-qr[k][0]-qr[k][1])+x2*qr[k][0]+x3*qr[k][1];
-                y = y1*(1-qr[k][0]-qr[k][1])+y2*qr[k][0]+y3*qr[k][1];
+                x = x1*(1-qr(k,0)-qr(k,1))+x2*qr(k,0)+x3*qr(k,1);
+                y = y1*(1-qr(k,0)-qr(k,1))+y2*qr(k,0)+y3*qr(k,1);
                 
-                z += cb(x, y)*qr[k][2];
+                z += cb(x, y)*qr(k,2);
             }
             
             integ += z*area;
@@ -124,7 +124,7 @@ struct PolyMesh
     {
         unsigned int i, k;
         double area, x1, x2, x3, y1, y2, y3, x, y;
-        auto &qr = Quadratures::tri6;
+        auto &qr = Quadratures::tri10;
         
         arma::mat z = arma::zeros<arma::mat>(cb.n_rows, cb.n_cols);
         arma::mat integ = arma::zeros<arma::mat>(cb.n_rows, cb.n_cols);
@@ -142,12 +142,12 @@ struct PolyMesh
             area = 0.5*fabs(x1*y2 + x2*y3 + x3*y1 - x1*y3 - x3*y2 - x2*y1);
             
             z *= 0;
-            for (k = 0; k < qr.size(); k++)
+            for (k = 0; k < qr.n_rows; k++)
             {
-                x = x1*(1-qr[k][0]-qr[k][1])+x2*qr[k][0]+x3*qr[k][1];
-                y = y1*(1-qr[k][0]-qr[k][1])+y2*qr[k][0]+y3*qr[k][1];
+                x = x1*(1-qr(k,0)-qr(k,1))+x2*qr(k,0)+x3*qr(k,1);
+                y = y1*(1-qr(k,0)-qr(k,1))+y2*qr(k,0)+y3*qr(k,1);
                 
-                z += cb(x, y)*qr[k][2];
+                z += cb(x, y)*qr(k,2);
             }
             
             integ += z*area;
@@ -160,7 +160,7 @@ struct PolyMesh
     {
         unsigned int k;
         double integ, x1, y1, x2, y2, x, y, length;
-        auto &qr = Quadratures::lin6;
+        auto &qr = Quadratures::lin10;
         
         integ = 0;
         
@@ -171,12 +171,12 @@ struct PolyMesh
         
         length = sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
         
-        for (k = 0; k < qr.size(); k++)
+        for (k = 0; k < qr.n_rows; k++)
         {
-            x = x1 + 0.5*(qr[k][0] + 1)*(x2 - x1);
-            y = y1 + 0.5*(qr[k][0] + 1)*(y2 - y1);
+            x = x1 + 0.5*(qr(k,0) + 1)*(x2 - x1);
+            y = y1 + 0.5*(qr(k,0) + 1)*(y2 - y1);
             
-            integ += qr[k][1]*cb(x, y);
+            integ += qr(k,1)*cb(x, y);
         }
         
         return integ*0.5*length;
@@ -186,7 +186,7 @@ struct PolyMesh
     {
         unsigned int k;
         double x1, y1, x2, y2, x, y, length;
-        auto &qr = Quadratures::lin6;
+        auto &qr = Quadratures::lin10;
         
         arma::mat integ = arma::zeros<arma::mat>(cb.n_rows, cb.n_cols);
         
@@ -197,12 +197,12 @@ struct PolyMesh
         
         length = sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1));
         
-        for (k = 0; k < qr.size(); k++)
+        for (k = 0; k < qr.n_rows; k++)
         {
-            x = x1 + 0.5*(qr[k][0] + 1)*(x2 - x1);
-            y = y1 + 0.5*(qr[k][0] + 1)*(y2 - y1);
+            x = x1 + 0.5*(qr(k,0) + 1)*(x2 - x1);
+            y = y1 + 0.5*(qr(k,0) + 1)*(y2 - y1);
             
-            integ += qr[k][1]*cb(x, y);
+            integ += qr(k,1)*cb(x, y);
         }
         
         return integ*0.5*length;

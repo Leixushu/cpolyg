@@ -184,12 +184,12 @@ void MeshFn::gnuplot(std::string filename) const
             y2 = msh.tri[i].points[msh.tri[i].triangles[j][1]][1];
             y3 = msh.tri[i].points[msh.tri[i].triangles[j][2]][1];
             
-            for (k = 0; k < qr.size(); k++)
+            for (k = 0; k < qr.n_rows; k++)
             {
                 plotFile.precision(oldPrecision);
                 
-                x = x1*(1-qr[k][0]-qr[k][1])+x2*qr[k][0]+x3*qr[k][1];
-                y = y1*(1-qr[k][0]-qr[k][1])+y2*qr[k][0]+y3*qr[k][1];
+                x = x1*(1-qr(k,0)-qr(k,1))+x2*qr(k,0)+x3*qr(k,1);
+                y = y1*(1-qr(k,0)-qr(k,1))+y2*qr(k,0)+y3*qr(k,1);
                 plotFile << x << "\t" << y;
                 
                 plotFile.precision(20);
