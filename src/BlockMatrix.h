@@ -4,11 +4,7 @@
 #include <vector>
 
 /// Abstract preconditioner class
-struct Preconditioner
-{
-    /// Perform solve Mx = b, overwriting input array
-    virtual void solve(double *x) = 0;
-};
+struct Preconditioner;
 
 /// Sparse matrix stored in block compressed sparse row format
 struct BlockMatrix
