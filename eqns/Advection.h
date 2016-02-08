@@ -2,11 +2,7 @@
 
 #include "Equation.h"
 
-/** \addtogroup Equations
-    @{
-*/
-
-/// Two dimensional advection equation, \f$ u_t + \nabla\cdot(\beta u) = 0 \f$
+// Two dimensional advection equation, u_t + div(\beta u) = 0
 struct Advection : Equation
 {
     struct betaUDotGradPsi : VolumeTermFunctor
@@ -39,5 +35,3 @@ struct Advection : Equation
     Advection(PolyMesh &m);
     ~Advection();
 };
-
-/**@}*/
