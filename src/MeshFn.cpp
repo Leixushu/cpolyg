@@ -165,7 +165,7 @@ void MeshFn::gnuplot(std::string filename) const
     int oldPrecision;
     double x1, x2, x3, y1, y2, y3, x, y, val;
     ofstream plotFile;
-    auto &qr = Quadratures::tri2;
+    mat &qr = Quadratures::tri2;
     
     CH_TIMERS("MeshFn gnuplot");
     

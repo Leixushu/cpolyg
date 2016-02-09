@@ -89,7 +89,7 @@ struct PolyMesh
     {
         unsigned int i, k;
         double area, integ, x1, x2, x3, y1, y2, y3, x, y, z;
-        auto &qr = Quadratures::tri10;
+        arma::mat &qr = Quadratures::tri10;
         
         integ = 0;
         
@@ -124,7 +124,7 @@ struct PolyMesh
     {
         unsigned int i, k;
         double area, x1, x2, x3, y1, y2, y3, x, y;
-        auto &qr = Quadratures::tri10;
+        arma::mat &qr = Quadratures::tri10;
         
         arma::mat z = arma::zeros<arma::mat>(cb.n_rows, cb.n_cols);
         arma::mat integ = arma::zeros<arma::mat>(cb.n_rows, cb.n_cols);
@@ -160,7 +160,7 @@ struct PolyMesh
     {
         unsigned int k;
         double integ, x1, y1, x2, y2, x, y, length;
-        auto &qr = Quadratures::lin10;
+        arma::mat &qr = Quadratures::lin10;
         
         integ = 0;
         
@@ -186,7 +186,7 @@ struct PolyMesh
     {
         unsigned int k;
         double x1, y1, x2, y2, x, y, length;
-        auto &qr = Quadratures::lin10;
+        arma::mat &qr = Quadratures::lin10;
         
         arma::mat integ = arma::zeros<arma::mat>(cb.n_rows, cb.n_cols);
         
