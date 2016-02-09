@@ -10,15 +10,6 @@
 using namespace voro;
 using namespace std;
 
-template<typename T>
-std::ostream & operator<<(std::ostream & os, std::vector<T> vec)
-{
-    os<<"{ ";
-    std::copy(vec.begin(), vec.end(), std::ostream_iterator<T>(os, ", "));
-    os<<"}";
-    return os;
-}
-
 void PolyMesh::computep2p(void)
 {
     int i, j, k, l;
@@ -72,6 +63,7 @@ void PolyMesh::computep2p(void)
     }    
 }
 
+// compute and store the bounding boxes for all of polygons
 void PolyMesh::computebb()
 {
     int i, j;
@@ -103,6 +95,7 @@ void PolyMesh::computebb()
     }
 }
 
+// triangulate each polygon and store the triangulation
 void PolyMesh::computeTriangulation()
 {
     int i, j;
@@ -125,6 +118,8 @@ void PolyMesh::computeTriangulation()
     }
 }
 
+// Add a vertex to the mesh and return its index. If the vertex already exists
+// (to within a tolerance), don't add and return the index of the existing vertex
 int PolyMesh::addVertex(array<double, 2> vertex)
 {
     unsigned int i;
@@ -199,9 +194,10 @@ PolyMesh::PolyMesh(vector<array<double, 2> > points, double width, double height
     computeTriangulation();
 }
 
+// Write out plot files for the mesh
 void PolyMesh::gnuplot()
 {
-    ofstream pointFile, edgeFile;
+    ofstream edgeFile;
     int i, j, nv;
     
     edgeFile.open("plt/edges.gnu");
