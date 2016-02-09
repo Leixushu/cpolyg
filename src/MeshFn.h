@@ -59,13 +59,13 @@ struct MeshFn
     
     void gnuplot(std::string filename) const;
     
-    MeshFn& operator+=(const MeshFn fn2)
+    MeshFn& operator+=(const MeshFn &fn2)
     {
         a += fn2.a;
         return (*this);
     }
     
-    MeshFn& operator-=(const MeshFn fn2)
+    MeshFn& operator-=(const MeshFn &fn2)
     {
         a -= fn2.a;
         return (*this);
