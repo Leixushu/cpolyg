@@ -234,9 +234,10 @@ PolyMesh honeycombRectangle(double h, double width, double height)
     int yi;
 
     yi = 0;
-    for(x = 0; x <= width + kEPS; x += sqrt(3)*h/2)
+
+    for (y = 0; y <= height + kEPS; y += sqrt(3)*h/2)
     {
-        for(y = yi*0.5*h; y <= height + kEPS; y += h)
+        for (x = yi*0.5*h; x <= width + kEPS; x += h)
         {
             pt[0] = x;
             pt[1] = y;
