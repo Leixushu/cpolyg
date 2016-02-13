@@ -6,9 +6,9 @@ CXX=clang++
 #CXX=g++-5
 
 # debug flags
-CFLAGS = -g -O0
+#CFLAGS = -g -O0
 # optimized flags
-#CFLAGS = -O3
+CFLAGS = -O3
 
 # turn on warnings
 WARNINGFLAGS = -Wall -Wshadow -pedantic
