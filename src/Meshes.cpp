@@ -55,15 +55,25 @@ PolyMesh perturbedQuadRectangle(double h, double p, double width, double height)
     double x, y;
     array<double, 2> pt;
     vector<array<double, 2> > generatingPoints;
+    int yi;
     
+    yi = 0;
     for(x = 0.5*h; x <= width + kEPS; x += h)
     {
-        for(y = 0.5*h; y <= height + kEPS; y += h)
+        for(y = 0.5*h*yi; y <= height + kEPS; y += h)
         {
-            pt[0] = x + h*p*double(rand() - RAND_MAX/2)/RAND_MAX;
-            pt[1] = y + h*p*double(rand() - RAND_MAX/2)/RAND_MAX;
+            pt[0] = x;
+            pt[1] = y;
+            
+            if (y > 0.5*h && y < height - h)
+                pt[1] = y + h*p*double(rand() - RAND_MAX/2)/RAND_MAX;
+            
+            if (x > 0.5*h && x < width - h)
+                pt[0] = x + h*p*double(rand() - RAND_MAX/2)/RAND_MAX;
+            
             generatingPoints.push_back(pt);
         }
+        if (x < width - 2*h) yi = !yi;
     }
     
     return PolyMesh(generatingPoints, width, height);
@@ -74,23 +84,32 @@ PolyMesh perturbedTriRectangle(double h, double p, double width, double height)
     double x, y;
     array<double, 2> pt;
     vector<array<double, 2> > generatingPoints;
+    int yi;
     
+    ofstream ptfile;
+    ptfile.open("plt/points.gnu");
+    
+    yi = 0;
     for(x = 0.5*h; x <= width + kEPS; x += h)
     {
-        for(y = 0.5*h; y <= height + kEPS; y += h)
+        for(y = 0.5*h*yi; y <= height + kEPS; y += h)
         {
             pt[0] = x;
             pt[1] = y;
             
-            if (x > 0.5*h && x < width - h && y > 0.5*h && y < height - h)
-            {
-                pt[0] += h*p*double(rand() - RAND_MAX/2)/RAND_MAX;
-                pt[1] += h*p*double(rand() - RAND_MAX/2)/RAND_MAX;
-            }
+            if (y > 0.5*h && y < height - h)
+                pt[1] = y + h*p*double(rand() - RAND_MAX/2)/RAND_MAX;
+            
+            if (x > 0.5*h && x < width - h)
+                pt[0] = x + h*p*double(rand() - RAND_MAX/2)/RAND_MAX;
             
             generatingPoints.push_back(pt);
+            ptfile << pt[0] << "\t\t" << pt[1] << endl;
         }
+        if (x < width - 2*h) yi = !yi;
     }
+    
+    ptfile.close();
     
     return PolyMesh::triangulate(generatingPoints);
 }
