@@ -37,8 +37,7 @@ LIBSRC := PolyMesh.cpp MeshFn.cpp Meshes.cpp Triangulation.cpp Functors.cpp \
 LIBOBJS := $(addprefix build/, $(notdir $(patsubst %.cpp,%.o, $(LIBSRC)))) \
 		   $(addprefix build/, $(notdir $(patsubst %.c,%.o, $(LIBCSRC))))
 		   
-EXAMPLES := examples/test examples/ExpAdv examples/ImpAdv \
-			examples/ExpEul examples/ImpEul examples/KH
+EXAMPLES := bin/test bin/ExpAdv bin/ImpAdv bin/ExpEul bin/ImpEul bin/KH
 
 OBJS := $(LIBOBJS) $(addprefix build/, $(notdir $(addsuffix .o, $(EXAMPLES))))
 DEPS := $(addprefix build/, $(notdir $(patsubst %.o,%.d, $(OBJS))))
@@ -47,7 +46,7 @@ DEPS := $(addprefix build/, $(notdir $(patsubst %.o,%.d, $(OBJS))))
 
 all: $(EXAMPLES)
 
-examples/%: build/%.o $(LIBOBJS) Makefile
+bin/%: build/%.o $(LIBOBJS) Makefile
 	$(CXX) $(CFLAGS) $(LIBOBJS) $< $(LIBS) -o $@
 
 build/%.o: %.cpp Makefile
