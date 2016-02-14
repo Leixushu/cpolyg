@@ -15,11 +15,11 @@ struct ExactGaussian : FnFunctor
     {
         double x0, y0;
         
-        //x0 = 0.5 - 0.15*cos(2*theta);
-        //y0 = 0.5 + 0.3*cos(theta)*sin(theta);
+        x0 = 0.5 - 0.15*cos(2*theta);
+        y0 = 0.5 + 0.3*cos(theta)*sin(theta);
         
-        x0 = 0.5 + theta;
-        y0 = 0.5;
+        //x0 = 0.5 + theta;
+        //y0 = 0.5;
         
         return exp(-150*((x-x0)*(x-x0) + (y-y0)*(y-y0)));
     }
@@ -27,21 +27,11 @@ struct ExactGaussian : FnFunctor
     ExactGaussian(double a_theta) : theta(a_theta) {};
 };
 
-double c5(double x, double y)
-{
-    return 5 + x + 7*x*y + 3*x*x*y;
-}
-
-double gaussian(double x, double y)
-{
-    return exp(-150*((x-0.35)*(x-0.35) + (y-0.5)*(y-0.5)));
-}
-
 int main(int argc, char ** argv)
 {
     using namespace std;
     
-    int deg = 6;
+    int deg = 4;
     double h = 0.1/2.0;
     
     double h2 = h*sqrt(2.0/3.0/sqrt(3.0));
@@ -58,18 +48,14 @@ int main(int argc, char ** argv)
     
     MeshFn unp1 = f;
     
-    //RK4 ti(M, eqn);
-    //ForwardEuler ti(M, eqn);
-    
-    int K = 500;
+    int K = 1000;
     int i;
-    double dt = 0.35/K;
+    double dt = M_PI/K;
     
     cout << "Using h = " << h << ", dt = " << dt << endl;
     cout << "Computing total of " << K << " timesteps." << endl;
     
     Jacobian B = eqn.jacobian(f, 0);
-    BlockILU0 pc(B);
     
     for (i = 0; i < K; i++)
     {
@@ -85,8 +71,6 @@ int main(int argc, char ** argv)
         MeshFn k4 = dt*M.solve(B.dot(unp1 + k3));
         
         unp1 += (k1 + 2*k2 + 2*k3 + k4)/6;
-        
-        //unp1 = ti.advance(unp1, dt);
     }
     unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
     

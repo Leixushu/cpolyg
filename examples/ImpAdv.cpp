@@ -7,6 +7,8 @@
 #include "TimeIntegration.h"
 #include "Preconditioners.h"
 
+using namespace std;
+
 struct ExactGaussian : FnFunctor
 {
     double theta;
@@ -26,24 +28,46 @@ struct ExactGaussian : FnFunctor
 
 double planarWave(double x, double y)
 {
-    int nx = 10;
-    int ny = 10;
+    int nx = 1;
+    int ny = 1;
     return sin(nx*x*2*M_PI + ny*y*2*M_PI);
 }
 
-int main(int argc, char ** argv)
+void solveit(int meshType, double cfl)
 {
-    using namespace std;
-    
-    int deg = 0;
+    int deg = 2;
     double h = 0.05;
     
-    cout << "Create mesh with h = " << h << endl;
+    cout << "Creating mesh with h = " << h << endl;
     
-    //PolyMesh msh = quadUnitSquare(h*0.5*sqrt(sqrt(3)));
-    //PolyMesh msh = triUnitSquare(h*sqrt(sqrt(3)/2));
-    //PolyMesh msh = honeycombUnitSquare(h);
-    PolyMesh msh = hexUnitSquare(h/sqrt(6.0));
+    PolyMesh msh;
+    switch(meshType)
+    {
+        case 0:
+            cout << "Hexagons" << endl;
+            msh = hexUnitSquare(h/sqrt(6.0));
+            break;
+        case 1:
+            cout << "Squares" << endl;
+            msh = quadUnitSquare(h*0.5*sqrt(sqrt(3)));
+            break;
+        case 2:
+            cout << "Right triangles" << endl;
+            msh = triUnitSquare(h*sqrt(sqrt(3)/2));
+            break;
+        case 3:
+            cout << "Equilateral triangles" << endl;
+            msh = honeycombUnitSquare(h);
+            break;
+        case 4:
+            cout << "Peturbed polygons" << endl;
+            msh = perturbedQuadRectangle(h, 0.5, 1, 1);
+            break;
+        case 5:
+            cout << "Peturbed triangles" << endl;
+            msh = perturbedTriRectangle(h, 0.5, 1, 1);
+            break;
+    }
     
     cout << "Total degrees of freedom: " << msh.np*0.5*(deg+1)*(deg+2) << endl;
     
@@ -67,8 +91,7 @@ int main(int argc, char ** argv)
     
     int K = 10;
     int i;
-    //double dt = h*2;
-    double dt = h;
+    double dt = cfl*h/sqrt(2);
     
     cout << "Using dt = " << dt << endl;
     cout << "Computing total of " << K << " timesteps." << endl;
@@ -80,8 +103,6 @@ int main(int argc, char ** argv)
     
     //BlockILU0 pc(B);
     BlockJacobi pc(B);
-    
-    //BackwardEuler ti(M, eqn);
     
     for (i = 0; i < K; i++)
     {
@@ -96,11 +117,36 @@ int main(int argc, char ** argv)
     
     cout << setprecision(20) << "Computed until final time t=" << i*dt << endl;
     
-    double l2err;
+//     double l2err;
+//     
+//     exact.theta = i*dt;
+//     l2err = unp1.L2Error(exact);
+//     cout << "L^2 error = " << l2err << endl;
+}
+
+void doMeshes(double cfl)
+{
+    int i;
     
-    exact.theta = i*dt;
-    l2err = unp1.L2Error(exact);
-    cout << "L^2 error = " << l2err << endl;
+    cout << endl << endl << "CFL = " << cfl << endl << endl;
+    
+    for (i = 0; i < 4; i++)
+    {
+        solveit(i, cfl);
+    }
+}
+
+int main(int argc, char ** argv)
+{
+//     doMeshes(1);
+//     doMeshes(2);
+//     doMeshes(4);
+    solveit(4, 1);
+    solveit(5, 1);
+    solveit(4, 2);
+    solveit(5, 2);
+    solveit(4, 4);
+    solveit(5, 4);
     
     return 0;
 }
