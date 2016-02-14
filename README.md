@@ -2,7 +2,7 @@
 
 C++ code for polygonal discontinuous Galerkin method.  
 Will Pazner, will_pazner (at) brown.edu  
-December 20, 2015
+February 13, 2016
 
 The code uses:
 
