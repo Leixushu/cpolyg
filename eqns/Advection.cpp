@@ -7,16 +7,16 @@ using namespace arma;
 
 double beta_x(double x, double y)
 {
-    //return 2;
+    //return cos(0.733);
+    //return cos(M_PI/4/15*10.0);
     return 2*y - 1;
-    //return 0.866025;
 }
 
 double beta_y(double x, double y)
 {
-    //return 1;
+    //return sin(0.733);
+    //return sin(M_PI/4/15*10.0);
     return -2*x + 1;
-    //return 0.5;
 }
 
 mat Advection::betaUDotGradPsi::operator()(double x, double y) const
