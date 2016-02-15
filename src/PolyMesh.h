@@ -44,7 +44,7 @@ struct PolyMesh
     inline void getPeriodicCoordinates(int p1, int neighbor, double xIn, double yIn,
                                        double &xOut, double &yOut) const
     {
-        int e1, e2, p2;
+        unsigned int e1, e2, p2;
         double x1, y1, x2, y2, x3, y3, x4, y4, xNew, yNew;
         
         p2 = -neighbor - 1;

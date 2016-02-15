@@ -11,6 +11,7 @@ struct Preconditioner
 {
     // Perform solve Mx = b, overwriting input array
     virtual void solve(double *x) = 0;
+    virtual ~Preconditioner() {};
 };
 
 // This 'preconditioner' does nothing

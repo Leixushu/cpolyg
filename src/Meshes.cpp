@@ -231,7 +231,7 @@ PolyMesh periodicRectangle(double h, double width, double height)
     for (i = 0; i < msh.np; i++)
     {
         cout << "Polygon " << i << ", neighbors =   ";
-        int k;
+        unsigned int k;
         for (k = 0; k < msh.p2p[i].size(); k++)
         {
             cout << msh.p2p[i][k] << ", ";

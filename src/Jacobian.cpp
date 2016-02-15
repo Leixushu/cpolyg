@@ -61,7 +61,7 @@ MeshFn Jacobian::dot(const MeshFn &x)
     return result;
 }
 
-MeshFn Jacobian::solve(const MeshFn &b, Preconditioner &pc, Solver s)
+MeshFn Jacobian::solve(const MeshFn &b, Preconditioner &pc, Solver s/* = kGMRESSolver */)
 {
     MeshFn result(msh, deg, nc);
     vec bVec = vectorise(b.a);
@@ -69,7 +69,7 @@ MeshFn Jacobian::solve(const MeshFn &b, Preconditioner &pc, Solver s)
     int basisSize = (deg + 1)*(deg + 2)/2;
     
     double tol = 1.e-14;
-    int maxIt = 400;
+    int maxIt = 1000;
     
     switch(s)
     {

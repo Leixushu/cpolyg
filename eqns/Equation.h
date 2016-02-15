@@ -80,6 +80,7 @@ struct Equation
     int nc;
     
     Equation(PolyMesh &a_msh);
+    virtual ~Equation() {};
     
     arma::vec boundaryIntegral(int i, const arma::vec &psi, const MeshFn &U);
     arma::vec volumeIntegral(int i, const arma::vec &psi_x, const arma::vec &psi_y);
