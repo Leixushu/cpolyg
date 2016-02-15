@@ -1,11 +1,8 @@
 #include "PolyMesh.h"
-#include <iostream>
 #include <voro++_2d.hh>
-#include <set>
-#include <vector>
-#include <algorithm>
-#include <iterator>
+#include <iostream>
 #include <fstream>
+#include <cassert>
 
 #include "Quadrature.h"
 
@@ -120,22 +117,37 @@ void PolyMesh::computeTriangulation()
     }
 }
 
-// Add a vertex to the mesh and return its index. If the vertex already exists
-// (to within a tolerance), don't add and return the index of the existing vertex
-int PolyMesh::addVertex(array<double, 2> vertex)
+int PolyMesh::findVertex(double x, double y)
 {
     unsigned int i;
     
     for (i = 0; i < v.size(); i++)
     {
-        if (fabs(vertex[0] - v[i][0]) + fabs(vertex[1] - v[i][1]) < kEPS)
+        if (fabs(x - v[i][0]) + fabs(y - v[i][1]) < kEPS)
         {
             return i;
         }
     }
     
-    v.push_back(vertex);
-    return v.size()-1;
+    return -1;
+}
+
+// Add a vertex to the mesh and return its index. If the vertex already exists
+// (to within a tolerance), don't add and return the index of the existing vertex
+int PolyMesh::addVertex(array<double, 2> vertex)
+{
+    int i;
+    
+    i = findVertex(vertex[0], vertex[1]);
+    
+    if(i < 0)
+    {
+        v.push_back(vertex);
+        return v.size()-1;
+    } else
+    {
+        return i;
+    }
 }
 
 PolyMesh::PolyMesh(vector<array<double, 2> > points, double width, double height)
@@ -281,4 +293,34 @@ PolyMesh PolyMesh::triangulate(std::vector<std::array<double, 2> > points)
     msh.computeTriangulation();
     
     return msh;
+}
+
+void PeriodicMesh::getPeriodicCoordinates(int p1, int p2, double xIn, double yIn,
+                                          double &xOut, double &yOut) const
+{
+    double a1x, a1y, b1x, b1y, a2x, a2y, b2x, b2y, xNew, yNew;
+    
+    const PeriodicBC &b = bc[-p2 - 1];
+    
+    assert(p1 == b.p1);
+    
+    a1x = v[b.a1][0];
+    a1y = v[b.a1][1];
+        
+    a2x = v[b.a2][0];
+    a2y = v[b.a2][1];
+        
+    b1x = v[b.b1][0];
+    b1y = v[b.b1][1];
+        
+    b2x = v[b.b2][0];
+    b2y = v[b.b2][1];
+        
+//     xNew = (a2x*b1y*xIn - a1y*b2x*xIn - a2x*b1x*yIn + a1x*b2x*yIn)/(-(a1y*b1x) + a1x*b1y);
+//     yNew = (a2y*b1y*xIn - a1y*b2y*xIn - a2y*b1x*yIn + a1x*b2y*yIn)/(-(a1y*b1x) + a1x*b1y);
+    xNew = xIn + (a2x - a1x);
+    yNew = yIn + (a2y - a1y);
+            
+    xOut = 2.0*(xNew - bb[b.p2][0])/bb[b.p2][2] - 1;
+    yOut = 2.0*(yNew - bb[b.p2][1])/bb[b.p2][3] - 1;
 }

@@ -164,13 +164,13 @@ mat Euler::LaxFriedrichsFlux::operator()(double x, double y) const
     double VDotNMinus, VDotNPlus;
     double alpha;
     
-    if (iPlus >= 0 || exact == NULL)
+    if (iPlus >= 0)
     {
         msh.getLocalCoordinates(iPlus, x, y, xPlus, yPlus);
         varsPlus = computeVariables(xPlus, yPlus, m, UPlus);
     } else
     {
-        //msh.getPeriodicCoordinates(iMinus, iPlus, x, y, xPlus, yPlus);
+        //dynamic_cast<PeriodicMesh &>(msh).getPeriodicCoordinates(iMinus, iPlus, x, y, xPlus, yPlus);
         //varsPlus = computeVariables(xPlus, yPlus, m, UPlus);
         rhoPlus = exact->rho(x, y);
         uPlus = exact->u(x, y);

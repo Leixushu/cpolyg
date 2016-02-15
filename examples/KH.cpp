@@ -16,11 +16,11 @@ int main(int argc, char ** argv)
     using namespace arma;
     
     int deg = 2;
-    double h = 0.025;
+    double h = 0.01;
     
     cout << "Using h = " << h << endl;
     
-    PolyMesh msh = periodicRectangle(h, 1, 1);
+    PeriodicMesh msh = periodicRectangle(h, 1, 1);
     msh.gnuplot();
     
     MassMatrix M(msh, deg);
@@ -31,19 +31,19 @@ int main(int argc, char ** argv)
     MeshFn f = eqn.initialConditions(deg);
     MeshFn unp1 = f;
     
-    //RK4 ti(M, eqn);
-    RK2 ti(M, eqn);
+    RK4 ti(M, eqn);
+    //RK2 ti(M, eqn);
     
     int K;
     int i;
-    double dt = h/10.0;
+    double dt = h/20.0;
     
     K = 1.0/dt;
     
     cout << "Computing total of " << K << " timesteps." << endl;
     for (i = 0; i < K; i++)
     {
-        if (i%2 == 0)
+        //if (i%2 == 0)
             unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
         cout << "Beginning timestep " << i + 1 << endl;
         unp1 = ti.advance(unp1, dt, i*dt);

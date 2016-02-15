@@ -1,14 +1,17 @@
 VPATH= . src eqns examples src/triangle src/Timer src/blas
 
-CC=clang
+CC=clang  
 CXX=clang++
 #CC=gcc-5
 #CXX=g++-5
 
-# debug flags
-#CFLAGS = -g -O0
-# optimized flags
-CFLAGS = -O3
+ifeq ($(DEBUG), 1)
+	# debug flags
+	CFLAGS = -g -O0
+else
+	# optimized flags
+	CFLAGS = -O3
+endif
 
 # turn on warnings
 WARNINGFLAGS = -Wall -Wshadow -pedantic
@@ -37,14 +40,18 @@ LIBSRC := PolyMesh.cpp MeshFn.cpp Meshes.cpp Triangulation.cpp Functors.cpp \
 LIBOBJS := $(addprefix build/, $(notdir $(patsubst %.cpp,%.o, $(LIBSRC)))) \
 		   $(addprefix build/, $(notdir $(patsubst %.c,%.o, $(LIBCSRC))))
 		   
-EXAMPLES := bin/test bin/ExpAdv bin/ImpAdv bin/ExpEul bin/ImpEul bin/KH bin/Convergence
+EXAMPLES := bin/test bin/ExpAdv bin/ImpAdv bin/ExpEul bin/ImpEul bin/KH bin/Convergence \
+            bin/PeriodicAdv
 
 OBJS := $(LIBOBJS) $(addprefix build/, $(notdir $(addsuffix .o, $(EXAMPLES))))
 DEPS := $(addprefix build/, $(notdir $(patsubst %.o,%.d, $(OBJS))))
 
-.PHONY: all adv test eul clean
+.PHONY: all clean debug
 
 all: $(EXAMPLES)
+
+debug:
+	make -j DEBUG=1 --always-make
 
 bin/%: build/%.o $(LIBOBJS) Makefile
 	$(CXX) $(CFLAGS) $(LIBOBJS) $< $(LIBS) -o $@

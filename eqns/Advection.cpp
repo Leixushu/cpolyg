@@ -52,6 +52,8 @@ mat Advection::uPsiBetaDotN::operator()(double x, double y) const
         if (iPlus < 0)
         {
             result(0) = 0;
+            //dynamic_cast<PeriodicMesh &>(msh).getPeriodicCoordinates(iMinus, iPlus, x, y, xPlus, yPlus);
+            //result(0) = betaDotN*psiVal*Leg2D(xPlus, yPlus, m, UPlus);
         } else
         {
             msh.getLocalCoordinates(iPlus, x, y, xPlus, yPlus);

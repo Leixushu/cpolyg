@@ -158,16 +158,17 @@ PolyMesh triRectangle(double h, double width, double height)
     return msh;
 }
 
-PolyMesh periodicRectangle(double h, double width, double height)
+PeriodicMesh periodicRectangle(double h, double width, double height)
 {
     double x, y;
     array<double, 2> pt;
     vector<array<double, 2> > generatingPoints;
-    PolyMesh msh;
+    PeriodicMesh msh;
     vector<int> polygon;
     int idx1, idx2, idx3, idx4;
     int Nx, Ny;
     int ix, iy, i;
+    PeriodicMesh::PeriodicBC bc;
     
     Nx = width/h;
     Ny = height/h;
@@ -209,35 +210,87 @@ PolyMesh periodicRectangle(double h, double width, double height)
         for(ix = 0; ix < Nx; ix++)
         {
             // bottom edge
-            if (iy == 0) msh.p2p[i].push_back(-(Nx*(Ny-1) + ix) - 1);
-            else msh.p2p[i].push_back(i-Nx);
+            if (iy == 0)
+            {
+                bc.p1 = i;
+                bc.p2 = Nx*(Ny-1) + ix;
+                bc.a1 = msh.findVertex(ix*h, 0);
+                bc.b1 = msh.findVertex((ix+1)*h, 0);
+                bc.a2 = msh.findVertex(ix*h, Ny*h);
+                bc.b2 = msh.findVertex((ix+1)*h, Ny*h);
+                
+                msh.bc.push_back(bc);
+                msh.p2p[i].push_back(-msh.bc.size());
+            } else
+            {
+                msh.p2p[i].push_back(i - Nx);
+            }
             
             // right edge
-            if (ix == Nx-1) msh.p2p[i].push_back(-(i - Nx + 1) - 1);
-            else msh.p2p[i].push_back(i+1);
+            if (ix == Nx-1)
+            {
+                bc.p1 = i;
+                bc.p2 = i - Nx + 1;
+                bc.a1 = msh.findVertex(Nx*h, iy*h);
+                bc.b1 = msh.findVertex(Nx*h, (iy+1)*h);
+                bc.a2 = msh.findVertex(0, iy*h);
+                bc.b2 = msh.findVertex(0, (iy+1)*h);
+                
+                msh.bc.push_back(bc);
+                msh.p2p[i].push_back(-msh.bc.size());
+            } else
+            {
+                msh.p2p[i].push_back(i+1);
+            }
             
             // top edge
-            if (iy == Ny-1) msh.p2p[i].push_back(-ix - 1);
-            else msh.p2p[i].push_back(i+Nx);
+            if (iy == Ny-1)
+            {
+                bc.p1 = i;
+                bc.p2 = ix;
+                bc.a1 = msh.findVertex(ix*h, Ny*h);
+                bc.b1 = msh.findVertex((ix+1)*h, Ny*h);
+                bc.a2 = msh.findVertex(ix*h, 0);
+                bc.b2 = msh.findVertex((ix+1)*h, 0);
+                
+                msh.bc.push_back(bc);
+                msh.p2p[i].push_back(-msh.bc.size());
+            } else
+            {
+                msh.p2p[i].push_back(i+Nx);
+            }
             
             // left edge
-            if (ix == 0) msh.p2p[i].push_back(-(i + Nx - 1) - 1);
-            else msh.p2p[i].push_back(i-1);
+            if (ix == 0)
+            {
+                bc.p1 = i;
+                bc.p2 = i + Nx - 1;
+                bc.a1 = msh.findVertex(0, iy*h);
+                bc.b1 = msh.findVertex(0, (iy+1)*h);
+                bc.a2 = msh.findVertex(Nx*h, iy*h);
+                bc.b2 = msh.findVertex(Nx*h, (iy+1)*h);
+                
+                msh.bc.push_back(bc);
+                msh.p2p[i].push_back(-msh.bc.size());
+            } else
+            {
+                msh.p2p[i].push_back(i-1);
+            }
             
             i++;
         }
     }
     
-    for (i = 0; i < msh.np; i++)
-    {
-        cout << "Polygon " << i << ", neighbors =   ";
-        unsigned int k;
-        for (k = 0; k < msh.p2p[i].size(); k++)
-        {
-            cout << msh.p2p[i][k] << ", ";
-        }
-        cout << endl;
-    }
+//     for (i = 0; i < msh.np; i++)
+//     {
+//         cout << "Polygon " << i << ", neighbors =   ";
+//         unsigned int k;
+//         for (k = 0; k < msh.p2p[i].size(); k++)
+//         {
+//             cout << msh.p2p[i][k] << ", ";
+//         }
+//         cout << endl;
+//     }
     
     msh.computebb();
     msh.computeTriangulation();

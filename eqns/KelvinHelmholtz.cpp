@@ -47,7 +47,7 @@ mat KelvinHelmholtz::KHSolution::operator()(double x, double y) const
     return result;
 }
 
-KelvinHelmholtz::KelvinHelmholtz(PolyMesh &m, double g) : Euler(m, g)
+KelvinHelmholtz::KelvinHelmholtz(PeriodicMesh &m, double g) : Euler(m, g)
 {
     KHSolution *kh = new KHSolution;
     

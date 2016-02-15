@@ -11,7 +11,7 @@ PolyMesh perturbedTriRectangle(double h, double p, double width, double height);
 PolyMesh hexRectangle(double h, double width, double height);
 PolyMesh triRectangle(double h, double width, double height);
 PolyMesh honeycombRectangle(double h, double width, double height);
-PolyMesh periodicRectangle(double h, double width, double height);
+PeriodicMesh periodicRectangle(double h, double width, double height);
 
 // convenience routines for the unit square
 PolyMesh honeycombUnitSquare(double h);

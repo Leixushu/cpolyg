@@ -32,6 +32,11 @@ vec Equation::boundaryIntegral(int i, const vec &psi, const MeshFn &U, int deg)
         if(msh.p2p[i][j] >= 0)
         {
             boundaryTerm->UPlus = U.a.slice(msh.p2p[i][j]);
+        } else
+        {
+            // how to deal with BCs in a good way???
+            //int p2 = dynamic_cast<PeriodicMesh &>(msh).bc[-msh.p2p[i][j]-1].p2;
+            //boundaryTerm->UPlus = U.a.slice(p2);
         }
         
         msh.getOutwardNormal(i, a1, b1, boundaryTerm->nx, boundaryTerm->ny);

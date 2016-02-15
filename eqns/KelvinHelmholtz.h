@@ -21,7 +21,7 @@ struct KelvinHelmholtz : Euler
         KHSolution() {};
     };
     
-    KelvinHelmholtz(PolyMesh &m, double g);
+    KelvinHelmholtz(PeriodicMesh &m, double g);
     
     MeshFn exactSolution(const double t, const int deg);
     MeshFn initialConditions(int deg)

@@ -2,9 +2,8 @@
 
 #include <vector>
 #include <array>
-#include <cmath>
+#include <map>
 #include <armadillo>
-#include <cassert>
 
 #include "Triangulation.h"
 #include "Functors.h"
@@ -25,6 +24,7 @@ struct PolyMesh
     static PolyMesh triangulate(std::vector<std::array<double, 2> > pts);
     
     int addVertex(std::array<double, 2> vertex);
+    int findVertex(double x, double y);
     void computep2p();
     void computebb();
     void computeTriangulation();
@@ -39,4 +39,20 @@ struct PolyMesh
         x_out = 2.0*(x_in - bb[pi][0])/bb[pi][2] - 1;
         y_out = 2.0*(y_in - bb[pi][1])/bb[pi][3] - 1;
     }
+    
+    virtual ~PolyMesh() {};
+};
+
+struct PeriodicMesh : PolyMesh
+{
+    struct PeriodicBC
+    {
+        int p1, p2;
+        int a1, b1, a2, b2;
+    };
+    
+    std::vector<PeriodicBC> bc;
+    
+    void getPeriodicCoordinates(int p1, int p2, double x_in, double y_in,
+                                double &x_out, double &y_out) const;
 };
