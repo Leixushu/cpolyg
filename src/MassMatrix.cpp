@@ -1,5 +1,6 @@
 #include "MassMatrix.h"
 #include "Legendre.h"
+#include "Quadrature.h"
 #include "blas/blas.h"
 #include "Timer/CH_Timer.H"
 
@@ -44,7 +45,8 @@ MassMatrix::MassMatrix(PolyMesh &m, int d) : msh(m), deg(d)
                 prod.psi[k] = 1.0;
                 
                 // compute the integral of the product of basis functions
-                integ = msh.polygonIntegral(prod, i);
+                //integ = msh.polygonIntegral(prod, i);
+                integ = Quadrature::polygonIntegral(msh, prod, i, deg*2);
                 
                 // the mass matrix is always symmetric
                 block(j, k) = integ;

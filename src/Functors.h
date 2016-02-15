@@ -64,6 +64,6 @@ struct VecFnFunctor : VecFunctor
     
     arma::mat operator()(double x, double y) const
     {
-        return arma::vec({fncb(x, y)});
+        return arma::vec::fixed<1>({fncb(x, y)});
     }
 };

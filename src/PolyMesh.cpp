@@ -7,6 +7,8 @@
 #include <iterator>
 #include <fstream>
 
+#include "Quadrature.h"
+
 using namespace voro;
 using namespace std;
 
@@ -215,19 +217,6 @@ void PolyMesh::gnuplot()
     }
     
     edgeFile.close();
-}
-
-double PolyMesh::integrate(FnFunctor &cb)
-{
-    double integ;
-    int i;
-    
-    integ = 0;
-    for (i = 0; i < np; i++)
-    {
-        integ += polygonIntegral(cb, i);
-    }
-    return integ;
 }
 
 template <typename T> int sgn(T val)

@@ -82,8 +82,8 @@ struct Equation
     Equation(PolyMesh &a_msh);
     virtual ~Equation() {};
     
-    arma::vec boundaryIntegral(int i, const arma::vec &psi, const MeshFn &U);
-    arma::vec volumeIntegral(int i, const arma::vec &psi_x, const arma::vec &psi_y);
+    arma::vec boundaryIntegral(int i, const arma::vec &psi, const MeshFn &U, int deg);
+    arma::vec volumeIntegral(int i, const arma::vec &psi_x, const arma::vec &psi_y, int deg);
     
     virtual MeshFn assemble(const MeshFn &f, double t);
     virtual Jacobian jacobian(const MeshFn &f, double t);

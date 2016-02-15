@@ -1,4 +1,5 @@
 #include "Equation.h"
+#include "Quadrature.h"
 
 using namespace arma;
 using namespace std;
@@ -11,7 +12,7 @@ Equation::Equation(PolyMesh &a_msh) : msh(a_msh)
     boundaryDerivative = NULL;
 }
 
-vec Equation::boundaryIntegral(int i, const vec &psi, const MeshFn &U)
+vec Equation::boundaryIntegral(int i, const vec &psi, const MeshFn &U, int deg)
 {
     int nv1, a1, b1;
     int j;
@@ -34,18 +35,18 @@ vec Equation::boundaryIntegral(int i, const vec &psi, const MeshFn &U)
         }
         
         msh.getOutwardNormal(i, a1, b1, boundaryTerm->nx, boundaryTerm->ny);
-        integ += msh.lineIntegral(*boundaryTerm, a1, b1);
+        integ += Quadrature::lineIntegral(msh, *boundaryTerm, a1, b1, deg*2);
     }
     
     return integ;
 }
 
-vec Equation::volumeIntegral(int i, const vec &psi_x, const vec &psi_y)
+vec Equation::volumeIntegral(int i, const vec &psi_x, const vec &psi_y, int deg)
 {
     volumeTerm->psi_x = &psi_x;
     volumeTerm->psi_y = &psi_y;
     
-    return msh.polygonIntegral(*volumeTerm, i);
+    return Quadrature::polygonIntegral(msh, *volumeTerm, i, deg*2);
 }
 
 MeshFn Equation::assemble(const MeshFn &u, double t/* = 0 */)
@@ -81,8 +82,8 @@ MeshFn Equation::assemble(const MeshFn &u, double t/* = 0 */)
             psi_x = LegDerX(deg + 1, psi) * 2.0/w;
             psi_y = LegDerY(deg + 1, psi) * 2.0/h;
             
-            b.a.slice(i).row(j) = volumeIntegral(i, psi_x, psi_y).t();
-            b.a.slice(i).row(j) -= boundaryIntegral(i, psi, u).t();
+            b.a.slice(i).row(j) = volumeIntegral(i, psi_x, psi_y, deg).t();
+            b.a.slice(i).row(j) -= boundaryIntegral(i, psi, u, deg).t();
           
             psi[j] = 0.0;
         }
@@ -139,7 +140,7 @@ Jacobian Equation::jacobian(const MeshFn &f, double t)
                 boundaryDerivative->psi = &psi;
                 
                 J.blocks[diagonalBlock](componentIndices+k, componentIndices+j) 
-                    += msh.polygonIntegral(*volumeJacobian, i);
+                    += Quadrature::polygonIntegral(msh, *volumeJacobian, i, deg*2);
                 
                 nv1 = msh.p[i].size();
                 
@@ -165,13 +166,13 @@ Jacobian Equation::jacobian(const MeshFn &f, double t)
                         boundaryDerivative->UNeighbor = f.a.slice(neighbor);
                         boundaryDerivative->iPhi = neighbor;
                         J.blocks[blockIdx](componentIndices+k, componentIndices+j) -= 
-                            msh.lineIntegral(*boundaryDerivative, a1, b1);
+                            Quadrature::lineIntegral(msh, *boundaryDerivative, a1, b1, deg*2);
                         blockIdx++;
                     }
                     
                     boundaryDerivative->iPhi = i;
                     J.blocks[diagonalBlock](componentIndices+k, componentIndices+j) -= 
-                        msh.lineIntegral(*boundaryDerivative, a1, b1);
+                        Quadrature::lineIntegral(msh, *boundaryDerivative, a1, b1, deg*2);
                     
                 }
                 

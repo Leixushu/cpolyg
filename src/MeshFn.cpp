@@ -165,7 +165,7 @@ void MeshFn::gnuplot(std::string filename) const
     int oldPrecision;
     double x1, x2, x3, y1, y2, y3, x, y, val;
     ofstream plotFile;
-    mat &qr = Quadratures::tri2;
+    mat &qr = Quadrature::tri2;
     
     CH_TIMERS("MeshFn gnuplot");
     
@@ -289,7 +289,7 @@ vec MeshFn::L2Error(const VecFunctor &exact) const
     for (i = 0; i < msh.np; i++)
     {
         differenceSquared.i = i;
-        error += msh.polygonIntegral(differenceSquared, i);
+        error += Quadrature::polygonIntegral(msh, differenceSquared, i, deg*2);
     }
     
     return sqrt(error);
@@ -305,7 +305,7 @@ vec MeshFn::L2Norm() const
     for (i = 0; i < msh.np; i++)
     {
         functor.i = i;
-        l2 += msh.polygonIntegral(functor, i);
+        l2 += Quadrature::polygonIntegral(msh, functor, i, deg*2);
     }
     
     return sqrt(l2);
