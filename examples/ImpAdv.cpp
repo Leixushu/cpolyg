@@ -33,9 +33,8 @@ double planarWave(double x, double y)
     return sin(nx*x*2*M_PI + ny*y*2*M_PI);
 }
 
-void solveit(int meshType, double cfl)
+void solveit(int meshType, double cfl, int deg)
 {
-    int deg = 2;
     double h = 0.05;
     
     cout << "Creating mesh with h = " << h << endl;
@@ -101,8 +100,8 @@ void solveit(int meshType, double cfl)
     
     B.spy("plt/B.gnu");
     
-    //BlockILU0 pc(B);
-    BlockJacobi pc(B);
+    BlockILU0 pc(B);
+    //BlockJacobi pc(B);
     
     for (i = 0; i < K; i++)
     {
@@ -110,7 +109,8 @@ void solveit(int meshType, double cfl)
             cout << "Beginning timestep " << i << ", t=" << i*dt << endl;
         
         unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
-        unp1 = B.solve(M.dot(unp1), pc, kJacobiSolver);
+        //unp1 = B.solve(M.dot(unp1), pc, kJacobiSolver);
+        unp1 = B.solve(M.dot(unp1), pc, kGMRESSolver);
         //unp1 = ti.advance(unp1, dt, i*dt);
     }
     unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
@@ -124,7 +124,7 @@ void solveit(int meshType, double cfl)
 //     cout << "L^2 error = " << l2err << endl;
 }
 
-void doMeshes(double cfl)
+void doMeshes(double cfl, int deg)
 {
     int i;
     
@@ -132,21 +132,15 @@ void doMeshes(double cfl)
     
     for (i = 0; i < 4; i++)
     {
-        solveit(i, cfl);
+        solveit(i, cfl, deg);
     }
 }
 
-int main(int argc, char ** argv)
+int main()
 {
-//     doMeshes(1);
-//     doMeshes(2);
-//     doMeshes(4);
-    solveit(4, 1);
-    solveit(5, 1);
-    solveit(4, 2);
-    solveit(5, 2);
-    solveit(4, 4);
-    solveit(5, 4);
+    doMeshes(1, 3);
+    doMeshes(2, 3);
+    doMeshes(4, 3);
     
     return 0;
 }
