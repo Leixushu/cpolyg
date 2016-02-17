@@ -99,7 +99,8 @@ void doMeshes(double cfl, int deg)
 
 int main()
 {
+    doMeshes(1, 0);
     //doMeshes(1, 3);
-    doMeshes(2, 3);
-    doMeshes(4, 3);
+    //doMeshes(2, 3);
+    //doMeshes(4, 3);
 }

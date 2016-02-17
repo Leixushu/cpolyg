@@ -8,83 +8,50 @@
 
 struct Equation
 {
-    struct VolumeTermFunctor : VecFunctor
-    {
-        int m;
-        int i;
-        
-        const arma::vec *psi_x, *psi_y;
-        arma::mat U;
-        PolyMesh &msh;
-        
-        VolumeTermFunctor(PolyMesh &a_msh) : msh(a_msh) { };
-        
-        virtual arma::mat operator()(double x, double y) const = 0;
-    };
+    typedef arma::mat (Equation::*Integrand)(double x, double y);
     
-    struct NumericalFluxFunctor : VecFunctor
+    struct IntegrandFunctor : VecFunctor
     {
-        double nx, ny;
-        int m;
-        int iMinus;
-        int iPlus;
+        Equation &eqn;
+        Integrand integ;
         
-        const arma::vec *psi;
-        arma::mat UMinus, UPlus;
+        IntegrandFunctor(Equation &a_eqn, Integrand a_integ, int a_n_rows, int a_n_cols)
+        : VecFunctor(a_n_rows, a_n_cols), eqn(a_eqn), integ(a_integ) { }
         
-        PolyMesh &msh;
-        
-        NumericalFluxFunctor(PolyMesh &a_msh) : msh(a_msh) { };
-        
-        virtual arma::mat operator()(double x, double y) const = 0;
-    };
-    
-    struct VolumeTermJacobianFunctor : VecFunctor
-    {
-        int m;
-        int i;
-        
-        const arma::vec *psi_x, *psi_y, *phi;
-        arma::mat U;
-        
-        PolyMesh &msh;
-        
-        VolumeTermJacobianFunctor(PolyMesh &a_msh) : msh(a_msh) { };
-        
-        virtual arma::mat operator()(double x, double y) const = 0;
-    };
-    
-    struct NumericalFluxJacobianFunctor : VecFunctor
-    {
-        double nx, ny;
-        int m;
-        int iPhi, iPsi, neighbor;
-        
-        const arma::vec *psi, *phi;
-        arma::mat U, UNeighbor;
-        PolyMesh &msh;
-        
-        NumericalFluxJacobianFunctor(PolyMesh &a_msh) : msh(a_msh) { };
-        
-        virtual arma::mat operator()(double x, double y) const = 0;
+        arma::mat operator()(double x, double y) const
+        {
+            return (eqn.*integ)(x, y);
+        }
     };
     
     PolyMesh &msh;
     
-    VolumeTermFunctor *volumeTerm;
-    NumericalFluxFunctor *boundaryTerm;
+    IntegrandFunctor *volumeTerm;
+    IntegrandFunctor *boundaryTerm;
     
-    VolumeTermJacobianFunctor *volumeJacobian;
-    NumericalFluxJacobianFunctor *boundaryDerivative;
+    IntegrandFunctor *volumeJacobian;
+    IntegrandFunctor *boundaryJacobian;
     
     int nc;
     
-    Equation(PolyMesh &a_msh);
-    virtual ~Equation() {};
+    // needed during assemble/jacobian routines
+    arma::vec phi, psi, psi_x, psi_y;
+    arma::mat UMinus, UPlus, U, UNeighbor;
+    int m, iPlus, iMinus, iPhi, iPsi, neighbor;
+    double nx, ny;
     
-    arma::vec boundaryIntegral(int i, const arma::vec &psi, const MeshFn &U, int deg);
-    arma::vec volumeIntegral(int i, const arma::vec &psi_x, const arma::vec &psi_y, int deg);
     
-    virtual MeshFn assemble(const MeshFn &f, double t);
-    virtual Jacobian jacobian(const MeshFn &f, double t);
+    Equation(PolyMesh &a_msh, int a_nc);
+    virtual ~Equation();
+    
+    arma::vec boundaryIntegral(int i, const MeshFn &u, int deg);
+    arma::vec volumeIntegral(int i, int deg);
+    
+    virtual MeshFn assemble(const MeshFn &f, double a_t);
+    virtual Jacobian jacobian(const MeshFn &f, double a_t);
+    
+    virtual arma::mat computeVolumeTerm(double x, double y) = 0;
+    virtual arma::mat computeBoundaryTerm(double x, double y) = 0;
+    virtual arma::mat computeVolumeJacobian(double x, double y) = 0;
+    virtual arma::mat computeBoundaryJacobian(double x, double y) = 0;
 };

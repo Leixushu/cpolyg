@@ -69,9 +69,6 @@ EulerVortex::EulerVortex(PolyMesh &m, double g) : Euler(m, g)
     vortex->t = 0;
     
     exact = vortex;
-    
-    ((LaxFriedrichsFlux*)(boundaryTerm))->exact = exact;
-    ((JacobianLaxFriedrichsFlux*)(boundaryDerivative))->exact = exact;
 }
 
 MeshFn EulerVortex::exactSolution(const double t, const int deg)

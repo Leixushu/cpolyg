@@ -7,30 +7,26 @@ using namespace arma;
 
 double beta_x(double x, double y)
 {
-    //return cos(0.733);
-    //return cos(M_PI/4/15*10.0);
     return 2*y - 1;
 }
 
 double beta_y(double x, double y)
 {
-    //return sin(0.733);
-    //return sin(M_PI/4/15*10.0);
     return -2*x + 1;
 }
 
-mat Advection::betaUDotGradPsi::operator()(double x, double y) const
+mat Advection::computeVolumeTerm(double x, double y)
 {
     double xx, yy;
     vec::fixed<1> result;
-    msh.getLocalCoordinates(i, x, y, xx, yy);
+    msh.getLocalCoordinates(iMinus, x, y, xx, yy);
     
-    result(0) = Leg2D(xx, yy, m, U)*(beta_x(x, y)*Leg2D(xx, yy, m, *psi_x) 
-                                   + beta_y(x, y)*Leg2D(xx, yy, m, *psi_y));
+    result(0) = Leg2D(xx, yy, m, UMinus)*(beta_x(x, y)*Leg2D(xx, yy, m, psi_x) 
+                                        + beta_y(x, y)*Leg2D(xx, yy, m, psi_y));
     return result;
 }
 
-mat Advection::uPsiBetaDotN::operator()(double x, double y) const
+mat Advection::computeBoundaryTerm(double x, double y)
 {
     double xMinus, xPlus, yMinus, yPlus;
     double betaDotN;
@@ -39,7 +35,7 @@ mat Advection::uPsiBetaDotN::operator()(double x, double y) const
     
     msh.getLocalCoordinates(iMinus, x, y, xMinus, yMinus);
     
-    psiVal = Leg2D(xMinus, yMinus, m, *psi);
+    psiVal = Leg2D(xMinus, yMinus, m, psi);
     betaDotN = (nx*beta_x(x, y) + ny*beta_y(x, y));
     
     if (betaDotN > 0)
@@ -63,18 +59,18 @@ mat Advection::uPsiBetaDotN::operator()(double x, double y) const
     }
 }
 
-mat Advection::JacobianBetaUDotGradPsi::operator()(double x, double y) const
+mat Advection::computeVolumeJacobian(double x, double y)
 {
     double xx, yy;
     vec::fixed<1> result;
-    msh.getLocalCoordinates(i, x, y, xx, yy);
+    msh.getLocalCoordinates(iPsi, x, y, xx, yy);
     
-    result(0) = Leg2D(xx, yy, m, *phi)*(beta_x(x, y)*Leg2D(xx, yy, m, *psi_x) 
-                                      + beta_y(x, y)*Leg2D(xx, yy, m, *psi_y));
+    result(0) = Leg2D(xx, yy, m, phi)*(beta_x(x, y)*Leg2D(xx, yy, m, psi_x) 
+                                     + beta_y(x, y)*Leg2D(xx, yy, m, psi_y));
     return result;
 }
 
-mat Advection::phiPsiBetaDotN::operator()(double x, double y) const
+mat Advection::computeBoundaryJacobian(double x, double y)
 {
     double xPhi, yPhi, xPsi, yPsi;
     double betaDotN;
@@ -90,7 +86,7 @@ mat Advection::phiPsiBetaDotN::operator()(double x, double y) const
         msh.getLocalCoordinates(iPhi, x, y, xPhi, yPhi);
         msh.getLocalCoordinates(iPsi, x, y, xPsi, yPsi);
         
-        result(0) = betaDotN*Leg2D(xPsi, yPsi, m, *psi)*Leg2D(xPhi, yPhi, m, *phi);
+        result(0) = betaDotN*Leg2D(xPsi, yPsi, m, psi)*Leg2D(xPhi, yPhi, m, phi);
         
     } else
     {
@@ -98,22 +94,4 @@ mat Advection::phiPsiBetaDotN::operator()(double x, double y) const
     }
     
     return result;
-}
-
-Advection::Advection(PolyMesh &a_msh)
-: Equation(a_msh)
-{
-    nc = 1;
-    volumeTerm = new betaUDotGradPsi(a_msh);
-    volumeJacobian = new JacobianBetaUDotGradPsi(a_msh);
-    boundaryTerm = new uPsiBetaDotN(a_msh);
-    boundaryDerivative = new phiPsiBetaDotN(a_msh);
-}
-
-Advection::~Advection()
-{
-    delete volumeTerm;
-    delete volumeJacobian;
-    delete boundaryTerm;
-    delete boundaryDerivative;
 }

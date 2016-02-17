@@ -17,10 +17,9 @@ struct MeshFn
         
         int i;
         
-        L2Difference(const MeshFn &f, const VecFunctor &e) : fn(f), exact(e)
-        {
-            n_rows = fn.nc;
-        };
+        L2Difference(const MeshFn &f, const VecFunctor &e)
+        : VecFunctor(f.nc), fn(f), exact(e)
+        { }
         
         arma::mat operator()(double x, double y) const;
     };
@@ -31,10 +30,7 @@ struct MeshFn
         
         int i;
         
-        L2Functor(const MeshFn &f) : fn(f)
-        {
-            n_rows = fn.nc;
-        };
+        L2Functor(const MeshFn &f) : VecFunctor(f.nc), fn(f) { }
         
         arma::mat operator()(double x, double y) const;
     };

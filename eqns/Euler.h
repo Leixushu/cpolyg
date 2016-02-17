@@ -22,83 +22,30 @@ struct Euler : Equation
         
         virtual arma::mat operator()(double x, double y) const = 0;
         
-        ExactSolution() { n_rows = kEulerComponents; t = 0; };
+        ExactSolution() : VecFunctor(kEulerComponents) { t = 0; };
         virtual ~ExactSolution() { };
     };
     
-    struct FluxDotGradPsi : VolumeTermFunctor
-    {
-        double gamma;
-    
-        FluxDotGradPsi(PolyMesh &a_msh, double a_gamma) : VolumeTermFunctor(a_msh)
-        {
-            gamma = a_gamma;
-            n_rows = kEulerComponents;
-        }
-    
-        arma::mat operator()(double x, double y) const;
-    };
-
-    struct LaxFriedrichsFlux : NumericalFluxFunctor
-    {
-        double gamma;
-        ExactSolution *exact;
-    
-        LaxFriedrichsFlux(PolyMesh &a_msh, double a_gamma) : NumericalFluxFunctor(a_msh)
-        {
-            gamma = a_gamma;
-            n_rows = kEulerComponents;
-            exact = NULL;
-        }
-    
-        arma::mat operator()(double x, double y) const;
-    };
-    
-    struct JacobianFluxDotGradPsi : VolumeTermJacobianFunctor
-    {
-        double gamma;
-        
-        JacobianFluxDotGradPsi(PolyMesh &a_msh, double a_gamma)
-         : VolumeTermJacobianFunctor(a_msh), gamma(a_gamma)
-        {
-            n_rows = kEulerComponents;
-            n_cols = kEulerComponents;
-        };
-        arma::mat operator()(double x, double y) const;
-    };
-    
-    struct JacobianLaxFriedrichsFlux : NumericalFluxJacobianFunctor
-    {
-        double gamma;
-        arma::mat::fixed<kEulerComponents, kEulerComponents> Id;
-        ExactSolution *exact;
-        
-        JacobianLaxFriedrichsFlux(PolyMesh &a_msh, double a_gamma)
-         : NumericalFluxJacobianFunctor(a_msh), gamma(a_gamma)
-        {
-            n_rows = kEulerComponents;
-            n_cols = kEulerComponents;
-            Id.eye();
-        };
-        arma::mat operator()(double x, double y) const;
-    };
-    
-    ExactSolution *exact;
-    
+    ExactSolution *exact = NULL;
+    EulerJacobian Id = arma::eye(kEulerComponents, kEulerComponents);
     double gamma;
     
-    static EulerVariables computeVariables(double x, double y, int m, const arma::mat &U);
-    static void flux(const EulerVariables &U, double gamma, 
-        arma::vec &flux_x, arma::vec &flux_y, double &c, double &u, double &v);
-    static void fluxJacobian(const EulerVariables &U, double gamma, 
-        EulerJacobian &J1, EulerJacobian &J2);
-    static EulerVariables alphaDerivative(const EulerVariables &vars1, 
-                                          const EulerVariables &vars2,
-                                          double &alpha,
-                                          double gamma, double nx, double ny);
-    
-    Euler(PolyMesh &m, double g);
+    Euler(PolyMesh &m, double g) : Equation(m, kEulerComponents), gamma(g) { };
     ~Euler();
+    
+    arma::mat computeVolumeTerm(double x, double y);
+    arma::mat computeBoundaryTerm(double x, double y);
+    arma::mat computeVolumeJacobian(double x, double y);
+    arma::mat computeBoundaryJacobian(double x, double y);
+    
+    static EulerVariables computeVariables(double x, double y, int m, const arma::mat &U);
+    
+    void flux(const EulerVariables &U, arma::vec &flux_x, arma::vec &flux_y, 
+              double &c, double &u, double &v);
+    void fluxJacobian(const EulerVariables &U, EulerJacobian &J1, EulerJacobian &J2);
+    EulerVariables alphaDerivative(const EulerVariables &vars1, 
+                                   const EulerVariables &vars2,
+                                   double &alpha);
     
     Jacobian jacobian(const MeshFn &f, double t);
     MeshFn assemble(const MeshFn &f, double t);

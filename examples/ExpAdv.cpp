@@ -30,6 +30,7 @@ struct ExactGaussian : FnFunctor
 int main(int argc, char ** argv)
 {
     using namespace std;
+    using namespace arma;
     
     int deg = 4;
     double h = 0.1/2.0;

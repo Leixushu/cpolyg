@@ -55,9 +55,6 @@ KelvinHelmholtz::KelvinHelmholtz(PeriodicMesh &m, double g) : Euler(m, g)
     kh->t = 0;
     
     exact = kh;
-    
-    ((LaxFriedrichsFlux*)(boundaryTerm))->exact = exact;
-    ((JacobianLaxFriedrichsFlux*)(boundaryDerivative))->exact = exact;
 }
 
 MeshFn KelvinHelmholtz::exactSolution(const double t, const int deg)
