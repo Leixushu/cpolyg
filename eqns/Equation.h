@@ -8,38 +8,23 @@
 
 struct Equation
 {
-    typedef arma::mat (Equation::*Integrand)(double x, double y);
-    
-    struct IntegrandFunctor : VecFunctor
-    {
-        Equation &eqn;
-        Integrand integ;
-        
-        IntegrandFunctor(Equation &a_eqn, Integrand a_integ, int a_n_rows, int a_n_cols)
-        : VecFunctor(a_n_rows, a_n_cols), eqn(a_eqn), integ(a_integ) { }
-        
-        arma::mat operator()(double x, double y) const
-        {
-            return (eqn.*integ)(x, y);
-        }
-    };
-    
     PolyMesh &msh;
     
+    struct IntegrandFunctor;
     IntegrandFunctor *volumeTerm;
     IntegrandFunctor *boundaryTerm;
-    
     IntegrandFunctor *volumeJacobian;
     IntegrandFunctor *boundaryJacobian;
     
+    // number of components (e.g. 1 for advection, 4 for 2D Euler)
     int nc;
     
+    // functor data
     // needed during assemble/jacobian routines
     arma::vec phi, psi, psi_x, psi_y;
     arma::mat UMinus, UPlus, U, UNeighbor;
     int m, iPlus, iMinus, iPhi, iPsi, neighbor;
     double nx, ny;
-    
     
     Equation(PolyMesh &a_msh, int a_nc);
     virtual ~Equation();

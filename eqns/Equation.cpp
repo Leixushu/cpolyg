@@ -4,6 +4,22 @@
 using namespace arma;
 using namespace std;
 
+typedef arma::mat (Equation::*Integrand)(double x, double y);
+    
+struct Equation::IntegrandFunctor : VecFunctor
+{
+    Equation &eqn;
+    Integrand integ;
+    
+    IntegrandFunctor(Equation &a_eqn, Integrand a_integ, int a_n_rows, int a_n_cols)
+    : VecFunctor(a_n_rows, a_n_cols), eqn(a_eqn), integ(a_integ) {}
+
+    arma::mat operator()(double x, double y) const
+    {
+        return (eqn.*integ)(x, y);
+    }
+};
+
 vec Equation::boundaryIntegral(int i, const MeshFn &u, int deg)
 {
     int nv1, a1, b1;
