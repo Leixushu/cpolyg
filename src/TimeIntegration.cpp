@@ -2,7 +2,7 @@
 #include "Preconditioners.h"
 
 #define kNewtonMaxIterations 100
-#define kNewtonTolerance 5.e-14
+#define kNewtonTolerance 5.e-13
 
 using namespace std;
 
@@ -63,7 +63,7 @@ MeshFn BackwardEuler::advance(const MeshFn &u, const double dt, const double t)
         B += M;
         BlockILU0 pc(B);
         
-        unp1 -= B.solve(r, pc);
+        unp1 -= B.solve(r, pc, kGMRESSolver);
     }
     
     return unp1;
