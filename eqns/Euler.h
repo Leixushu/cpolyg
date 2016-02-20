@@ -26,7 +26,7 @@ struct Euler : Equation
         virtual ~ExactSolution() { };
     };
     
-    ExactSolution *exact = NULL;
+    ExactSolution *exact = nullptr;
     EulerJacobian Id = arma::eye(kEulerComponents, kEulerComponents);
     double gamma;
     
