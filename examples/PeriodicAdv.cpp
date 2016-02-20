@@ -7,25 +7,15 @@
 #include "TimeIntegration.h"
 #include "Preconditioners.h"
 
-struct ExactGaussian : FnFunctor
+double gaussian(double x, double y)
 {
-    double theta;
+    double x0, y0;
     
-    double operator()(double x, double y) const
-    {
-        double x0, y0;
-        
-        x0 = 0.5 - 0.15*cos(2*theta);
-        y0 = 0.5 + 0.3*cos(theta)*sin(theta);
-        
-        //x0 = 0.5 + theta;
-        //y0 = 0.5;
-        
-        return exp(-200*((x-x0)*(x-x0) + (y-y0)*(y-y0)));
-    }
+    x0 = 0.5 - 0.15;
+    y0 = 0.5;
     
-    ExactGaussian(double a_theta) : theta(a_theta) {};
-};
+    return exp(-200*((x-x0)*(x-x0) + (y-y0)*(y-y0)));
+}
 
 int main(int argc, char ** argv)
 {
@@ -39,12 +29,7 @@ int main(int argc, char ** argv)
     
     MassMatrix M(msh, deg);
     Advection eqn(msh);
-    
-    ExactGaussian exact(0);
-    MeshFn f = MeshFn(msh, deg, 1);
-    f.interp(exact);
-    
-    MeshFn unp1 = f;
+    MeshFn unp1 = MeshFn(msh, gaussian, deg);
     
     int K = 2000;
     int i;
