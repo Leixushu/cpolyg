@@ -57,6 +57,7 @@ int main(int argc, char ** argv)
     cout << "Computing total of " << K << " timesteps." << endl;
     
     Jacobian B = eqn.jacobian(f, 0);
+    B.spy("plt/B.gnu");
     
     for (i = 0; i < K; i++)
     {
