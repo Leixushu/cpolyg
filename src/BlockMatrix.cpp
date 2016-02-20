@@ -169,11 +169,9 @@ BlockMatrix BlockMatrix::diag(arma::mat M, int a_b)
     // number of rows of blocks is number of rows in matrix divided by block size
     int n = M.n_rows/b;
     
-    result.bl = a_b;
+    result = BlockMatrix(b, n);
+
     result.nb = n;
-    result.n_rows = n;
-    
-    result.blocks.clear();
     result.colIndices.resize(n);
     result.rowBlock.resize(n+1);
     
@@ -195,7 +193,7 @@ BlockMatrix BlockMatrix::diag(arma::mat M, int a_b)
 BlockMatrix BlockMatrix::diag(BlockMatrix &M)
 {
     BlockMatrix result;
-    int i, k, j;
+    int i, k;
     int n = M.n_rows;
     
     result = BlockMatrix(M.bl, n);
@@ -207,10 +205,8 @@ BlockMatrix BlockMatrix::diag(BlockMatrix &M)
         // search the blocks in the row for the column on the diagonal
         for (k = M.rowBlock[i]; k < M.rowBlock[i+1]; k++)
         {
-            j = M.colIndices[k];
-            
             // if we're on the diagonal, add this block
-            if (i == j)
+            if (M.colIndices[k] == i)
             {
                 result.blocks.push_back(M.blocks[k]);
                 result.colIndices[result.nb] = i;
