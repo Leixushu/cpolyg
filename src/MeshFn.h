@@ -35,13 +35,13 @@ struct MeshFn
         arma::mat operator()(double x, double y) const;
     };
     
-    PolyMesh &msh;
+    const PolyMesh &msh;
     int nc;
     int deg;
     arma::cube a;
     
-    MeshFn(PolyMesh &a_msh, int a_deg, int a_nc = 1);
-    MeshFn(PolyMesh &a_msh, FnCallback cb, int a_deg);
+    MeshFn(const PolyMesh &a_msh, int a_deg, int a_nc = 1);
+    MeshFn(const PolyMesh &a_msh, FnCallback cb, int a_deg);
     MeshFn(const MeshFn &fn);
     
     void interp(const FnFunctor &cb, int component = 0);

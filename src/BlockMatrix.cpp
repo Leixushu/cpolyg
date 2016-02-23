@@ -293,7 +293,7 @@ void BlockMatrix::spy(std::string filename)
                 for (jj = 0; jj < bl; jj++)
                 {
                     // write only the nonzero entries
-                    if (blocks[k](ii, jj) != 0)
+                    if (fabs(blocks[k](ii, jj)) > kEPS)
                     {
                         file << i*bl + ii << "\t" << j*bl + jj << "\t"
                              << blocks[k](ii, jj) << endl;

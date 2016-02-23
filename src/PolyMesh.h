@@ -12,11 +12,19 @@
 
 struct PolyMesh
 {
+    struct BoundaryInfo
+    {
+        bool periodic;
+        int p1, p2;
+        int a1, b1, a2, b2;
+    };
+    
     int np;
     std::vector<std::vector<int> > p;
     std::vector<std::array<double, 2> > v;
     std::vector<std::array<double, 4> > bb;
     std::vector<std::vector<int> > p2p;
+    std::map<int, BoundaryInfo> bc;
     std::vector<Triangulation> tri;
     
     PolyMesh() {};
@@ -40,19 +48,8 @@ struct PolyMesh
         y_out = 2.0*(y_in - bb[pi][1])/bb[pi][3] - 1;
     }
     
-    virtual ~PolyMesh() {};
-};
-
-struct PeriodicMesh : PolyMesh
-{
-    struct PeriodicBC
-    {
-        int p1, p2;
-        int a1, b1, a2, b2;
-    };
-    
-    std::vector<PeriodicBC> bc;
-    
-    void getPeriodicCoordinates(int p1, int p2, double x_in, double y_in,
+    void getPeriodicCoordinates(int p2, double x_in, double y_in,
                                 double &x_out, double &y_out) const;
+    
+    virtual ~PolyMesh() {};
 };

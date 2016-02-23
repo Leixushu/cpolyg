@@ -54,13 +54,14 @@ void solveit(int meshType, double cfl, int deg)
     
     msh.gnuplot();
     
-    EulerVortex eqn(msh, kGamma);
+    VortexSolution exactSolution(kGamma);
+    Euler eqn(msh, 
+        BoundaryConditions::dirichletConditions(msh, &exactSolution), kGamma);
     
     MassMatrix M(msh, deg);
     M.spy("plt/M.gnu");
     
-    MeshFn f = eqn.initialConditions(deg);
-    MeshFn unp1 = f;
+    MeshFn unp1 = exactSolution.interpolated(msh, deg);
     
     BackwardEuler ti(M, eqn);
     
@@ -75,14 +76,6 @@ void solveit(int meshType, double cfl, int deg)
         unp1 = ti.advance(unp1, dt, i*dt);
     }
     unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
-    
-//     eqn.exact->t = i*dt;
-//     vec error = unp1.L2Error(*eqn.exact);
-//     cout << setprecision(20) << "L^2 errors: " << endl;
-//     cout << "Density:    " << error(0) << endl;
-//     cout << "Velocity u: " << error(1) << endl;
-//     cout << "Velocity v: " << error(2) << endl;
-//     cout << "Energy:     " << error(3) << endl;
 }
 
 void doMeshes(double cfl, int deg)

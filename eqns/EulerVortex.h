@@ -4,31 +4,22 @@
 #include <cmath>
 #include <armadillo>
 
-struct EulerVortex : Euler
+struct VortexSolution : VecFunctor
 {
-    struct VortexSolution : ExactSolution
-    {
-        double gamma;
-        double x0, y0;
-        double theta, epsilon, r_c, MInf, uInf, rhoInf, uBar, vBar, pInf;
+    double gamma;
+    double x0, y0;
+    double theta, epsilon, r_c, MInf, uInf, rhoInf, uBar, vBar, pInf;
+
+    double f(double x, double y) const;
+    double u(double x, double y) const;
+    double v(double x, double y) const;
+    double rho(double x, double y) const;
+    double p(double x, double y) const;
+    double rhoE(double x, double y) const;
     
-        double f(double x, double y) const;
-        double u(double x, double y) const;
-        double v(double x, double y) const;
-        double rho(double x, double y) const;
-        double p(double x, double y) const;
-        double rhoE(double x, double y) const;
-        
-        arma::mat operator()(double x, double y) const;
-        
-        VortexSolution() {};
-    };
+    arma::mat operator()(double x, double y) const;
     
-    EulerVortex(PolyMesh &m, double g);
+    VortexSolution(double a_gamma);
     
-    MeshFn exactSolution(const double t, const int deg);
-    MeshFn initialConditions(int deg)
-    {
-        return exactSolution(0, deg);
-    }
+    MeshFn interpolated(const PolyMesh &msh, const int deg);
 };

@@ -11,7 +11,7 @@ using namespace std;
 using namespace arma;
 
 // Allocate a MeshFn with the given degree polynomial basis and given number of components
-MeshFn::MeshFn(PolyMesh &a_msh, int a_deg, int a_nc /* = 1 */) : msh(a_msh)
+MeshFn::MeshFn(const PolyMesh &a_msh, int a_deg, int a_nc /* = 1 */) : msh(a_msh)
 {
     nc = a_nc;
     deg = a_deg;
@@ -22,7 +22,7 @@ MeshFn::MeshFn(PolyMesh &a_msh, int a_deg, int a_nc /* = 1 */) : msh(a_msh)
 
 // Create a (scalar) MeshFn by interpolating the given function with degree a_deg 
 // polynomials
-MeshFn::MeshFn(PolyMesh &a_msh, FnCallback cb, int a_deg) : msh(a_msh)
+MeshFn::MeshFn(const PolyMesh &a_msh, FnCallback cb, int a_deg) : msh(a_msh)
 {
     FnCallbackFunctor functor(cb);
     int basisSize;
@@ -238,7 +238,7 @@ MeshFn MeshFn::operator*(const double scale) const
 
 MeshFn & MeshFn::operator=(const MeshFn &fn)
 {
-    msh = fn.msh;
+    //msh = fn.msh;
     deg = fn.deg;
     a = fn.a;
     nc = fn.nc;

@@ -27,6 +27,11 @@ struct ExactGaussian : FnFunctor
     ExactGaussian(double a_theta) : theta(a_theta) {};
 };
 
+double zero(double x, double y)
+{
+    return 0;
+}
+
 double solveIt(int deg, double h)
 {
     PolyMesh msh = quadUnitSquare(h);
@@ -34,7 +39,11 @@ double solveIt(int deg, double h)
     
     MassMatrix M(msh, deg);
     
-    Advection eqn(msh);
+    VecFnCallbackFunctor zeroFunctor(zero);
+    BoundaryConditions bc = BoundaryConditions::dirichletConditions(msh, 
+        &zeroFunctor);
+    
+    Advection eqn(msh, bc);
     ExactGaussian exact(0);
     
     MeshFn f = MeshFn(msh, deg, 1);

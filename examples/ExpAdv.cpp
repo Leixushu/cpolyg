@@ -18,14 +18,16 @@ struct ExactGaussian : FnFunctor
         x0 = 0.5 - 0.15*cos(2*theta);
         y0 = 0.5 + 0.3*cos(theta)*sin(theta);
         
-        //x0 = 0.5 + theta;
-        //y0 = 0.5;
-        
         return exp(-150*((x-x0)*(x-x0) + (y-y0)*(y-y0)));
     }
     
     ExactGaussian(double a_theta) : theta(a_theta) {};
 };
+
+double zero(double x, double y)
+{
+    return 0;
+}
 
 int main(int argc, char ** argv)
 {
@@ -41,7 +43,12 @@ int main(int argc, char ** argv)
     
     MassMatrix M(msh, deg);
     M.spy("plt/M.gnu");
-    Advection eqn(msh);
+    
+    VecFnCallbackFunctor zeroFunctor(zero);
+    BoundaryConditions bc = BoundaryConditions::dirichletConditions(msh, 
+        &zeroFunctor);
+    
+    Advection eqn(msh, bc);
     
     ExactGaussian exact(0);
     MeshFn f = MeshFn(msh, deg, 1);

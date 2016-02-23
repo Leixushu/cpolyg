@@ -2,7 +2,7 @@
 
 using namespace arma;
 
-double Quadrature::polygonIntegral(PolyMesh &msh, FnFunctor &cb, int pi, int deg)
+double Quadrature::polygonIntegral(const PolyMesh &msh, FnFunctor &cb, int pi, int deg)
 {
     VecFnFunctor vecFunctor(cb);
     vec::fixed<1> integ = polygonIntegral(msh, vecFunctor, pi, deg);
@@ -10,7 +10,7 @@ double Quadrature::polygonIntegral(PolyMesh &msh, FnFunctor &cb, int pi, int deg
     return integ(0);
 }
 
-mat Quadrature::polygonIntegral(PolyMesh &msh, VecFunctor &cb, int pi, int deg)
+mat Quadrature::polygonIntegral(const PolyMesh &msh, VecFunctor &cb, int pi, int deg)
 {
     unsigned int i, k;
     double area, x1, x2, x3, y1, y2, y3, x, y;
@@ -56,7 +56,7 @@ mat Quadrature::polygonIntegral(PolyMesh &msh, VecFunctor &cb, int pi, int deg)
     return integ;
 }
 
-double Quadrature::lineIntegral(PolyMesh &msh, FnFunctor &cb, int a, int b, int deg)
+double Quadrature::lineIntegral(const PolyMesh &msh, FnFunctor &cb, int a, int b, int deg)
 {
     VecFnFunctor vecFunctor(cb);
     vec::fixed<1> integ = lineIntegral(msh, vecFunctor, a, b, deg);
@@ -64,7 +64,7 @@ double Quadrature::lineIntegral(PolyMesh &msh, FnFunctor &cb, int a, int b, int 
     return integ(0);
 }
 
-mat Quadrature::lineIntegral(PolyMesh &msh, VecFunctor &cb, int a, int b, int deg)
+mat Quadrature::lineIntegral(const PolyMesh &msh, VecFunctor &cb, int a, int b, int deg)
 {
     unsigned int k;
     double x1, y1, x2, y2, x, y, length;

@@ -38,11 +38,9 @@ vec Equation::boundaryIntegral(int i, const MeshFn &u, int deg)
         if(iPlus >= 0)
         {
             UPlus = u.a.slice(iPlus);
-        } else
+        } else if (msh.bc[iPlus].periodic)
         {
-            // how to deal with BCs in a good way???
-            //int p2 = dynamic_cast<PeriodicMesh &>(msh).bc[-msh.p2p[i][j]-1].p2;
-            //boundaryTerm->UPlus = u.a.slice(p2);
+            UPlus = u.a.slice(msh.bc[iPlus].p2);
         }
         
         msh.getOutwardNormal(i, a1, b1, nx, ny);
@@ -57,18 +55,23 @@ vec Equation::volumeIntegral(int i, int deg)
     return Quadrature::polygonIntegral(msh, *volumeTerm, i, deg*2);
 }
 
+mat Equation::computeBoundaryValue(double x, double y)
+{
+    return mat();
+}
+
 MeshFn Equation::assemble(const MeshFn &u, double a_t/* = 0 */)
 {
     int i, j;
     int deg = u.deg;
     int basisSize = (deg+1)*(deg+2)/2;
     double w, h;
-    
-    psi = zeros<vec>(basisSize);
-    
     MeshFn b(msh, deg, nc);
     
+    psi = zeros<vec>(basisSize);
+    // todo: get rid of these stupid 'm's
     m = deg+1;
+    bc.t = a_t;
     
     // loop over all polygons
     for (i = 0; i < msh.np; i++)
@@ -106,6 +109,8 @@ Jacobian Equation::jacobian(const MeshFn &f, double a_t)
     int nv1, a1, b1;
     double w, h;
     uvec componentIndices = linspace<uvec>(0, (nc-1)*basisSize, nc);
+    
+    bc.t = a_t;
     
     phi = zeros<vec>(basisSize);
     psi = zeros<vec>(basisSize);
@@ -160,12 +165,17 @@ Jacobian Equation::jacobian(const MeshFn &f, double a_t)
                         J.blocks[blockIdx](componentIndices+k, componentIndices+j) -= 
                             Quadrature::lineIntegral(msh, *boundaryJacobian, a1, b1, deg*2);
                         blockIdx++;
+                    } else if (msh.bc[neighbor].periodic)
+                    {
+                        UNeighbor = f.a.slice(msh.bc[neighbor].p2);
+                        J.blocks[blockIdx](componentIndices+k, componentIndices+j) -= 
+                            Quadrature::lineIntegral(msh, *boundaryJacobian, a1, b1, deg*2);
+                        blockIdx++;
                     }
                     
                     iPhi = i;
                     J.blocks[diagonalBlock](componentIndices+k, componentIndices+j) -= 
                         Quadrature::lineIntegral(msh, *boundaryJacobian, a1, b1, deg*2);
-                    
                 }
                 
                 psi(k) = 0;
@@ -177,7 +187,8 @@ Jacobian Equation::jacobian(const MeshFn &f, double a_t)
     return J;
 }
 
-Equation::Equation(PolyMesh &a_msh, int a_nc) : msh(a_msh), nc(a_nc)
+Equation::Equation(PolyMesh &a_msh, BoundaryConditions a_bc, int a_nc)
+: msh(a_msh), bc(a_bc), nc(a_nc)
 {
     volumeTerm = new IntegrandFunctor(*this, &Equation::computeVolumeTerm, nc, 1);
     boundaryTerm = new IntegrandFunctor(*this, &Equation::computeBoundaryTerm, nc, 1);

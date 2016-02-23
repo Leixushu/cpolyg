@@ -35,13 +35,15 @@ LIBCSRC := triangle/triangle.c
 LIBSRC := PolyMesh.cpp MeshFn.cpp Meshes.cpp Triangulation.cpp Functors.cpp \
 	   Quadrature.cpp Legendre.cpp MassMatrix.cpp TimeIntegration.cpp \
 	   Timer/CH_Timer.cpp BlockMatrix.cpp blas/blas.cpp Preconditioners.cpp \
-	   Jacobian.cpp \
-	   Equation.cpp Advection.cpp Euler.cpp EulerVortex.cpp KelvinHelmholtz.cpp
+	   Jacobian.cpp Equation.cpp BoundaryConditions.cpp\
+	   Advection.cpp Euler.cpp EulerVortex.cpp KelvinHelmholtz.cpp
 LIBOBJS := $(addprefix build/, $(notdir $(patsubst %.cpp,%.o, $(LIBSRC)))) \
 		   $(addprefix build/, $(notdir $(patsubst %.c,%.o, $(LIBCSRC))))
 		   
-EXAMPLES := bin/test bin/ExpAdv bin/ImpAdv bin/ExpEul bin/ImpEul bin/KH bin/Convergence \
-            bin/PeriodicAdv
+#EXAMPLES := bin/test bin/ExpAdv bin/ImpAdv bin/ExpEul bin/ImpEul bin/KH bin/Convergence \
+#            bin/PeriodicAdv
+EXAMPLES := bin/ExpAdv bin/ImpAdv bin/test bin/ExpEul bin/ImpEul bin/Convergence \
+			bin/PeriodicAdv
 
 OBJS := $(LIBOBJS) $(addprefix build/, $(notdir $(addsuffix .o, $(EXAMPLES))))
 DEPS := $(addprefix build/, $(notdir $(patsubst %.o,%.d, $(OBJS))))

@@ -10,6 +10,11 @@ double gaussian(double x, double y)
     return exp(-150*((x-0.25)*(x-0.25) + (y-0.5)*(y-0.5)));
 }
 
+double zero(double x, double y)
+{
+    return 0;
+}
+
 int main(int argc, char ** argv)
 {
     using namespace std;
@@ -29,7 +34,11 @@ int main(int argc, char ** argv)
     MeshFn f = MeshFn(msh, gaussian, deg);
     
     // specify the advection equation
-    Advection eqn(msh);
+    // with zero Dirichlet boundary conditions
+    VecFnCallbackFunctor zeroFunctor(zero);
+    BoundaryConditions bc = 
+        BoundaryConditions::dirichletConditions(msh, &zeroFunctor);
+    Advection eqn(msh, bc);
     
     // compute the mass matrix
     MassMatrix M(msh, deg);

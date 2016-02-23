@@ -158,7 +158,6 @@ mat Euler::computeBoundaryTerm(double x, double y)
     EulerVariables varsMinus, varsPlus, flux_xMinus, flux_yMinus, flux_xPlus, flux_yPlus;
     double xMinus, yMinus, xPlus, yPlus;
     double cMinus, uMinus, vMinus, cPlus, uPlus, vPlus;
-    double rhoPlus, rhoEPlus;
     double psiVal;
     double VDotNMinus, VDotNPlus;
     double alpha;
@@ -169,17 +168,9 @@ mat Euler::computeBoundaryTerm(double x, double y)
         varsPlus = computeVariables(xPlus, yPlus, m, UPlus);
     } else
     {
-        //dynamic_cast<PeriodicMesh &>(msh).getPeriodicCoordinates(iMinus, iPlus, x, y, xPlus, yPlus);
-        //varsPlus = computeVariables(xPlus, yPlus, m, UPlus);
-        rhoPlus = exact->rho(x, y);
-        uPlus = exact->u(x, y);
-        vPlus = exact->v(x, y);
-        rhoEPlus = exact->rhoE(x, y);
-        
-        varsPlus(0) = rhoPlus;
-        varsPlus(1) = rhoPlus*uPlus;
-        varsPlus(2) = rhoPlus*vPlus;
-        varsPlus(3) = rhoEPlus;
+        varsPlus = bc.boundaryValue(x, y, UPlus, iPlus);
+        uPlus = varsPlus(1)/varsPlus(0);
+        vPlus = varsPlus(2)/varsPlus(0);
     }
     flux(varsPlus, flux_xPlus, flux_yPlus, cPlus, uPlus, vPlus);
     
@@ -222,13 +213,19 @@ mat Euler::computeBoundaryJacobian(double x, double y)
     int sgn;
     double alpha;
     
-    msh.getLocalCoordinates(iPhi, x, y, xPhi, yPhi);
     msh.getLocalCoordinates(iPsi, x, y, xPsi, yPsi);
-    
-    phiVal = Leg2D(xPhi, yPhi, m, phi);
     psiVal = Leg2D(xPsi, yPsi, m, psi);
-    
     vars = computeVariables(xPsi, yPsi, m, U);
+    
+    if (iPhi >= 0)
+    {
+        msh.getLocalCoordinates(iPhi, x, y, xPhi, yPhi);
+        phiVal = Leg2D(xPhi, yPhi, m, phi);
+    } else
+    {
+        // if iPhi < 0, we're at a periodic boundary
+        phiVal = bc.boundaryValue(x, y, phi, iPhi)(0);
+    }
     
     // if we're not on an exterior edge, take the value of the neighboring cell
     if (neighbor >= 0)
@@ -237,42 +234,25 @@ mat Euler::computeBoundaryJacobian(double x, double y)
         vars2 = computeVariables(xNeighbor, yNeighbor, m, UNeighbor);
     } else
     {
-        // if we are on an exterior edge, use the exact solution at the boundary
-        vars2(0) = exact->rho(x, y);
-        vars2(1) = exact->u(x, y)*vars2(0);
-        vars2(2) = exact->v(x, y)*vars2(0);
-        vars2(3) = exact->rhoE(x, y);
+        vars2 = bc.boundaryValue(x, y, UNeighbor, neighbor);
     }
     
     if (iPsi == iPhi)
     {
         fluxJacobian(vars, J1, J2);
-        alphaPrime = alphaDerivative(vars, vars2, alpha);
         sgn = 1;
     } else
     {
         fluxJacobian(vars2, J1, J2);
-        alphaPrime = alphaDerivative(vars2, vars, alpha);
         sgn = -1;
     }
+    
+    alphaPrime = alphaDerivative(vars, vars2, alpha);
     
     return 0.5*phiVal*psiVal*(J1*nx + J2*ny + sgn*alpha*Id
                             + (vars - vars2)*alphaPrime.t());
 }
 
-Euler::~Euler()
-{
-    if(exact) delete exact;
-}
-
-Jacobian Euler::jacobian(const MeshFn &f, double t)
-{
-    exact->t = t;
-    return Equation::jacobian(f, t);
-}
-
-MeshFn Euler::assemble(const MeshFn &f, double t)
-{
-    exact->t = t;
-    return Equation::assemble(f, t);
-}
+Euler::Euler(PolyMesh &m, BoundaryConditions a_bc, double g)
+: Equation(m, a_bc, kEulerComponents), gamma(g)
+{ }

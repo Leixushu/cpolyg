@@ -35,6 +35,7 @@ struct VecFunctor
 {
     int n_rows = 1;
     int n_cols = 1;
+    double t = 0;
     
     //VecFunctor() { };
     VecFunctor(int a_n_rows, int a_n_cols = 1) : n_rows(a_n_rows), n_cols(a_n_cols) { };
@@ -66,5 +67,20 @@ struct VecFnFunctor : VecFunctor
     arma::mat operator()(double x, double y) const
     {
         return arma::vec::fixed<1>({fncb(x, y)});
+    }
+};
+
+/// Functor that wraps a basic callback function
+struct VecFnCallbackFunctor : VecFunctor
+{   
+    FnCallback cb;
+    
+    VecFnCallbackFunctor(FnCallback fn) : VecFunctor(1), cb(fn) { }
+    
+    arma::mat operator()(double x, double y) const
+    {
+        arma::vec::fixed<1> result;
+        result(0) = cb(x, y);
+        return result;
     }
 };

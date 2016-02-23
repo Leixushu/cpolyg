@@ -33,6 +33,11 @@ Jacobian::Jacobian(PolyMesh &a_msh, int a_deg, int a_nc) : msh(a_msh)
                 blocks.push_back(zeroMat);
                 colIndices.push_back(msh.p2p[i][j]);
                 numBlocks++;
+            } else if (msh.bc[msh.p2p[i][j]].periodic)
+            {
+                blocks.push_back(zeroMat);
+                colIndices.push_back(msh.bc[msh.p2p[i][j]].p2);
+                numBlocks++;
             }
         }
     }

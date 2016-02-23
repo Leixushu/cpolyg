@@ -15,6 +15,10 @@ void PolyMesh::computep2p(void)
     int a1, b1, a2, b2;
     int nv1, nv2;
     bool found;
+    BoundaryInfo info;
+    
+    info.periodic = false;
+    bc.emplace(-1, info);
     
     p2p.resize(np);
     
@@ -59,7 +63,7 @@ void PolyMesh::computep2p(void)
                 p2p[i].push_back(-1);
             }
         }
-    }    
+    }
 }
 
 // compute and store the bounding boxes for all of polygons
@@ -295,14 +299,12 @@ PolyMesh PolyMesh::triangulate(std::vector<std::array<double, 2> > points)
     return msh;
 }
 
-void PeriodicMesh::getPeriodicCoordinates(int p1, int p2, double xIn, double yIn,
-                                          double &xOut, double &yOut) const
+void PolyMesh::getPeriodicCoordinates(int p2, double xIn, double yIn,
+                                      double &xOut, double &yOut) const
 {
     double a1x, a1y, b1x, b1y, a2x, a2y, b2x, b2y, xNew, yNew;
     
-    const PeriodicBC &b = bc[-p2 - 1];
-    
-    assert(p1 == b.p1);
+    BoundaryInfo b = bc.at(p2);
     
     a1x = v[b.a1][0];
     a1y = v[b.a1][1];
@@ -315,9 +317,7 @@ void PeriodicMesh::getPeriodicCoordinates(int p1, int p2, double xIn, double yIn
         
     b2x = v[b.b2][0];
     b2y = v[b.b2][1];
-        
-//     xNew = (a2x*b1y*xIn - a1y*b2x*xIn - a2x*b1x*yIn + a1x*b2x*yIn)/(-(a1y*b1x) + a1x*b1y);
-//     yNew = (a2y*b1y*xIn - a1y*b2y*xIn - a2y*b1x*yIn + a1x*b2y*yIn)/(-(a1y*b1x) + a1x*b1y);
+    
     xNew = xIn + (a2x - a1x);
     yNew = yIn + (a2y - a1y);
             

@@ -26,9 +26,12 @@ int main(int argc, char ** argv)
     MassMatrix M(msh, deg);
     M.spy("plt/M.gnu");
     
-    EulerVortex eqn(msh, kGamma);
+    VortexSolution exactSolution(kGamma);
+    BoundaryConditions bc = BoundaryConditions::dirichletConditions(msh, 
+        &exactSolution);
+    Euler eqn(msh, bc, kGamma);
     
-    MeshFn f = eqn.initialConditions(deg);
+    MeshFn f = exactSolution.interpolated(msh, deg);
     MeshFn unp1 = f;
     
     f.gnuplot("plt/f.gnu");
@@ -55,8 +58,8 @@ int main(int argc, char ** argv)
     }
     unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
     
-    eqn.exact->t = i*dt;
-    vec error = unp1.L2Error(*eqn.exact);
+    exactSolution.t = i*dt;
+    vec error = unp1.L2Error(exactSolution);
     cout << setprecision(20) << "L^2 errors: " << endl;
     cout << "Density:    " << error(0) << endl;
     cout << "Velocity u: " << error(1) << endl;

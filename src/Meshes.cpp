@@ -158,17 +158,19 @@ PolyMesh triRectangle(double h, double width, double height)
     return msh;
 }
 
-PeriodicMesh periodicRectangle(double h, double width, double height)
+PolyMesh periodicRectangle(double h, double width, double height)
 {
     double x, y;
     array<double, 2> pt;
     vector<array<double, 2> > generatingPoints;
-    PeriodicMesh msh;
+    PolyMesh msh;
     vector<int> polygon;
     int idx1, idx2, idx3, idx4;
     int Nx, Ny;
-    int ix, iy, i;
-    PeriodicMesh::PeriodicBC bc;
+    int ix, iy, i, bci;
+    PolyMesh::BoundaryInfo bc;
+    
+    bc.periodic = true;
     
     Nx = width/h;
     Ny = height/h;
@@ -205,6 +207,7 @@ PeriodicMesh periodicRectangle(double h, double width, double height)
     msh.p2p.resize(msh.np);
     
     i = 0;
+    bci = -1;
     for(iy = 0; iy < Ny; iy++)
     {
         for(ix = 0; ix < Nx; ix++)
@@ -219,8 +222,9 @@ PeriodicMesh periodicRectangle(double h, double width, double height)
                 bc.a2 = msh.findVertex(ix*h, Ny*h);
                 bc.b2 = msh.findVertex((ix+1)*h, Ny*h);
                 
-                msh.bc.push_back(bc);
-                msh.p2p[i].push_back(-msh.bc.size());
+                msh.bc.emplace(bci, bc);
+                msh.p2p[i].push_back(bci);
+                bci--;
             } else
             {
                 msh.p2p[i].push_back(i - Nx);
@@ -236,8 +240,9 @@ PeriodicMesh periodicRectangle(double h, double width, double height)
                 bc.a2 = msh.findVertex(0, iy*h);
                 bc.b2 = msh.findVertex(0, (iy+1)*h);
                 
-                msh.bc.push_back(bc);
-                msh.p2p[i].push_back(-msh.bc.size());
+                msh.bc.emplace(bci, bc);
+                msh.p2p[i].push_back(bci);
+                bci--;
             } else
             {
                 msh.p2p[i].push_back(i+1);
@@ -253,8 +258,9 @@ PeriodicMesh periodicRectangle(double h, double width, double height)
                 bc.a2 = msh.findVertex(ix*h, 0);
                 bc.b2 = msh.findVertex((ix+1)*h, 0);
                 
-                msh.bc.push_back(bc);
-                msh.p2p[i].push_back(-msh.bc.size());
+                msh.bc.emplace(bci, bc);
+                msh.p2p[i].push_back(bci);
+                bci--;
             } else
             {
                 msh.p2p[i].push_back(i+Nx);
@@ -270,8 +276,9 @@ PeriodicMesh periodicRectangle(double h, double width, double height)
                 bc.a2 = msh.findVertex(Nx*h, iy*h);
                 bc.b2 = msh.findVertex(Nx*h, (iy+1)*h);
                 
-                msh.bc.push_back(bc);
-                msh.p2p[i].push_back(-msh.bc.size());
+                msh.bc.emplace(bci, bc);
+                msh.p2p[i].push_back(bci);
+                bci--;
             } else
             {
                 msh.p2p[i].push_back(i-1);

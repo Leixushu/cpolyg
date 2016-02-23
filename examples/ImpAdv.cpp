@@ -33,6 +33,11 @@ double planarWave(double x, double y)
     return sin(nx*x*2*M_PI + ny*y*2*M_PI);
 }
 
+double zero(double x, double y)
+{
+    return 0;
+}
+
 void solveit(int meshType, double cfl, int deg)
 {
     double h = 0.05;
@@ -74,7 +79,12 @@ void solveit(int meshType, double cfl, int deg)
     
     MassMatrix M(msh, deg);
     M.spy("plt/M.gnu");
-    Advection eqn(msh);
+    
+    VecFnCallbackFunctor zeroFunctor(zero);
+    BoundaryConditions bc = BoundaryConditions::dirichletConditions(msh, 
+        &zeroFunctor);
+    
+    Advection eqn(msh, bc);
     
     //FnCallbackFunctor exact(planarWave);
     ExactGaussian exact(0);
