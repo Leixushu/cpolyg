@@ -302,7 +302,7 @@ PolyMesh PolyMesh::triangulate(std::vector<std::array<double, 2> > points)
 void PolyMesh::getPeriodicCoordinates(int p2, double xIn, double yIn,
                                       double &xOut, double &yOut) const
 {
-    double a1x, a1y, b1x, b1y, a2x, a2y, b2x, b2y, xNew, yNew;
+    double a1x, a1y, a2x, a2y, xNew, yNew;
     
     BoundaryInfo b = bc.at(p2);
     
@@ -311,12 +311,6 @@ void PolyMesh::getPeriodicCoordinates(int p2, double xIn, double yIn,
         
     a2x = v[b.a2][0];
     a2y = v[b.a2][1];
-        
-    b1x = v[b.b1][0];
-    b1y = v[b.b1][1];
-        
-    b2x = v[b.b2][0];
-    b2y = v[b.b2][1];
     
     xNew = xIn + (a2x - a1x);
     yNew = yIn + (a2y - a1y);
