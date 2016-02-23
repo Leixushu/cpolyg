@@ -1,11 +1,8 @@
 #include <cmath>
 #include <iostream>
 #include <iomanip>
-#include "PolyMesh.h"
-#include "MeshFn.h"
 #include "Meshes.h"
-#include "MassMatrix.h"
-#include "KelvinHelmholtz.h"
+#include "EulerSetups.h"
 #include "TimeIntegration.h"
 
 #define kGamma 1.4
@@ -20,16 +17,17 @@ int main(int argc, char ** argv)
     
     cout << "Using h = " << h << endl;
     
-    PeriodicMesh msh = periodicRectangle(h, 1, 1);
+    PolyMesh msh = periodicRectangle(h, 1, 1);
     msh.gnuplot();
     
     MassMatrix M(msh, deg);
     M.spy("plt/M.gnu");
     
-    KelvinHelmholtz eqn(msh, kGamma);
+    KelvinHelmholtz KH(kGamma);
+    BoundaryConditions bc = BoundaryConditions::periodicConditions(msh);
+    Euler eqn(msh, bc, kGamma);
     
-    MeshFn f = eqn.initialConditions(deg);
-    MeshFn unp1 = f;
+    MeshFn unp1 = KH.interpolated(msh, deg);
     
     RK4 ti(M, eqn);
     //RK2 ti(M, eqn);
@@ -49,14 +47,6 @@ int main(int argc, char ** argv)
         unp1 = ti.advance(unp1, dt, i*dt);
     }
     unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
-    
-    eqn.exact->t = i*dt;
-    vec error = unp1.L2Error(*eqn.exact);
-    cout << setprecision(20) << "L^2 errors: " << endl;
-    cout << "Density:    " << error(0) << endl;
-    cout << "Velocity u: " << error(1) << endl;
-    cout << "Velocity v: " << error(2) << endl;
-    cout << "Energy:     " << error(3) << endl;
     
     return 0;
 }
