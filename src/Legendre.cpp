@@ -1,4 +1,3 @@
-#include <gsl/gsl_sf_legendre.h>
 #include <stdlib.h>
 #include <string.h>
 #include "Legendre.h"
