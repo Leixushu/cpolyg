@@ -23,8 +23,9 @@ int main(int argc, char ** argv)
     
     int deg = 2;
     double h = 0.1/2.0;
+    int N = 1/h;
     
-    PolyMesh msh = periodicRectangle(h, 1, 1);
+    PolyMesh msh = periodicRectangle(N, N, 1, 1);
     msh.gnuplot();
     
     MassMatrix M(msh, deg);

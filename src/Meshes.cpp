@@ -158,7 +158,7 @@ PolyMesh triRectangle(double h, double width, double height)
     return msh;
 }
 
-PolyMesh periodicRectangle(double h, double width, double height)
+PolyMesh periodicRectangle(int Nx, int Ny, double width, double height)
 {
     double x, y;
     array<double, 2> pt;
@@ -166,37 +166,35 @@ PolyMesh periodicRectangle(double h, double width, double height)
     PolyMesh msh;
     vector<int> polygon;
     int idx1, idx2, idx3, idx4;
-    int Nx, Ny;
     int ix, iy, i, bci;
+    double hx, hy;
     PolyMesh::BoundaryInfo bc;
     
-    bc.periodic = true;
-    
-    Nx = width/h;
-    Ny = height/h;
+    hx = width/Nx;
+    hy = width/Ny;
     
     for(iy = 0; iy < Ny; iy++)
     {
         for(ix = 0; ix < Nx; ix++)
         {
         
-            x = ix*h;
-            y = iy*h;
+            x = ix*hx;
+            y = iy*hy;
             
             pt[0] = x;
             pt[1] = y;
             idx1 = msh.addVertex(pt);
             
-            pt[0] = x+h;
+            pt[0] = x+hx;
             pt[1] = y;
             idx2 = msh.addVertex(pt);
             
-            pt[0] = x+h;
-            pt[1] = y+h;
+            pt[0] = x+hx;
+            pt[1] = y+hy;
             idx3 = msh.addVertex(pt);
             
             pt[0] = x;
-            pt[1] = y+h;
+            pt[1] = y+hy;
             idx4 = msh.addVertex(pt);
             
             polygon = {idx1, idx2, idx3, idx4};
@@ -205,6 +203,8 @@ PolyMesh periodicRectangle(double h, double width, double height)
     }
     msh.np = msh.p.size();
     msh.p2p.resize(msh.np);
+    
+    bc.periodic = true;
     
     i = 0;
     bci = -1;
@@ -217,10 +217,10 @@ PolyMesh periodicRectangle(double h, double width, double height)
             {
                 bc.p1 = i;
                 bc.p2 = Nx*(Ny-1) + ix;
-                bc.a1 = msh.findVertex(ix*h, 0);
-                bc.b1 = msh.findVertex((ix+1)*h, 0);
-                bc.a2 = msh.findVertex(ix*h, Ny*h);
-                bc.b2 = msh.findVertex((ix+1)*h, Ny*h);
+                bc.a1 = msh.findVertex(ix*hx, 0);
+                bc.b1 = msh.findVertex((ix+1)*hx, 0);
+                bc.a2 = msh.findVertex(ix*hx, Ny*hy);
+                bc.b2 = msh.findVertex((ix+1)*hx, Ny*hy);
                 
                 msh.bc.emplace(bci, bc);
                 msh.p2p[i].push_back(bci);
@@ -235,10 +235,10 @@ PolyMesh periodicRectangle(double h, double width, double height)
             {
                 bc.p1 = i;
                 bc.p2 = i - Nx + 1;
-                bc.a1 = msh.findVertex(Nx*h, iy*h);
-                bc.b1 = msh.findVertex(Nx*h, (iy+1)*h);
-                bc.a2 = msh.findVertex(0, iy*h);
-                bc.b2 = msh.findVertex(0, (iy+1)*h);
+                bc.a1 = msh.findVertex(Nx*hx, iy*hy);
+                bc.b1 = msh.findVertex(Nx*hx, (iy+1)*hy);
+                bc.a2 = msh.findVertex(0, iy*hy);
+                bc.b2 = msh.findVertex(0, (iy+1)*hy);
                 
                 msh.bc.emplace(bci, bc);
                 msh.p2p[i].push_back(bci);
@@ -253,10 +253,10 @@ PolyMesh periodicRectangle(double h, double width, double height)
             {
                 bc.p1 = i;
                 bc.p2 = ix;
-                bc.a1 = msh.findVertex(ix*h, Ny*h);
-                bc.b1 = msh.findVertex((ix+1)*h, Ny*h);
-                bc.a2 = msh.findVertex(ix*h, 0);
-                bc.b2 = msh.findVertex((ix+1)*h, 0);
+                bc.a1 = msh.findVertex(ix*hx, Ny*hy);
+                bc.b1 = msh.findVertex((ix+1)*hx, Ny*hy);
+                bc.a2 = msh.findVertex(ix*hx, 0);
+                bc.b2 = msh.findVertex((ix+1)*hx, 0);
                 
                 msh.bc.emplace(bci, bc);
                 msh.p2p[i].push_back(bci);
@@ -271,10 +271,10 @@ PolyMesh periodicRectangle(double h, double width, double height)
             {
                 bc.p1 = i;
                 bc.p2 = i + Nx - 1;
-                bc.a1 = msh.findVertex(0, iy*h);
-                bc.b1 = msh.findVertex(0, (iy+1)*h);
-                bc.a2 = msh.findVertex(Nx*h, iy*h);
-                bc.b2 = msh.findVertex(Nx*h, (iy+1)*h);
+                bc.a1 = msh.findVertex(0, iy*hy);
+                bc.b1 = msh.findVertex(0, (iy+1)*hy);
+                bc.a2 = msh.findVertex(Nx*hx, iy*hy);
+                bc.b2 = msh.findVertex(Nx*hx, (iy+1)*hy);
                 
                 msh.bc.emplace(bci, bc);
                 msh.p2p[i].push_back(bci);
