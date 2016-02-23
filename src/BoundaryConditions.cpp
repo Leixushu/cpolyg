@@ -9,10 +9,8 @@ mat BoundaryConditions::boundaryValue(double x, double y, mat U, int b)
     switch(bcTypes[b])
     {
         case kDirichletCondition:
-        {
             dirichlet[b]->t = t;
             return (*dirichlet[b])(x, y);
-        }
         case kPeriodicCondition:
         {
             double xLocal, yLocal;
