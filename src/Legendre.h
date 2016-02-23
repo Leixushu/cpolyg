@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <gsl/gsl_sf_legendre.h>
 #include <armadillo>
 

@@ -20,7 +20,7 @@ mat BoundaryConditions::boundaryValue(double x, double y, mat U, int b)
             
             msh.getPeriodicCoordinates(b, x, y, xLocal, yLocal);
             
-            for (int c = 0; c < U.n_cols; c++)
+            for (size_t c = 0; c < U.n_cols; c++)
             {
                 result(c) = Leg2D(xLocal, yLocal, m, U.col(c));
             }
@@ -45,8 +45,7 @@ BoundaryConditions BoundaryConditions::periodicConditions(PolyMesh &a_msh)
 {
     BoundaryConditions bc(a_msh);
     
-    int i;
-    for (i = 0; i < a_msh.bc.size(); i++)
+    for (size_t i = 0; i < a_msh.bc.size(); i++)
     {
         bc.bcTypes.emplace(-1 - i, kPeriodicCondition);
     }

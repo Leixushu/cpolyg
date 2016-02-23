@@ -15,15 +15,15 @@ EulerVariables Euler::computeVariables(double x, double y, int m, const mat &U)
     return values;
 }
 
-void Euler::flux(const EulerVariables &U, vec &flux_x, vec &flux_y, 
+void Euler::flux(const EulerVariables &vars, vec &flux_x, vec &flux_y, 
                  double &c, double &u, double &v)
 {
     double rho, rhoU, rhoV, rhoE, P;
     
-    rho = U(0);
-    rhoU = U(1);
-    rhoV = U(2);
-    rhoE = U(3);
+    rho = vars(0);
+    rhoU = vars(1);
+    rhoV = vars(2);
+    rhoE = vars(3);
     
     u = rhoU/rho;
     v = rhoV/rho;
@@ -43,14 +43,14 @@ void Euler::flux(const EulerVariables &U, vec &flux_x, vec &flux_y,
     c = sqrt(gamma*P/rho);
 }
 
-void Euler::fluxJacobian(const EulerVariables &U, EulerJacobian &J1, EulerJacobian &J2)
+void Euler::fluxJacobian(const EulerVariables &vars, EulerJacobian &J1, EulerJacobian &J2)
 {
     double rho, rhoU, rhoV, rhoE, u, v, E, P, usq, e, H;
     
-    rho = U(0);
-    rhoU = U(1);
-    rhoV = U(2);
-    rhoE = U(3);
+    rho = vars(0);
+    rhoU = vars(1);
+    rhoV = vars(2);
+    rhoE = vars(3);
     
     u = rhoU/rho;
     v = rhoV/rho;
@@ -253,6 +253,6 @@ mat Euler::computeBoundaryJacobian(double x, double y)
                             + (vars - vars2)*alphaPrime.t());
 }
 
-Euler::Euler(PolyMesh &m, BoundaryConditions a_bc, double g)
-: Equation(m, a_bc, kEulerComponents), gamma(g)
+Euler::Euler(PolyMesh &a_msh, BoundaryConditions a_bc, double g)
+: Equation(a_msh, a_bc, kEulerComponents), gamma(g)
 { }

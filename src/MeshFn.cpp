@@ -1,4 +1,4 @@
-#include <gsl/gsl_sf_legendre.h>
+#include <cstddef>
 #include <gsl/gsl_integration.h>
 #include <cassert>
 #include <iomanip>

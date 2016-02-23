@@ -79,15 +79,20 @@ void PolyMesh::computebb()
     {
         nv = p[i].size();
         
+        box[0] = v[p[i][0]][0];
+        box[1] = v[p[i][0]][1];
+        box[2] = v[p[i][0]][0];
+        box[3] = v[p[i][0]][1];
+        
         for (j = 0; j < nv; j++)
         {
-            if (j == 0 || v[p[i][j]][0] < box[0])
+            if (v[p[i][j]][0] < box[0])
                 box[0] = v[p[i][j]][0];
-            if (j == 0 || v[p[i][j]][1] < box[1])
+            if (v[p[i][j]][1] < box[1])
                 box[1] = v[p[i][j]][1];
-            if (j == 0 || v[p[i][j]][0] > box[2])
+            if (v[p[i][j]][0] > box[2])
                 box[2] = v[p[i][j]][0];
-            if (j == 0 || v[p[i][j]][1] > box[3])
+            if (v[p[i][j]][1] > box[3])
                 box[3] = v[p[i][j]][1];
         }
         
