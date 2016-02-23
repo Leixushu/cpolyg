@@ -11,7 +11,6 @@ mat BoundaryConditions::boundaryValue(double x, double y, mat U, int b)
         case kDirichletCondition:
             dirichlet[b]->t = t;
             return (*dirichlet[b])(x, y);
-            break;
         case kPeriodicCondition:
             double xLocal, yLocal;
             int nc = U.n_cols;
@@ -26,7 +25,6 @@ mat BoundaryConditions::boundaryValue(double x, double y, mat U, int b)
             }
             
             return result;
-            break;
     }
 }
 
