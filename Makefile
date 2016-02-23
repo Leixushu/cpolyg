@@ -36,21 +36,20 @@ LIBSRC := PolyMesh.cpp MeshFn.cpp Meshes.cpp Triangulation.cpp Functors.cpp \
 	   Quadrature.cpp Legendre.cpp MassMatrix.cpp TimeIntegration.cpp \
 	   Timer/CH_Timer.cpp BlockMatrix.cpp blas/blas.cpp Preconditioners.cpp \
 	   Jacobian.cpp Equation.cpp BoundaryConditions.cpp\
-	   Advection.cpp Euler.cpp EulerVortex.cpp KelvinHelmholtz.cpp
+	   Advection.cpp Euler.cpp EulerSetups.cpp
 LIBOBJS := $(addprefix build/, $(notdir $(patsubst %.cpp,%.o, $(LIBSRC)))) \
 		   $(addprefix build/, $(notdir $(patsubst %.c,%.o, $(LIBCSRC))))
-		   
-#EXAMPLES := bin/test bin/ExpAdv bin/ImpAdv bin/ExpEul bin/ImpEul bin/KH bin/Convergence \
-#            bin/PeriodicAdv
-EXAMPLES := bin/ExpAdv bin/ImpAdv bin/test bin/ExpEul bin/ImpEul bin/Convergence \
-			bin/PeriodicAdv
+
+EXAMPLES := ExpAdv ImpAdv test ExpEul ImpEul Convergence \
+			PeriodicAdv KH
+BINS := $(addprefix bin/, $(EXAMPLES))
 
 OBJS := $(LIBOBJS) $(addprefix build/, $(notdir $(addsuffix .o, $(EXAMPLES))))
 DEPS := $(addprefix build/, $(notdir $(patsubst %.o,%.d, $(OBJS))))
 
 .PHONY: all clean debug
 
-all: $(EXAMPLES)
+all: $(BINS)
 
 debug:
 	make -j DEBUG=1 --always-make
@@ -67,6 +66,6 @@ build/%.o: %.c Makefile
 	$(CC) -MM -MT '$@' $(CFLAGS) $< > build/$*.d
 
 clean:
-	rm -f $(OBJS) $(DEPS) $(EXAMPLES)
+	rm -f $(OBJS) $(DEPS) $(BINS)
 
 -include $(DEPS)
