@@ -5,7 +5,7 @@
 #include "MeshFn.h"
 #include "Meshes.h"
 #include "MassMatrix.h"
-#include "EulerVortex.h"
+#include "EulerSetups.h"
 #include "TimeIntegration.h"
 
 #define kGamma 1.4

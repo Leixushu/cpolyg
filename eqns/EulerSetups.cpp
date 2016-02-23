@@ -1,4 +1,4 @@
-#include "EulerVortex.h"
+#include "EulerSetups.h"
 #include <cmath>
 
 using namespace arma;
@@ -38,7 +38,7 @@ double VortexSolution::rhoE(double x, double y) const
 
 mat VortexSolution::operator()(double x, double y) const
 {
-    vec result(kEulerComponents);
+    vec::fixed<kEulerComponents> result;
     
     result[0] = rho(x, y);
     result[1] = rho(x, y)*u(x,y);
@@ -64,10 +64,59 @@ VortexSolution::VortexSolution(double a_gamma) : VecFunctor(kEulerComponents)
     vBar = uInf*sin(theta);
     
     pInf = 1;
-    t = 0;
 }
 
 MeshFn VortexSolution::interpolated(const PolyMesh &msh, const int deg)
+{
+    MeshFn result(msh, deg, kEulerComponents);
+    result.interp(*this);
+    return result;
+}
+
+double KelvinHelmholtz::u(double x, double y) const
+{
+	return rho(x,y) - 1;
+}
+
+double KelvinHelmholtz::v(double x, double y) const
+{
+	return 0;
+}
+
+double KelvinHelmholtz::rho(double x, double y) const
+{
+	if ( fabs(y - 0.5) < (0.15 + sin(2*M_PI*x)/200.0) )
+	{
+	    return 2;
+	} else
+	{
+	    return 1;
+	}
+}
+
+double KelvinHelmholtz::p(double x, double y) const
+{
+	return 3;
+}
+
+double KelvinHelmholtz::rhoE(double x, double y) const
+{
+	return p(x, y)/(gamma - 1) + 0.5*rho(x, y)*(pow(u(x,y),2) + pow(v(x,y),2));
+}
+
+mat KelvinHelmholtz::operator()(double x, double y) const
+{
+    vec::fixed<kEulerComponents> result;
+    
+    result[0] = rho(x, y);
+    result[1] = rho(x, y)*u(x,y);
+    result[2] = rho(x, y)*v(x,y);
+    result[3] = rhoE(x, y);
+    
+    return result;
+}
+
+MeshFn KelvinHelmholtz::interpolated(const PolyMesh &msh, const int deg)
 {
     MeshFn result(msh, deg, kEulerComponents);
     result.interp(*this);

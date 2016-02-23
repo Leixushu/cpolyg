@@ -23,3 +23,24 @@ struct VortexSolution : VecFunctor
     
     MeshFn interpolated(const PolyMesh &msh, const int deg);
 };
+
+struct KelvinHelmholtz : VecFunctor
+{
+    double gamma;
+    double x0, y0;
+    double theta, epsilon, r_c, MInf, uInf, rhoInf, uBar, vBar, pInf;
+
+    double u(double x, double y) const;
+    double v(double x, double y) const;
+    double rho(double x, double y) const;
+    double p(double x, double y) const;
+    double rhoE(double x, double y) const;
+    
+    arma::mat operator()(double x, double y) const;
+    
+    KelvinHelmholtz(double a_gamma) : 
+    VecFunctor(kEulerComponents), gamma(a_gamma)
+    { }
+    
+    MeshFn interpolated(const PolyMesh &msh, const int deg);
+};

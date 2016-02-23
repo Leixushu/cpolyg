@@ -2,7 +2,7 @@
 #include <iostream>
 #include <iomanip>
 #include "Meshes.h"
-#include "EulerVortex.h"
+#include "EulerSetups.h"
 #include "Jacobian.h"
 #include "TimeIntegration.h"
 #include "Preconditioners.h"
