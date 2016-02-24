@@ -6,11 +6,11 @@ using namespace arma;
 
 mat BoundaryConditions::boundaryValue(double x, double y, mat U, int b)
 {
-    switch(bcTypes[b])
+    switch(bcTypes.at(b))
     {
         case kDirichletCondition:
-            dirichlet[b]->t = t;
-            return (*dirichlet[b])(x, y);
+            dirichlet.at(b)->t = t;
+            return (*dirichlet.at(b))(x, y);
         case kPeriodicCondition:
         {
             double xLocal, yLocal;

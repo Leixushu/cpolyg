@@ -17,7 +17,8 @@ int main(int argc, char ** argv)
     
     cout << "Using h = " << h << endl;
     
-    PolyMesh msh = periodicRectangle(20, 400, 1, 1);
+    //PolyMesh msh = periodicRectangle(400, 80, 40, 8);
+    PolyMesh msh = periodicRectangle(200, 100, 1, 1);
     msh.gnuplot();
     
     MassMatrix M(msh, deg);
@@ -34,7 +35,7 @@ int main(int argc, char ** argv)
     
     int K;
     int i;
-    double dt = h/20.0;
+    double dt = h/200.0;
     cout << "Using dt = " << dt << endl;
     
     K = 1.0/dt;

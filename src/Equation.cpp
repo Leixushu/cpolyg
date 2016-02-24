@@ -32,18 +32,21 @@ vec Equation::boundaryIntegral(int i, const MeshFn &u, int deg)
     {
         a1 = msh.p[i][j];
         b1 = msh.p[i][(j+1)%nv1];
+        msh.getOutwardNormal(i, a1, b1, nx, ny);
         
-        
+        // get the neighboring cell
         iPlus = msh.p2p[i][j];
+        // a nonnegative number indicates a neighbor
+        // a negative number indicates a boundary edge
+        // (but the mesh could be periodic, have to check)
         if(iPlus >= 0)
         {
             UPlus = u.a.slice(iPlus);
-        } else if (msh.bc[iPlus].periodic)
+        } else if (msh.bc.at(iPlus).periodic)
         {
-            UPlus = u.a.slice(msh.bc[iPlus].p2);
+            UPlus = u.a.slice(msh.bc.at(iPlus).p2);
         }
         
-        msh.getOutwardNormal(i, a1, b1, nx, ny);
         integ += Quadrature::lineIntegral(msh, *boundaryTerm, a1, b1, deg*2);
     }
     
@@ -165,9 +168,9 @@ Jacobian Equation::jacobian(const MeshFn &f, double a_t)
                         J.blocks[blockIdx](componentIndices+k, componentIndices+j) -= 
                             Quadrature::lineIntegral(msh, *boundaryJacobian, a1, b1, deg*2);
                         blockIdx++;
-                    } else if (msh.bc[neighbor].periodic)
+                    } else if (msh.bc.at(neighbor).periodic)
                     {
-                        UNeighbor = f.a.slice(msh.bc[neighbor].p2);
+                        UNeighbor = f.a.slice(msh.bc.at(neighbor).p2);
                         J.blocks[blockIdx](componentIndices+k, componentIndices+j) -= 
                             Quadrature::lineIntegral(msh, *boundaryJacobian, a1, b1, deg*2);
                         blockIdx++;

@@ -57,7 +57,7 @@ VortexSolution::VortexSolution(double a_gamma) : VecFunctor(kEulerComponents)
     epsilon = 0.3;
     r_c = 1.5;
     MInf = 0.5;
-    uInf = 1.0;
+    uInf = -1.0;
     rhoInf = 1.0;
     
     uBar = uInf*cos(theta);
@@ -73,9 +73,20 @@ MeshFn VortexSolution::interpolated(const PolyMesh &msh, const int deg)
     return result;
 }
 
+double KelvinHelmholtz::phi(double y) const
+{
+    return y/10.0 - (0.4)*(erf(26.66*(y-4))-1);
+}
+
+double KelvinHelmholtz::psi(double x) const
+{
+    return 1 + cos(M_PI*x/20.0);
+}
+
 double KelvinHelmholtz::u(double x, double y) const
 {
 	return rho(x,y) - 1;
+	//return sqrt(gamma)*psi(x);
 }
 
 double KelvinHelmholtz::v(double x, double y) const
@@ -92,11 +103,13 @@ double KelvinHelmholtz::rho(double x, double y) const
 	{
 	    return 1;
 	}
+    //return 1 + 0.01*psi(x) + phi(y);
 }
 
 double KelvinHelmholtz::p(double x, double y) const
 {
 	return 3;
+	//return (1 + gamma/20.0*psi(x))*400.0;
 }
 
 double KelvinHelmholtz::rhoE(double x, double y) const

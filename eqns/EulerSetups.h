@@ -27,9 +27,12 @@ struct VortexSolution : VecFunctor
 struct KelvinHelmholtz : VecFunctor
 {
     double gamma;
-    double x0, y0;
-    double theta, epsilon, r_c, MInf, uInf, rhoInf, uBar, vBar, pInf;
-
+    //double x0, y0;
+    //double theta, epsilon, r_c, MInf, uInf, rhoInf, uBar, vBar, pInf;
+    
+    double phi(double y) const;
+    double psi(double x) const;
+    
     double u(double x, double y) const;
     double v(double x, double y) const;
     double rho(double x, double y) const;

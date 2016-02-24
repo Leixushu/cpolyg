@@ -169,15 +169,14 @@ mat Euler::computeBoundaryTerm(double x, double y)
     } else
     {
         varsPlus = bc.boundaryValue(x, y, UPlus, iPlus);
-        uPlus = varsPlus(1)/varsPlus(0);
-        vPlus = varsPlus(2)/varsPlus(0);
     }
-    flux(varsPlus, flux_xPlus, flux_yPlus, cPlus, uPlus, vPlus);
     
     msh.getLocalCoordinates(iMinus, x, y, xMinus, yMinus);
     psiVal = Leg2D(xMinus, yMinus, m, psi);
     varsMinus = computeVariables(xMinus, yMinus, m, UMinus);
+    
     flux(varsMinus, flux_xMinus, flux_yMinus, cMinus, uMinus, vMinus);
+    flux(varsPlus, flux_xPlus, flux_yPlus, cPlus, uPlus, vPlus);
     
     VDotNMinus = uMinus*nx + vMinus*ny;
     VDotNPlus = uPlus*nx + vPlus*ny;
