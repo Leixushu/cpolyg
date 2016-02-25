@@ -20,6 +20,112 @@ struct Equation::IntegrandFunctor : VecFunctor
     }
 };
 
+vec Equation::computeVariables(const mat &coeffs, double x, double y)
+{
+    vec values(nc);
+    
+    for (size_t c = 0; c < nc; c++)
+    {
+        values(c) = Leg2D(x, y, m, coeffs.col(c));
+    }
+    
+    return values;
+}
+
+mat Equation::computeVolumeTerm(double x, double y)
+{
+    double xx, yy;
+    vec result, vars; // nc
+    
+    msh.getLocalCoordinates(iMinus, x, y, xx, yy);
+    vars = computeVariables(UMinus, xx, yy);
+    mat theFlux = fluxFunction(vars, x, y);
+    
+    result = (theFlux.col(0)*Leg2D(xx, yy, m, psi_x)
+            + theFlux.col(1)*Leg2D(xx, yy, m, psi_y));
+    
+    return result;
+}
+
+mat Equation::computeBoundaryTerm(double x, double y)
+{
+    double xMinus, xPlus, yMinus, yPlus;
+    double psiVal;
+    vec varsMinus, varsPlus; // nc
+    vec theFlux; // nc
+    
+    msh.getLocalCoordinates(iMinus, x, y, xMinus, yMinus);
+    psiVal = Leg2D(xMinus, yMinus, m, psi);
+    varsMinus = computeVariables(UMinus, xMinus, yMinus);
+    
+    if (iPlus < 0)
+    {
+        varsPlus = bc.boundaryValue(x, y, UPlus, iPlus);
+    } else
+    {
+        msh.getLocalCoordinates(iPlus, x, y, xPlus, yPlus);
+        varsPlus = computeVariables(UPlus, xPlus, yPlus);
+    }
+    
+    theFlux = numericalFluxFunction(varsMinus, varsPlus, x, y, nx, ny);
+    return psiVal*theFlux;
+}
+
+mat Equation::computeVolumeJacobian(double x, double y)
+{
+    vec vars; // nc
+    mat result; // (nc)x(nc)
+    cube theJacobian; // (nc)x(nc)x2
+    double xx, yy;
+    
+    msh.getLocalCoordinates(iPsi, x, y, xx, yy);
+    vars = computeVariables(U, xx, yy);
+    theJacobian = fluxJacobian(vars, x, y);
+    
+    result = Leg2D(xx, yy, m, phi)*(theJacobian.slice(0)*Leg2D(xx, yy, m, psi_x) 
+                                  + theJacobian.slice(1)*Leg2D(xx, yy, m, psi_y));
+    return result;
+}
+
+mat Equation::computeBoundaryJacobian(double x, double y)
+{
+    double xPhi, yPhi, xPsi, yPsi, xNeighbor, yNeighbor;
+    double psiVal, phiVal;
+    vec vars2;
+    int sgn;
+    
+    msh.getLocalCoordinates(iPsi, x, y, xPsi, yPsi);
+    psiVal = Leg2D(xPsi, yPsi, m, psi);
+    mat vars = computeVariables(U, xPsi, yPsi);
+    
+    if (iPhi >= 0)
+    {
+        msh.getLocalCoordinates(iPhi, x, y, xPhi, yPhi);
+        phiVal = Leg2D(xPhi, yPhi, m, phi);
+    } else
+    {
+        // if iPhi < 0, we're at a periodic boundary
+        phiVal = bc.boundaryValue(x, y, phi, iPhi)(0);
+    }
+    
+    // if we're not on an exterior edge, take the value of the neighboring cell
+    if (neighbor >= 0)
+    {
+        msh.getLocalCoordinates(neighbor, x, y, xNeighbor, yNeighbor);
+        vars2 = computeVariables(UNeighbor, xNeighbor, yNeighbor);
+    } else
+    {
+        vars2 = bc.boundaryValue(x, y, UNeighbor, neighbor);
+    }
+    
+    if (iPhi == iPsi) sgn = 1;
+    else sgn = -1;
+    
+    mat jacobian = numericalFluxJacobian(vars, vars2, x, y, nx, ny, sgn);
+    
+    return phiVal*psiVal*jacobian;
+}
+
 vec Equation::boundaryIntegral(int i, const MeshFn &u, int deg)
 {
     int nv1, a1, b1;
@@ -56,11 +162,6 @@ vec Equation::boundaryIntegral(int i, const MeshFn &u, int deg)
 vec Equation::volumeIntegral(int i, int deg)
 {
     return Quadrature::polygonIntegral(msh, *volumeTerm, i, deg*2);
-}
-
-mat Equation::computeBoundaryValue(double x, double y)
-{
-    return mat();
 }
 
 MeshFn Equation::assemble(const MeshFn &u, double a_t/* = 0 */)

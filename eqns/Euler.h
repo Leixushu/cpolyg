@@ -10,26 +10,25 @@ typedef arma::mat::fixed<kEulerComponents, kEulerComponents> EulerJacobian;
 
 struct Euler : Equation
 {
-    arma::mat computeVolumeTerm(double x, double y);
-    arma::mat computeBoundaryTerm(double x, double y);
-    arma::mat computeVolumeJacobian(double x, double y);
-    arma::mat computeBoundaryJacobian(double x, double y);
+    arma::mat fluxFunction(const arma::vec &vars, double x, double y);
+    arma::vec numericalFluxFunction(const arma::vec &varsMinus, 
+        const arma::vec &varsPlus, 
+        double x, double y, double nx, double ny);
+    arma::cube fluxJacobian(const arma::vec &vars, double x, double y);
+    arma::mat numericalFluxJacobian(const arma::vec &varsMinus, 
+        const arma::vec &varsPlus, 
+        double x, double y, double nx, double ny, int sgn);
     
-    Euler(PolyMesh &m, BoundaryConditions a_bc, double g);
-    
+    Euler(PolyMesh &m, BoundaryConditions a_bc, double g)
+    : Equation(m, a_bc, kEulerComponents), gamma(g) { }
     
     EulerJacobian Id = arma::eye(kEulerComponents, kEulerComponents);
     double gamma;
     
-    
 protected:
-
-    static EulerVariables computeVariables(double x, double y, 
-                                           int m, const arma::mat &U);
     
     void flux(const EulerVariables &U, arma::vec &flux_x, arma::vec &flux_y, 
               double &c, double &u, double &v);
-    void fluxJacobian(const EulerVariables &U, EulerJacobian &J1, EulerJacobian &J2);
     EulerVariables alphaDerivative(const EulerVariables &vars1, 
                                    const EulerVariables &vars2,
                                    double &alpha);

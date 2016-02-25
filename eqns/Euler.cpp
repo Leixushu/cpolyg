@@ -4,17 +4,6 @@
 using namespace arma;
 using namespace std;
 
-EulerVariables Euler::computeVariables(double x, double y, int m, const mat &U)
-{
-    EulerVariables values;
-    values(0) = Leg2D(x, y, m, U.col(0));
-    values(1) = Leg2D(x, y, m, U.col(1));
-    values(2) = Leg2D(x, y, m, U.col(2));
-    values(3) = Leg2D(x, y, m, U.col(3));
-    
-    return values;
-}
-
 void Euler::flux(const EulerVariables &vars, vec &flux_x, vec &flux_y, 
                  double &c, double &u, double &v)
 {
@@ -43,8 +32,10 @@ void Euler::flux(const EulerVariables &vars, vec &flux_x, vec &flux_y,
     c = sqrt(gamma*P/rho);
 }
 
-void Euler::fluxJacobian(const EulerVariables &vars, EulerJacobian &J1, EulerJacobian &J2)
+cube Euler::fluxJacobian(const vec &vars, double x, double y)
 {
+    EulerJacobian J1, J2;
+    cube::fixed<kEulerComponents, kEulerComponents, 2> result;
     double rho, rhoU, rhoV, rhoE, u, v, E, P, usq, e, H;
     
     rho = vars(0);
@@ -61,16 +52,18 @@ void Euler::fluxJacobian(const EulerVariables &vars, EulerJacobian &J1, EulerJac
     P = (gamma - 1)*rho*e;
     H = E + P/rho;
     
-    J1 << 0                         << 1                 << 0              << 0       << endr
-       << -u*u + 0.5*(gamma-1)*usq  << (3-gamma)*u       << -(gamma-1)*v   << gamma-1 << endr
-       << -u*v                      << v                 << u              << 0       << endr
-       << u*(0.5*(gamma-1)*usq - H) << H - (gamma-1)*usq << -(gamma-1)*u*v << gamma*u << endr;
-       
+    result.slice(0) =
+        {{0, 1, 0, 0},
+         {-u*u + 0.5*(gamma-1)*usq, (3-gamma)*u, -(gamma-1)*v, gamma-1},
+         {-u*v, v, u, 0},
+         {u*(0.5*(gamma-1)*usq - H), H - (gamma-1)*usq, -(gamma-1)*u*v, gamma*u}};
+    result.slice(1) = 
+        {{0, 0, 1, 0},
+         {-u*v, v, u, 0},
+         {-v*v + 0.5*(gamma - 1)*usq, -(gamma - 1)*u, (3 - gamma)*v, gamma - 1},
+         {v*(0.5*(gamma - 1)*usq - H), -(gamma - 1)*u*v, H - (gamma - 1)*v*v, gamma*v}};
     
-    J2 << 0                           << 0                << 1                   << 0         << endr
-       << -u*v                        << v                << u                   << 0         << endr
-       << -v*v + 0.5*(gamma - 1)*usq  << -(gamma - 1)*u   << (3 - gamma)*v       << gamma - 1 << endr
-       << v*(0.5*(gamma - 1)*usq - H) << -(gamma - 1)*u*v << H - (gamma - 1)*v*v << gamma*v   << endr;
+    return result;
 }
 
 EulerVariables Euler::alphaDerivative(const EulerVariables &vars1, const EulerVariables &vars2, 
@@ -138,42 +131,26 @@ EulerVariables Euler::alphaDerivative(const EulerVariables &vars1, const EulerVa
     return derivative;
 }
 
-mat Euler::computeVolumeTerm(double x, double y)
+mat Euler::fluxFunction(const vec &val, double x, double y)
 {
-    double xx, yy, c, u, v;
-    EulerVariables vars, flux_x, flux_y;
+    mat result(kEulerComponents, 2);
+    EulerVariables flux_x, flux_y;
+    double c, u, v;
     
-    msh.getLocalCoordinates(iMinus, x, y, xx, yy);
+    flux(val, flux_x, flux_y, c, u, v);
+    result.col(0) = flux_x;
+    result.col(1) = flux_y;
     
-    vars = computeVariables(xx, yy, m, UMinus);
-    
-    flux(vars, flux_x, flux_y, c, u, v);
-    
-    return Leg2D(xx, yy, m, psi_x)*flux_x
-         + Leg2D(xx, yy, m, psi_y)*flux_y;
+    return result;
 }
 
-mat Euler::computeBoundaryTerm(double x, double y)
+vec Euler::numericalFluxFunction(const vec &varsMinus, const vec &varsPlus, 
+    double x, double y, double nx, double ny)
 {
-    EulerVariables varsMinus, varsPlus, flux_xMinus, flux_yMinus, flux_xPlus, flux_yPlus;
-    double xMinus, yMinus, xPlus, yPlus;
+    EulerVariables flux_xMinus, flux_yMinus, flux_xPlus, flux_yPlus;
     double cMinus, uMinus, vMinus, cPlus, uPlus, vPlus;
-    double psiVal;
     double VDotNMinus, VDotNPlus;
     double alpha;
-    
-    if (iPlus >= 0)
-    {
-        msh.getLocalCoordinates(iPlus, x, y, xPlus, yPlus);
-        varsPlus = computeVariables(xPlus, yPlus, m, UPlus);
-    } else
-    {
-        varsPlus = bc.boundaryValue(x, y, UPlus, iPlus);
-    }
-    
-    msh.getLocalCoordinates(iMinus, x, y, xMinus, yMinus);
-    psiVal = Leg2D(xMinus, yMinus, m, psi);
-    varsMinus = computeVariables(xMinus, yMinus, m, UMinus);
     
     flux(varsMinus, flux_xMinus, flux_yMinus, cMinus, uMinus, vMinus);
     flux(varsPlus, flux_xPlus, flux_yPlus, cPlus, uPlus, vPlus);
@@ -185,73 +162,18 @@ mat Euler::computeBoundaryTerm(double x, double y)
                  fabs(VDotNPlus - cPlus), fabs(VDotNPlus), fabs(VDotNPlus + cPlus)});
     
     return 0.5*((flux_xPlus + flux_xMinus)*nx + (flux_yPlus + flux_yMinus)*ny
-                + alpha*(varsMinus - varsPlus))*psiVal;
+                + alpha*(varsMinus - varsPlus));
 }
 
-mat Euler::computeVolumeJacobian(double x, double y)
+mat Euler::numericalFluxJacobian(const vec &vars, const vec &vars2, double x, 
+    double y, double nx, double ny, int sgn)
 {
-    double xx, yy, phiVal;
-    EulerVariables vars;
-    EulerJacobian J1, J2;
-    
-    msh.getLocalCoordinates(iPsi, x, y, xx, yy);
-    
-    vars = computeVariables(xx, yy, m, U);
-    
-    fluxJacobian(vars, J1, J2);
-    
-    phiVal = Leg2D(xx, yy, m, phi);
-    return phiVal*(Leg2D(xx, yy, m, psi_x)*J1 + Leg2D(xx, yy, m, psi_y)*J2);
-}
-
-mat Euler::computeBoundaryJacobian(double x, double y)
-{
-    double xPhi, yPhi, xPsi, yPsi, xNeighbor, yNeighbor, psiVal, phiVal;
-    EulerVariables vars, vars2, alphaPrime;
-    EulerJacobian J1, J2;
-    int sgn;
+    EulerVariables alphaPrime;
     double alpha;
     
-    msh.getLocalCoordinates(iPsi, x, y, xPsi, yPsi);
-    psiVal = Leg2D(xPsi, yPsi, m, psi);
-    vars = computeVariables(xPsi, yPsi, m, U);
-    
-    if (iPhi >= 0)
-    {
-        msh.getLocalCoordinates(iPhi, x, y, xPhi, yPhi);
-        phiVal = Leg2D(xPhi, yPhi, m, phi);
-    } else
-    {
-        // if iPhi < 0, we're at a periodic boundary
-        phiVal = bc.boundaryValue(x, y, phi, iPhi)(0);
-    }
-    
-    // if we're not on an exterior edge, take the value of the neighboring cell
-    if (neighbor >= 0)
-    {
-        msh.getLocalCoordinates(neighbor, x, y, xNeighbor, yNeighbor);
-        vars2 = computeVariables(xNeighbor, yNeighbor, m, UNeighbor);
-    } else
-    {
-        vars2 = bc.boundaryValue(x, y, UNeighbor, neighbor);
-    }
-    
-    if (iPsi == iPhi)
-    {
-        fluxJacobian(vars, J1, J2);
-        sgn = 1;
-    } else
-    {
-        fluxJacobian(vars2, J1, J2);
-        sgn = -1;
-    }
-    
+    cube J = fluxJacobian(vars, x, y);
     alphaPrime = alphaDerivative(vars, vars2, alpha);
     
-    return 0.5*phiVal*psiVal*(J1*nx + J2*ny + sgn*alpha*Id
-                            + (vars - vars2)*alphaPrime.t());
+    return 0.5*(J.slice(0)*nx + J.slice(1)*ny + sgn*alpha*Id
+                + (vars - vars2)*alphaPrime.t());
 }
-
-Euler::Euler(PolyMesh &a_msh, BoundaryConditions a_bc, double g)
-: Equation(a_msh, a_bc, kEulerComponents), gamma(g)
-{ }

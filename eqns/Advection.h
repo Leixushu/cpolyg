@@ -5,10 +5,14 @@
 // Two dimensional advection equation, u_t + div(\beta u) = 0
 struct Advection : Equation
 {
-    arma::mat computeVolumeTerm(double x, double y);
-    arma::mat computeBoundaryTerm(double x, double y);
-    arma::mat computeVolumeJacobian(double x, double y);
-    arma::mat computeBoundaryJacobian(double x, double y);
+    arma::mat fluxFunction(const arma::vec &vars, double x, double y);
+    arma::vec numericalFluxFunction(const arma::vec &varsMinus, 
+        const arma::vec &varsPlus, 
+        double x, double y, double nx, double ny);
+    arma::cube fluxJacobian(const arma::vec &vars, double x, double y);
+    arma::mat numericalFluxJacobian(const arma::vec &varsMinus,
+        const arma::vec &varsPlus, 
+        double x, double y, double nx, double ny, int sgn);
     
     virtual double betaX(double x, double y) const;
     virtual double betaY(double x, double y) const;

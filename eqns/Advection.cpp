@@ -15,87 +15,52 @@ double Advection::betaY(double x, double y) const
     return -2*x + 1;
 }
 
-mat Advection::computeVolumeTerm(double x, double y)
+mat Advection::fluxFunction(const vec &vars, double x, double y)
 {
-    double xx, yy;
-    vec::fixed<1> result;
-    msh.getLocalCoordinates(iMinus, x, y, xx, yy);
-    
-    result(0) = Leg2D(xx, yy, m, UMinus)*(betaX(x, y)*Leg2D(xx, yy, m, psi_x) 
-                                        + betaY(x, y)*Leg2D(xx, yy, m, psi_y));
+    rowvec::fixed<2> result = {betaX(x, y)*vars(0), betaY(x, y)*vars(0)};
     return result;
 }
 
-mat Advection::computeBoundaryTerm(double x, double y)
+vec Advection::numericalFluxFunction(const vec &varsMinus, const vec &varsPlus, 
+    double x, double y, double nx, double ny)
 {
-    double xMinus, xPlus, yMinus, yPlus;
-    double betaDotN;
-    double psiVal;
     vec::fixed<1> result;
-    
-    msh.getLocalCoordinates(iMinus, x, y, xMinus, yMinus);
-    
-    psiVal = Leg2D(xMinus, yMinus, m, psi);
-    betaDotN = (nx*betaX(x, y) + ny*betaY(x, y));
+    double betaDotN = betaX(x, y)*nx + betaY(x, y)*ny;
     
     if (betaDotN > 0)
     {
-        result(0) = betaDotN*psiVal*Leg2D(xMinus, yMinus, m, UMinus);
-        return result;
+        result(0) = varsMinus(0)*betaDotN;
     } else
     {
-        // negative iPlus indicates exterior boundary
-        if (iPlus < 0)
-        {
-            result = bc.boundaryValue(x, y, UPlus, iPlus);
-            result(0) *= betaDotN*psiVal;
-        } else
-        {
-            msh.getLocalCoordinates(iPlus, x, y, xPlus, yPlus);
-            result(0) = betaDotN*psiVal*Leg2D(xPlus, yPlus, m, UPlus);
-        }
-        return result;
+        result(0) = varsPlus(0)*betaDotN;
     }
-}
-
-mat Advection::computeVolumeJacobian(double x, double y)
-{
-    double xx, yy;
-    vec::fixed<1> result;
-    msh.getLocalCoordinates(iPsi, x, y, xx, yy);
-    
-    result(0) = Leg2D(xx, yy, m, phi)*(betaX(x, y)*Leg2D(xx, yy, m, psi_x) 
-                                     + betaY(x, y)*Leg2D(xx, yy, m, psi_y));
     return result;
 }
 
-mat Advection::computeBoundaryJacobian(double x, double y)
+cube Advection::fluxJacobian(const vec &vars, double x, double y)
 {
-    double xPhi, yPhi, xPsi, yPsi;
-    double betaDotN;
-    vec::fixed<1> result;
-    int sgn;
+    cube::fixed<1,1,2> result;
     
-    if (iPhi == iPsi) sgn = 1; else sgn = -1;
+    result(0,0,0) = betaX(x, y);
+    result(0,0,1) = betaY(x, y);
+    
+    return result;
+}
+
+mat Advection::numericalFluxJacobian(const vec &varsMinus, const vec &varsPlus, double x, 
+    double y, double nx, double ny, int sgn)
+{
+    vec::fixed<1> result;
+    double betaDotN;
     
     betaDotN = nx*betaX(x, y) + ny*betaY(x, y);
     
     if (sgn*betaDotN > 0)
     {
-        msh.getLocalCoordinates(iPsi, x, y, xPsi, yPsi);
-        if (iPhi >= 0)
-        {
-            msh.getLocalCoordinates(iPhi, x, y, xPhi, yPhi);
-            result(0) = betaDotN*Leg2D(xPsi, yPsi, m, psi)*Leg2D(xPhi, yPhi, m, phi);
-        } else
-        {
-            result = bc.boundaryValue(x, y, phi, iPhi);
-            result(0) *= betaDotN*Leg2D(xPsi, yPsi, m, psi);
-        }
+        result = betaDotN;
     } else
     {
         result(0) = 0;
     }
-    
     return result;
 }

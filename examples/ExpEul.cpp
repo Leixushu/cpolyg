@@ -20,15 +20,19 @@ int main(int argc, char ** argv)
     
     cout << "Using h = " << h << endl;
     
-    PolyMesh msh = hexRectangle(h, 20, 15);
+    //PolyMesh msh = hexRectangle(h, 20, 15);
+    //PolyMesh msh = quadRectangle(h, 20, 15);
+    //PolyMesh msh = periodicRectangle(100, 20, 20, 15);
+    PolyMesh msh = periodicRectangle(100, 20, 20, 15);
     msh.gnuplot();
     
     MassMatrix M(msh, deg);
     M.spy("plt/M.gnu");
     
     VortexSolution exactSolution(kGamma);
-    BoundaryConditions bc = BoundaryConditions::dirichletConditions(msh, 
-        &exactSolution);
+    //BoundaryConditions bc = BoundaryConditions::dirichletConditions(msh, 
+    //    &exactSolution);
+    BoundaryConditions bc = BoundaryConditions::periodicConditions(msh);
     Euler eqn(msh, bc, kGamma);
     
     MeshFn f = exactSolution.interpolated(msh, deg);
@@ -46,7 +50,7 @@ int main(int argc, char ** argv)
     
     //K = M_PI/dt;
     //K = sqrt(125)/dt;
-    K = 1.0/dt;
+    K = 20.0/dt;
     
     cout << "Computing total of " << K << " timesteps." << endl;
     

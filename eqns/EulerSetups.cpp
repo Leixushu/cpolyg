@@ -57,7 +57,7 @@ VortexSolution::VortexSolution(double a_gamma) : VecFunctor(kEulerComponents)
     epsilon = 0.3;
     r_c = 1.5;
     MInf = 0.5;
-    uInf = -1.0;
+    uInf = 1.0;
     rhoInf = 1.0;
     
     uBar = uInf*cos(theta);
