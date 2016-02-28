@@ -4,22 +4,6 @@
 using namespace arma;
 using namespace std;
 
-typedef arma::mat (Equation::*Integrand)(double x, double y);
-    
-struct Equation::IntegrandFunctor : VecFunctor
-{
-    Equation &eqn;
-    Integrand integ;
-    
-    IntegrandFunctor(Equation &a_eqn, Integrand a_integ, int a_n_rows, int a_n_cols)
-    : VecFunctor(a_n_rows, a_n_cols), eqn(a_eqn), integ(a_integ) {}
-
-    arma::mat operator()(double x, double y) const
-    {
-        return (eqn.*integ)(x, y);
-    }
-};
-
 vec Equation::computeVariables(const mat &coeffs, double x, double y)
 {
     vec values(nc);
@@ -153,7 +137,7 @@ vec Equation::boundaryIntegral(int i, const MeshFn &u, int deg)
             UPlus = u.a.slice(msh.bc.at(iPlus).p2);
         }
         
-        integ += Quadrature::lineIntegral(msh, *boundaryTerm, a1, b1, deg*2);
+        integ += Quadrature::lineIntegral(msh, boundaryTerm, a1, b1, deg*2);
     }
     
     return integ;
@@ -161,7 +145,7 @@ vec Equation::boundaryIntegral(int i, const MeshFn &u, int deg)
 
 vec Equation::volumeIntegral(int i, int deg)
 {
-    return Quadrature::polygonIntegral(msh, *volumeTerm, i, deg*2);
+    return Quadrature::polygonIntegral(msh, volumeTerm, i, deg*2);
 }
 
 MeshFn Equation::assemble(const MeshFn &u, double a_t/* = 0 */)
@@ -243,7 +227,7 @@ Jacobian Equation::jacobian(const MeshFn &f, double a_t)
                 psi_y = LegDerY(deg + 1, psi) * 2.0/h;
                 
                 J.blocks[diagonalBlock](componentIndices+k, componentIndices+j) 
-                    += Quadrature::polygonIntegral(msh, *volumeJacobian, i, deg*2);
+                    += Quadrature::polygonIntegral(msh, volumeJacobian, i, deg*2);
                 
                 nv1 = msh.p[i].size();
                 
@@ -267,19 +251,19 @@ Jacobian Equation::jacobian(const MeshFn &f, double a_t)
                     {
                         UNeighbor = f.a.slice(neighbor);
                         J.blocks[blockIdx](componentIndices+k, componentIndices+j) -= 
-                            Quadrature::lineIntegral(msh, *boundaryJacobian, a1, b1, deg*2);
+                            Quadrature::lineIntegral(msh, boundaryJacobian, a1, b1, deg*2);
                         blockIdx++;
                     } else if (msh.bc.at(neighbor).periodic)
                     {
                         UNeighbor = f.a.slice(msh.bc.at(neighbor).p2);
                         J.blocks[blockIdx](componentIndices+k, componentIndices+j) -= 
-                            Quadrature::lineIntegral(msh, *boundaryJacobian, a1, b1, deg*2);
+                            Quadrature::lineIntegral(msh, boundaryJacobian, a1, b1, deg*2);
                         blockIdx++;
                     }
                     
                     iPhi = i;
                     J.blocks[diagonalBlock](componentIndices+k, componentIndices+j) -= 
-                        Quadrature::lineIntegral(msh, *boundaryJacobian, a1, b1, deg*2);
+                        Quadrature::lineIntegral(msh, boundaryJacobian, a1, b1, deg*2);
                 }
                 
                 psi(k) = 0;
@@ -292,18 +276,15 @@ Jacobian Equation::jacobian(const MeshFn &f, double a_t)
 }
 
 Equation::Equation(PolyMesh &a_msh, BoundaryConditions a_bc, int a_nc)
-: msh(a_msh), bc(a_bc), nc(a_nc)
+: msh(a_msh), 
+  volumeTerm(*this, &Equation::computeVolumeTerm, a_nc, 1),
+  boundaryTerm(*this, &Equation::computeBoundaryTerm, a_nc, 1),
+  volumeJacobian(*this, &Equation::computeVolumeJacobian, a_nc, a_nc),
+  boundaryJacobian(*this, &Equation::computeBoundaryJacobian, a_nc, a_nc),
+  bc(a_bc), nc(a_nc)
 {
-    volumeTerm = new IntegrandFunctor(*this, &Equation::computeVolumeTerm, nc, 1);
-    boundaryTerm = new IntegrandFunctor(*this, &Equation::computeBoundaryTerm, nc, 1);
-    volumeJacobian = new IntegrandFunctor(*this, &Equation::computeVolumeJacobian, nc, nc);
-    boundaryJacobian = new IntegrandFunctor(*this, &Equation::computeBoundaryJacobian, nc, nc);
 }
 
 Equation::~Equation()
 {
-    delete volumeTerm;
-    delete boundaryTerm;
-    delete volumeJacobian;
-    delete boundaryJacobian;
 }

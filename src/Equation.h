@@ -10,11 +10,25 @@ struct Equation
 {
     PolyMesh &msh;
     
-    struct IntegrandFunctor;
-    IntegrandFunctor *volumeTerm;
-    IntegrandFunctor *boundaryTerm;
-    IntegrandFunctor *volumeJacobian;
-    IntegrandFunctor *boundaryJacobian;
+    typedef arma::mat (Equation::*Integrand)(double x, double y);
+    struct IntegrandFunctor : VecFunctor
+    {
+        Equation &eqn;
+        Integrand integ;
+    
+        IntegrandFunctor(Equation &a_eqn, Integrand a_integ, int a_n_rows, int a_n_cols)
+        : VecFunctor(a_n_rows, a_n_cols), eqn(a_eqn), integ(a_integ) {}
+
+        arma::mat operator()(double x, double y) const
+        {
+            return (eqn.*integ)(x, y);
+        }
+    };
+    
+    IntegrandFunctor volumeTerm;
+    IntegrandFunctor boundaryTerm;
+    IntegrandFunctor volumeJacobian;
+    IntegrandFunctor boundaryJacobian;
     
     BoundaryConditions bc;
     
