@@ -32,40 +32,6 @@ void Euler::flux(const EulerVariables &vars, vec &flux_x, vec &flux_y,
     c = sqrt(gamma*P/rho);
 }
 
-cube Euler::fluxJacobian(const vec &vars, double x, double y)
-{
-    EulerJacobian J1, J2;
-    cube::fixed<kEulerComponents, kEulerComponents, 2> result;
-    double rho, rhoU, rhoV, rhoE, u, v, E, P, usq, e, H;
-    
-    rho = vars(0);
-    rhoU = vars(1);
-    rhoV = vars(2);
-    rhoE = vars(3);
-    
-    u = rhoU/rho;
-    v = rhoV/rho;
-    E = rhoE/rho;
-    
-    usq = u*u + v*v;
-    e = E - 0.5*usq;
-    P = (gamma - 1)*rho*e;
-    H = E + P/rho;
-    
-    result.slice(0) =
-        {{0, 1, 0, 0},
-         {-u*u + 0.5*(gamma-1)*usq, (3-gamma)*u, -(gamma-1)*v, gamma-1},
-         {-u*v, v, u, 0},
-         {u*(0.5*(gamma-1)*usq - H), H - (gamma-1)*usq, -(gamma-1)*u*v, gamma*u}};
-    result.slice(1) = 
-        {{0, 0, 1, 0},
-         {-u*v, v, u, 0},
-         {-v*v + 0.5*(gamma - 1)*usq, -(gamma - 1)*u, (3 - gamma)*v, gamma - 1},
-         {v*(0.5*(gamma - 1)*usq - H), -(gamma - 1)*u*v, H - (gamma - 1)*v*v, gamma*v}};
-    
-    return result;
-}
-
 EulerVariables Euler::alphaDerivative(const EulerVariables &vars1, const EulerVariables &vars2, 
                                       double &alpha)
 {
@@ -163,6 +129,40 @@ vec Euler::numericalFluxFunction(const vec &varsMinus, const vec &varsPlus,
     
     return 0.5*((flux_xPlus + flux_xMinus)*nx + (flux_yPlus + flux_yMinus)*ny
                 + alpha*(varsMinus - varsPlus));
+}
+
+cube Euler::fluxJacobian(const vec &vars, double x, double y)
+{
+    EulerJacobian J1, J2;
+    cube::fixed<kEulerComponents, kEulerComponents, 2> result;
+    double rho, rhoU, rhoV, rhoE, u, v, E, P, usq, e, H;
+    
+    rho = vars(0);
+    rhoU = vars(1);
+    rhoV = vars(2);
+    rhoE = vars(3);
+    
+    u = rhoU/rho;
+    v = rhoV/rho;
+    E = rhoE/rho;
+    
+    usq = u*u + v*v;
+    e = E - 0.5*usq;
+    P = (gamma - 1)*rho*e;
+    H = E + P/rho;
+    
+    result.slice(0) =
+        {{0, 1, 0, 0},
+         {-u*u + 0.5*(gamma-1)*usq, (3-gamma)*u, -(gamma-1)*v, gamma-1},
+         {-u*v, v, u, 0},
+         {u*(0.5*(gamma-1)*usq - H), H - (gamma-1)*usq, -(gamma-1)*u*v, gamma*u}};
+    result.slice(1) = 
+        {{0, 0, 1, 0},
+         {-u*v, v, u, 0},
+         {-v*v + 0.5*(gamma - 1)*usq, -(gamma - 1)*u, (3 - gamma)*v, gamma - 1},
+         {v*(0.5*(gamma - 1)*usq - H), -(gamma - 1)*u*v, H - (gamma - 1)*v*v, gamma*v}};
+    
+    return result;
 }
 
 mat Euler::numericalFluxJacobian(const vec &vars, const vec &vars2, double x, 
