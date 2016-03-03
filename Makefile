@@ -50,7 +50,10 @@ DEPS := $(addprefix build/, $(notdir $(patsubst %.o,%.d, $(OBJS))))
 
 .PHONY: all clean debug
 
-all: $(BINS)
+all: tags $(BINS)
+
+tags: $(BINS)
+	ctags --tag-relative=no --fields=+a+m+n+S -R
 
 debug:
 	make -j DEBUG=1 --always-make
