@@ -52,7 +52,7 @@ DEPS := $(addprefix build/, $(notdir $(patsubst %.o,%.d, $(OBJS))))
 
 all: tags $(BINS)
 
-tags: $(BINS)
+tags: $(OBJS)
 	ctags --tag-relative=no --fields=+a+m+n+S -R
 
 debug:
