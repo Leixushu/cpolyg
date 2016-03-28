@@ -63,6 +63,8 @@ struct BlockMatrix
     /// return BlockMatrix consisting of the off-diagonal blocks of M
     static BlockMatrix offDiag(BlockMatrix &M);
     
+    static BlockMatrix blockBlockMatrix(arma::field<BlockMatrix> &b);
+    
     /// default constructor
     BlockMatrix() {};
     

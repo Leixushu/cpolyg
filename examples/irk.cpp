@@ -44,8 +44,8 @@ int main(int argc, char ** argv)
     MassMatrix M(msh, deg);
     
     // create the time integration object
-    DIRK3 ti(M, eqn);
-    //BackwardEuler ti(M, eqn);
+    //DIRK3 ti(M, eqn);
+    IRK3 ti(M, eqn);
     
     for (int i = 0; i < 20; i++)
     {

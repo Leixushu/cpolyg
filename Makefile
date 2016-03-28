@@ -5,6 +5,8 @@ CXX=clang++
 #CC=gcc-5
 #CXX=g++-5
 
+DEBUG = 1
+
 ifeq ($(DEBUG), 1)
 	# debug flags
 	CFLAGS = -g -O0
@@ -42,7 +44,7 @@ LIBOBJS := $(addprefix build/, $(notdir $(patsubst %.cpp,%.o, $(LIBSRC)))) \
 		   $(addprefix build/, $(notdir $(patsubst %.c,%.o, $(LIBCSRC))))
 
 EXAMPLES := ExpAdv ImpAdv PeriodicAdv test Convergence PeriodicAdv \
-			ExpEul ImpEul Convergence KH dirk
+			ExpEul ImpEul Convergence KH irk
 BINS := $(addprefix bin/, $(EXAMPLES))
 
 OBJS := $(LIBOBJS) $(addprefix build/, $(notdir $(addsuffix .o, $(EXAMPLES))))

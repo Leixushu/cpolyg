@@ -80,12 +80,11 @@ mat DIRK3::c = {(1+alpha)/2,1.0/2.0,(1-alpha)/2};
 MeshFn DIRK3::advance(const MeshFn &u, const double dt, const double t)
 {
     const static int nStages = 3;
-    int stage;
     MeshFn zero(u.msh, u.deg, u.nc);
     zero.a.fill(0);
     array<MeshFn, nStages> k = {{zero, zero, zero}};
     
-    for (stage = 0; stage < nStages; stage++)
+    for (int stage = 0; stage < nStages; stage++)
     {
         cout << "DIRK stage " << stage+1 << endl;
         
@@ -120,6 +119,89 @@ MeshFn DIRK3::advance(const MeshFn &u, const double dt, const double t)
     
     MeshFn unp1 = u;
     
+    for (int i = 0; i < nStages; i++)
+    {
+        unp1 += b(i)*k[i];
+    }
+    
+    return unp1;
+}
+
+mat IRK3::A = {{(88-7*sqrt(6))/360, (296-169*sqrt(6))/1800, (-2+3*sqrt(6))/225},
+               {(296+169*sqrt(6))/1800, (88+7*sqrt(6))/360, (-2-3*sqrt(6))/225},
+               {(16-sqrt(6))/36, (16+sqrt(6))/36, 1/9}};
+mat IRK3::b = {(16-sqrt(6))/36, (16+sqrt(6))/36, 1/9};
+mat IRK3::c = {(4-sqrt(6))/10, (4+sqrt(6))/10, 1};
+
+MeshFn IRK3::advance(const MeshFn &u, const double dt, const double t)
+{
+    const static int nStages = 3;
+    MeshFn zero(u.msh, u.deg, u.nc);
+    zero.a.fill(0);
+    array<MeshFn, nStages> k = {{zero, zero, zero}};
+    array<MeshFn, nStages> r = {{zero, zero, zero}};
+    array<Jacobian, nStages> Js;
+    
+    int vecSize = u.nc*(u.deg+1)*(u.deg+2)*0.5*u.msh.np;
+    
+    vec bigK(vecSize*nStages);
+    vec bigR(vecSize*nStages);
+    
+    cout << "Fully implicit IRK solve" << endl;
+    cout << "  Beginning Newton solve" << endl;
+    for (int iter = 0; iter < kNewtonMaxIterations; iter++) {
+        double rNorm = 0;
+        for (int stage = 0; stage < nStages; stage++) {
+            MeshFn cu = u;
+            for (int j = 0; j <= nStages; j++) {
+                cu += A(stage, j)*k[j];
+            }
+            MeshFn rhs = eqn.assemble(cu, t + dt*c(stage));
+            r[stage] = M.matvec(k[stage]) - dt*rhs;
+            rNorm += r[stage].L2Norm().max();
+            Js[stage] = eqn.jacobian(cu, t + dt*c(stage));
+        }
+        rNorm = sqrt(rNorm);
+        cout << "    Iteration number " << iter << ", residual norm = "
+             << rNorm << endl;
+        if (rNorm < kNewtonTolerance) {
+            cout << "    Converged to tolerance" << endl;
+            break;
+        }
+        
+        field<BlockMatrix> JBlocks(nStages, nStages);
+        
+        for (int i = 0; i < nStages; i++) {
+            Js[i] *= -dt;
+            for (int j = 0; j < nStages; j++) {
+                if (i != j) {
+                    JBlocks(i, j) = Js[i];
+                }
+            }
+            Js[i] += M;
+            JBlocks(i, i) = Js[i];
+        }
+        
+        BlockMatrix fullJ = BlockMatrix::blockBlockMatrix(JBlocks);
+        
+        for (int stage = 0; stage < nStages; stage++) {
+            bigR.rows(stage*vecSize, (stage+1)*vecSize-1) = vectorise(r[stage].a);
+        }
+        
+        //BlockILU0 pc(fullJ);
+        NoPreconditioner pc;
+        double tol = 1.e-15;
+        int maxIt = 1000;
+        fullJ.gmres(bigR, bigK, 20, tol, maxIt, pc);
+        cube xCube(vecSize, 1, 1);
+        
+        for (int stage = 0; stage < nStages; stage++) {
+            xCube.slice(0) = bigK.rows(stage*vecSize, (stage+1)*vecSize-1);
+            k[stage].a -= reshape(xCube, (u.deg+1)*(u.deg*2)*0.5, u.nc, u.msh.np);
+        }
+    }
+    
+    MeshFn unp1 = u;
     for (int i = 0; i < nStages; i++)
     {
         unp1 += b(i)*k[i];

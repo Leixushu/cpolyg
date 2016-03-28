@@ -1,6 +1,7 @@
 #include "BlockMatrix.h"
 #include "Preconditioners.h"
 #include "blas/blas.h"
+#include <cassert>
 
 using namespace std;
 using namespace arma;
@@ -218,6 +219,38 @@ BlockMatrix BlockMatrix::diag(BlockMatrix &M)
     
     // make sure to end the rowBlock vector
     result.rowBlock[n] = result.nb;
+    
+    return result;
+}
+
+BlockMatrix BlockMatrix::blockBlockMatrix(arma::field<BlockMatrix> &b)
+{
+    assert(b.n_rows == b.n_cols);
+    int nBlocks = b.n_rows;
+    int nSmall = b(0,0).n_rows;
+    int bl = b(0,0).bl;
+    int k;
+    BlockMatrix result(bl, nBlocks*nSmall);
+    
+    for (size_t i = 0; i < nBlocks; i++)
+    {
+        for (size_t iSmall = 0; iSmall < nSmall; iSmall++)
+        {
+            result.rowBlock[i*nBlocks + iSmall] = result.nb;
+            for (size_t j = 0; j < nBlocks; j++)
+            {
+                for (k = b(i,j).rowBlock[iSmall]; 
+                     k < b(i,j).rowBlock[iSmall]; k++)
+                {
+                    result.blocks.push_back(b(i,j).blocks[j]);
+                    result.colIndices.push_back(i*nSmall + b(i,j).colIndices[k]);
+                    result.nb++;
+                }
+            }
+        }
+    }
+    
+    result.rowBlock[result.n_rows] = result.nb;
     
     return result;
 }

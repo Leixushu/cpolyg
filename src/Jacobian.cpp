@@ -4,13 +4,13 @@
 
 using namespace arma;
 
-Jacobian::Jacobian(PolyMesh &a_msh, int a_deg, int a_nc) : msh(a_msh)
+Jacobian::Jacobian(const PolyMesh &a_msh, int a_deg, int a_nc) : msh(&a_msh)
 {
     int i;
     unsigned int j;
     int numBlocks;
     
-    n_rows = msh.np;
+    n_rows = msh->np;
     nc = a_nc;
     deg = a_deg;
     bl = nc*(deg + 1)*(deg + 2)/2;
@@ -26,17 +26,17 @@ Jacobian::Jacobian(PolyMesh &a_msh, int a_deg, int a_nc) : msh(a_msh)
         rowBlock.push_back(numBlocks);
         numBlocks++;
         
-        for (j = 0; j < msh.p2p[i].size(); j++)
+        for (j = 0; j < msh->p2p[i].size(); j++)
         {
-            if (msh.p2p[i][j] >= 0)
+            if (msh->p2p[i][j] >= 0)
             {
                 blocks.push_back(zeroMat);
-                colIndices.push_back(msh.p2p[i][j]);
+                colIndices.push_back(msh->p2p[i][j]);
                 numBlocks++;
-            } else if (msh.bc[msh.p2p[i][j]].periodic)
+            } else if (msh->bc.at(msh->p2p[i][j]).periodic)
             {
                 blocks.push_back(zeroMat);
-                colIndices.push_back(msh.bc[msh.p2p[i][j]].p2);
+                colIndices.push_back(msh->bc.at(msh->p2p[i][j]).p2);
                 numBlocks++;
             }
         }
@@ -50,7 +50,6 @@ Jacobian& Jacobian::operator=(const Jacobian &J2)
 {
     BlockMatrix::operator=(J2);
     
-    msh = J2.msh;
     nc = J2.nc;
     deg = J2.deg;
     
@@ -68,7 +67,7 @@ MeshFn Jacobian::matvec(const MeshFn &x)
 
 MeshFn Jacobian::solve(const MeshFn &b, Preconditioner &pc, Solver s/* = kGMRESSolver */)
 {
-    MeshFn result(msh, deg, nc);
+    MeshFn result(*msh, deg, nc);
     vec bVec = vectorise(b.a);
     vec x = zeros<vec>(bVec.n_rows);
     int basisSize = (deg + 1)*(deg + 2)/2;
@@ -92,7 +91,7 @@ MeshFn Jacobian::solve(const MeshFn &b, Preconditioner &pc, Solver s/* = kGMRESS
     cube xCube(x.n_rows, 1, 1);
     xCube.slice(0) = x;
     
-    result.a = reshape(xCube, basisSize, nc, msh.np);
+    result.a = reshape(xCube, basisSize, nc, msh->np);
     
     return result;
 }
