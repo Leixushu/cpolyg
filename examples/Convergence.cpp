@@ -67,10 +67,10 @@ double solveIt(int deg, double h)
             cout << ".";
         }
         
-        MeshFn k1 = dt*M.solve(B.dot(unp1));
-        MeshFn k2 = dt*M.solve(B.dot(unp1 + 0.5*k1));
-        MeshFn k3 = dt*M.solve(B.dot(unp1 + 0.5*k2));
-        MeshFn k4 = dt*M.solve(B.dot(unp1 + k3));
+        MeshFn k1 = dt*M.solve(B.matvec(unp1));
+        MeshFn k2 = dt*M.solve(B.matvec(unp1 + 0.5*k1));
+        MeshFn k3 = dt*M.solve(B.matvec(unp1 + 0.5*k2));
+        MeshFn k4 = dt*M.solve(B.matvec(unp1 + k3));
         
         unp1 += (k1 + 2*k2 + 2*k3 + k4)/6;
     }

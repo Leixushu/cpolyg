@@ -58,7 +58,7 @@ int main(int argc, char ** argv)
             unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
         }
         
-        unp1 = B.solve(M.dot(unp1), pc, kGMRESSolver);
+        unp1 = B.solve(M.matvec(unp1), pc, kGMRESSolver);
         //unp1 = ti.advance(unp1, dt);
     }
     unp1.gnuplot("plt/u" + to_string(i) + ".gnu");

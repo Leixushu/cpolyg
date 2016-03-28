@@ -42,7 +42,7 @@ LIBOBJS := $(addprefix build/, $(notdir $(patsubst %.cpp,%.o, $(LIBSRC)))) \
 		   $(addprefix build/, $(notdir $(patsubst %.c,%.o, $(LIBCSRC))))
 
 EXAMPLES := ExpAdv ImpAdv PeriodicAdv test Convergence PeriodicAdv \
-			ExpEul ImpEul Convergence KH
+			ExpEul ImpEul Convergence KH dirk
 BINS := $(addprefix bin/, $(EXAMPLES))
 
 OBJS := $(LIBOBJS) $(addprefix build/, $(notdir $(addsuffix .o, $(EXAMPLES))))
@@ -53,7 +53,8 @@ DEPS := $(addprefix build/, $(notdir $(patsubst %.o,%.d, $(OBJS))))
 all: tags $(BINS)
 
 tags: $(OBJS)
-	ctags --tag-relative=no --fields=+a+m+n+S -R
+	ctags --tag-relative=no --fields=+a+m+n+S -R \
+	 --exclude=voro++_2d --exclude=src/triangle --exclude=src/Timer
 
 debug:
 	make -j DEBUG=1 --always-make

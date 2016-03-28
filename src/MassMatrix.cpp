@@ -114,7 +114,7 @@ MeshFn MassMatrix::solve(const MeshFn &fn)
     return result;
 }
 
-MeshFn MassMatrix::dot(const MeshFn &fn) const
+MeshFn MassMatrix::matvec(const MeshFn &fn) const
 {
     int component;
     int i;

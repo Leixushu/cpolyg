@@ -22,5 +22,5 @@ struct MassMatrix : BlockMatrix
     // Compute M x = fn, for given fn, return x
     MeshFn solve(const MeshFn &fn);
     // Compute M fn = x for given fn, return x
-    MeshFn dot(const MeshFn &fn) const;
+    MeshFn matvec(const MeshFn &fn) const;
 };

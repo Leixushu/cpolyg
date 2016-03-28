@@ -57,11 +57,11 @@ Jacobian& Jacobian::operator=(const Jacobian &J2)
     return *this;
 }
 
-MeshFn Jacobian::dot(const MeshFn &x)
+MeshFn Jacobian::matvec(const MeshFn &x)
 {
     CH_TIMERS("Jacobian matvec");
     MeshFn result = x;
-    matvec(result.a.memptr());
+    BlockMatrix::matvec(result.a.memptr());
     
     return result;
 }
@@ -73,18 +73,18 @@ MeshFn Jacobian::solve(const MeshFn &b, Preconditioner &pc, Solver s/* = kGMRESS
     vec x = zeros<vec>(bVec.n_rows);
     int basisSize = (deg + 1)*(deg + 2)/2;
     
-    double tol = 1.e-14;
+    double tol = 1.e-15;
     int maxIt = 1000;
     
     switch(s)
     {
         case kGMRESSolver:
             gmres(bVec, x, 20, tol, maxIt, pc);
-            cout << "GMRES iterations: " << maxIt << endl;
+            cout << "    GMRES iterations: " << maxIt << endl;
             break;
         case kJacobiSolver:
             jacobi(bVec, x, tol, maxIt, pc);
-            cout << "Jacobi iterations: " << maxIt << endl;
+            cout << "    Jacobi iterations: " << maxIt << endl;
             break;
     }
     
