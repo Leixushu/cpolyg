@@ -3,3 +3,4 @@ cpolyg-proj.xcodeproj/*
 cpolyg.bbprojectd/*
 plt/*.gnu
 tags
+time.table*
