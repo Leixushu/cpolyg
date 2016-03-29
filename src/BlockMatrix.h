@@ -55,6 +55,7 @@ struct BlockMatrix
     
     /// Scalar multiplication
     BlockMatrix& operator *=(double scale);
+    BlockMatrix operator *(double scale);
     
     /// return BlockMatrix consisting of the diagonal blocks of M, block size a_b
     static BlockMatrix diag(arma::mat M, int a_b);

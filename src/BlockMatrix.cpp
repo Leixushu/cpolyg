@@ -1,6 +1,7 @@
 #include "BlockMatrix.h"
 #include "Preconditioners.h"
 #include "blas/blas.h"
+#include "Timer/CH_Timer.H"
 #include <cassert>
 
 using namespace std;
@@ -77,6 +78,7 @@ void BlockMatrix::jacobi(arma::vec &b, arma::vec &x, double &tol, int &maxIt, Pr
 
 void BlockMatrix::gmres(vec &bvec, vec &xvec, int m, double &tol, int &maxit, Preconditioner &pc)
 {
+    CH_TIMERS("gmres");
     int n = n_rows*bl;
     double *b  = bvec.memptr();
     double *x  = xvec.memptr();
@@ -226,24 +228,24 @@ BlockMatrix BlockMatrix::diag(BlockMatrix &M)
 BlockMatrix BlockMatrix::blockBlockMatrix(arma::field<BlockMatrix> &b)
 {
     assert(b.n_rows == b.n_cols);
-    int nBlocks = b.n_rows;
+    int nBig = b.n_rows;
     int nSmall = b(0,0).n_rows;
     int bl = b(0,0).bl;
     int k;
-    BlockMatrix result(bl, nBlocks*nSmall);
+    BlockMatrix result(bl, nBig*nSmall);
     
-    for (size_t i = 0; i < nBlocks; i++)
+    for (size_t i = 0; i < nBig; i++)
     {
         for (size_t iSmall = 0; iSmall < nSmall; iSmall++)
         {
-            result.rowBlock[i*nBlocks + iSmall] = result.nb;
-            for (size_t j = 0; j < nBlocks; j++)
+            result.rowBlock[i*nSmall + iSmall] = result.nb;
+            for (size_t j = 0; j < nBig; j++)
             {
                 for (k = b(i,j).rowBlock[iSmall]; 
-                     k < b(i,j).rowBlock[iSmall]; k++)
+                     k < b(i,j).rowBlock[iSmall+1]; k++)
                 {
-                    result.blocks.push_back(b(i,j).blocks[j]);
-                    result.colIndices.push_back(i*nSmall + b(i,j).colIndices[k]);
+                    result.blocks.push_back(b(i,j).blocks[k]);
+                    result.colIndices.push_back(j*nSmall + b(i,j).colIndices[k]);
                     result.nb++;
                 }
             }
@@ -303,6 +305,13 @@ BlockMatrix& BlockMatrix::operator *=(double scale)
     }
     
     return *this;
+}
+
+BlockMatrix BlockMatrix::operator *(double scale)
+{
+    BlockMatrix result = *this;
+    result *= scale;
+    return result;
 }
 
 // write the matrix to a file in a format readable by gnuplot

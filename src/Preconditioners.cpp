@@ -1,5 +1,6 @@
 #include "Preconditioners.h"
 #include "blas/blas.h"
+#include "Timer/CH_Timer.H"
 
 using namespace std;
 using namespace arma;
@@ -45,8 +46,9 @@ BlockJacobi::BlockJacobi(BlockMatrix &M)
     }
 }
 
-BlockILU0::BlockILU0(Jacobian &A)
+BlockILU0::BlockILU0(BlockMatrix &A)
 {
+    CH_TIMERS("Compute ILU(0)");
     int i, j, k, k2;
     mat D, Id;
     BlockMatrix AD, AO;

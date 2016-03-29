@@ -52,5 +52,5 @@ struct BlockILU0 : Preconditioner
     // do forward and then backward substitution: DU\(DD*(L\x))
     void solve(double *x);
     // perform the factorization
-    BlockILU0(Jacobian &A);
+    BlockILU0(BlockMatrix &A);
 };

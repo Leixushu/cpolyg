@@ -55,8 +55,10 @@ struct DIRK3 : TimeStepper
 
 struct IRK3 : TimeStepper
 {
-    static arma::mat A, b, c;
+    static arma::mat A, Ainv;
+    static arma::vec b, c;
     IRK3(MassMatrix &a_M, Equation &a_eqn) : TimeStepper(a_M, a_eqn) { }
     
     MeshFn advance(const MeshFn &u, const double dt, const double t = 0);
+    MeshFn newAdvance(const MeshFn &u, const double dt, const double t = 0);
 };

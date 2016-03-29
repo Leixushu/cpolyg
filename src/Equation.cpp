@@ -1,5 +1,6 @@
 #include "Equation.h"
 #include "Quadrature.h"
+#include "Timer/CH_Timer.H"
 
 using namespace arma;
 using namespace std;
@@ -150,6 +151,7 @@ vec Equation::volumeIntegral(int i, int deg)
 
 MeshFn Equation::assemble(const MeshFn &u, double a_t/* = 0 */)
 {
+    CH_TIMERS("Assemble");
     int i, j;
     int deg = u.deg;
     int basisSize = (deg+1)*(deg+2)/2;
@@ -190,6 +192,7 @@ MeshFn Equation::assemble(const MeshFn &u, double a_t/* = 0 */)
 
 Jacobian Equation::jacobian(const MeshFn &f, double a_t)
 {
+    CH_TIMERS("Jacobian");
     int i, j, k, e;
     int diagonalBlock, blockIdx;
     int deg = f.deg;
