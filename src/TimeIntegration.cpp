@@ -7,13 +7,11 @@
 using namespace std;
 using namespace arma;
 
-MeshFn ForwardEuler::advance(const MeshFn &u, const double dt, const double t)
-{
-    return u + dt*M.solve(eqn.assemble(u, t));
+MeshFn ForwardEuler::advance(const MeshFn &u, const double dt, const double t) {
+    return u + dt * M.solve(eqn.assemble(u, t));
 }
 
-MeshFn RK4::advance(const MeshFn &u, const double dt, const double t)
-{
+MeshFn RK4::advance(const MeshFn &u, const double dt, const double t) {
     CH_TIMERS("RK4Advance");
     MeshFn k1 = dt*M.solve(eqn.assemble(u, t));
     MeshFn k2 = dt*M.solve(eqn.assemble(u + 0.5*k1, t + 0.5*dt));
@@ -23,50 +21,45 @@ MeshFn RK4::advance(const MeshFn &u, const double dt, const double t)
     return u + (k1 + 2*k2 + 2*k3 + k4)/6.0;
 }
 
-MeshFn RK2::advance(const MeshFn &u, const double dt, const double t)
-{
+MeshFn RK2::advance(const MeshFn &u, const double dt, const double t) {
     MeshFn k1 = dt*M.solve(eqn.assemble(u, t));
     MeshFn k2 = dt*M.solve(eqn.assemble(u + 0.5*k1, t + 0.5*dt));
     
     return u + 0.5*(k1 + k2);
 }
 
-MeshFn BackwardEuler::advance(const MeshFn &u, const double dt, const double t)
-{
+MeshFn BackwardEuler::advance(const MeshFn &u, const double dt,
+                              const double t) {
     MeshFn unp1 = u;
     MeshFn r(u.msh, u.deg, u.nc);
     MeshFn b(u.msh, u.deg, u.nc);
     int k;
-    
+
     // Newton solve
-    cout << "Beginning Newton solve" << endl;
-    for (k = 0; k < kNewtonMaxIterations; k++)
-    {
-        //unp1.gnuplot("plt/newton" + to_string(k) + ".gnu");
-        
+    cout << "  Beginning Newton solve" << endl;
+    for (k = 0; k < kNewtonMaxIterations; k++) {
+
         b = eqn.assemble(unp1, t + dt);
-        r = M.matvec(unp1 - u) - dt*b;
-        
-        //r.gnuplot("plt/residual" + to_string(k) + ".gnu");
+        r = M.matvec(unp1 - u) - dt * b;
+
         b.gnuplot("plt/b" + to_string(k) + ".gnu");
-        
-        cout << "    Iteration number " << k << ", residual norm = "
-             << r.L2Norm().max() << endl;
-        
-        if (r.L2Norm().max() < kNewtonTolerance)
-        {
+
+        cout << "    Iteration number " << k
+             << ", residual norm = " << r.L2Norm().max() << endl;
+
+        if (r.L2Norm().max() < kNewtonTolerance) {
             cout << "    Converged to tolerance" << endl;
             break;
         }
-        
+
         Jacobian B = eqn.jacobian(unp1, t + dt);
         B *= -dt;
         B += M;
         BlockILU0 pc(B);
-        
+
         unp1 -= B.solve(r, pc, kGMRESSolver);
     }
-    
+
     return unp1;
 }
 
@@ -113,8 +106,14 @@ MeshFn DIRK3::advance(const MeshFn &u, const double dt, const double t)
             Jacobian B = eqn.jacobian(cu, t + dt*c(stage));
             B *= -dt*A(stage, stage);
             B += M;
+            
+            CH_TIMER("Linear solve", t1);
+            CH_START(t1);
+            
             BlockILU0 pc(B);
             k[stage] -= B.solve(r, pc, kGMRESSolver);
+            
+            CH_STOP(t1);
         }
     }
     
@@ -157,7 +156,7 @@ MeshFn IRK3::advance(const MeshFn &u, const double dt, const double t)
     zero.a.fill(0);
     array<MeshFn, nStages> k = {{zero, zero, zero}};
     array<MeshFn, nStages> r = {{zero, zero, zero}};
-    array<MeshFn, nStages> us = {{zero, zero, zero}};
+    array<MeshFn, nStages> w = {{zero, zero, zero}};
     array<Jacobian, nStages> Js;
     
     int vecSize = u.nc*(u.deg+1)*(u.deg+2)*0.5*u.msh.np;
@@ -170,11 +169,11 @@ MeshFn IRK3::advance(const MeshFn &u, const double dt, const double t)
     for (int iter = 0; iter < kNewtonMaxIterations; iter++) {
         double rNorm = 0;
         for (int stage = 0; stage < nStages; stage++) {
-            us[stage] = u;
+            w[stage] = u;
             for (int j = 0; j < nStages; j++) {
-                us[stage] += A(stage, j)*k[j];
+                w[stage] += A(stage, j)*k[j];
             }
-            MeshFn rhs = eqn.assemble(us[stage], t + dt*c(stage));
+            MeshFn rhs = eqn.assemble(w[stage], t + dt*c(stage));
             r[stage] = M.matvec(k[stage]) - dt*rhs;
             rNorm += pow(r[stage].L2Norm().max(), 2);
         }
@@ -187,7 +186,7 @@ MeshFn IRK3::advance(const MeshFn &u, const double dt, const double t)
         }
         
         for (int stage = 0; stage < nStages; stage++) {
-            Js[stage] = eqn.jacobian(us[stage], t + dt*c(stage));
+            Js[stage] = eqn.jacobian(w[stage], t + dt*c(stage));
         }
         
         field<BlockMatrix> JBlocks(nStages, nStages);
@@ -209,12 +208,16 @@ MeshFn IRK3::advance(const MeshFn &u, const double dt, const double t)
             bigR.rows(stage*vecSize, (stage+1)*vecSize-1) = vectorise(r[stage].a);
         }
         
-        BlockILU0 pc(fullJ);
-        //NoPreconditioner pc;
+        CH_TIMER("Linear solve", t1);
+        CH_START(t1);
         
+        BlockILU0 pc(fullJ);
         double tol = 1.e-15;
         int maxIt = 1000;
         fullJ.gmres(bigR, bigK, 20, tol, maxIt, pc);
+        
+        CH_STOP(t1);
+        
         cout << "    GMRES iterations: " << maxIt << endl;
         cube xCube(vecSize, 1, 1);
         
@@ -242,7 +245,7 @@ MeshFn IRK3::newAdvance(const MeshFn &u, const double dt, const double t)
     zero.a.fill(0);
     array<MeshFn, nStages> k  = {{zero, zero, zero}};
     array<MeshFn, nStages> r  = {{zero, zero, zero}};
-    array<MeshFn, nStages> us = {{zero, zero, zero}};
+    array<MeshFn, nStages> w = {{zero, zero, zero}};
     array<Jacobian, nStages> Js;
     
     int vecSize = u.nc*(u.deg+1)*(u.deg+2)*0.5*u.msh.np;
@@ -256,13 +259,13 @@ MeshFn IRK3::newAdvance(const MeshFn &u, const double dt, const double t)
         for (int i = 0; i < nStages; i++) {
             k[i].a.fill(0);
             for (int j = 0; j < nStages; j++) {
-                k[i] += Ainv(i, j)*us[j];
+                k[i] += Ainv(i, j)*w[j];
             }
         }
         
         double rNorm = 0;
         for (int stage = 0; stage < nStages; stage++) {
-            MeshFn rhs = eqn.assemble(u + us[stage], t + dt*c(stage));
+            MeshFn rhs = eqn.assemble(u + w[stage], t + dt*c(stage));
             r[stage] = M.matvec(k[stage]) - dt*rhs;
             rNorm += pow(r[stage].L2Norm().max(), 2);
         }
@@ -276,7 +279,7 @@ MeshFn IRK3::newAdvance(const MeshFn &u, const double dt, const double t)
         }
         
         for (int stage = 0; stage < nStages; stage++) {
-            Js[stage] = eqn.jacobian(u + us[stage], t + dt*c(stage));
+            Js[stage] = eqn.jacobian(u + w[stage], t + dt*c(stage));
         }
         
         field<BlockMatrix> JBlocks(nStages, nStages);
@@ -300,26 +303,30 @@ MeshFn IRK3::newAdvance(const MeshFn &u, const double dt, const double t)
             bigR.rows(stage*vecSize, (stage+1)*vecSize-1) = vectorise(r[stage].a);
         }
         
-        BlockILU0 pc(fullJ);
-        //NoPreconditioner pc;
+        CH_TIMER("Linear solve", t1);
+        CH_START(t1);
         
+        BlockILU0 pc(fullJ);
         double tol = 1.e-15;
         int maxIt = 1000;
         fullJ.gmres(bigR, bigU, 20, tol, maxIt, pc);
+        
+        CH_STOP(t1);
+        
         cout << "    GMRES iterations: " << maxIt << endl;
         cube xCube(vecSize, 1, 1);
         
         for (int stage = 0; stage < nStages; stage++) {
             xCube.slice(0) = bigU.rows(stage*vecSize, (stage+1)*vecSize-1);
             
-            us[stage].a -= reshape(xCube, (u.deg+1)*(u.deg+2)*0.5, u.nc, u.msh.np);
+            w[stage].a -= reshape(xCube, (u.deg+1)*(u.deg+2)*0.5, u.nc, u.msh.np);
         }
     }
     
     mat btAinv = b.t()*Ainv;
     MeshFn unp1 = u;
     for (int i = 0; i < nStages; i++) {
-        unp1 += btAinv(i)*(us[i]);
+        unp1 += btAinv(i)*(w[i]);
     }
     
     return unp1;
