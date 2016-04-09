@@ -13,6 +13,8 @@ PolyMesh triRectangle(double h, double width, double height);
 PolyMesh honeycombRectangle(double h, double width, double height);
 PolyMesh periodicRectangle(int Nx, int Ny, double width, double height);
 
+PolyMesh rectangle1D(double h, double width, double height);
+
 // convenience routines for the unit square
 PolyMesh honeycombUnitSquare(double h);
 PolyMesh quadUnitSquare(double h);

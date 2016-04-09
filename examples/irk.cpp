@@ -1,4 +1,5 @@
 #include <cmath>
+#include <iomanip>
 #include "Meshes.h"
 #include "Advection.h"
 #include "TimeIntegration.h"
@@ -19,15 +20,27 @@ int main(int argc, char ** argv)
 {
     using namespace std;
     // specify the degree of polynomials to use
-    int deg = 4;
+    int deg = 3;
     // specify the size of each element in the mesh
-    double h = 0.1;
+    double h = 0.05;
     // specify the time step
     double dt = h*0.5;
     
     // create the mesh, in this case hexagonal tessellation
     // of the unit square
     PolyMesh msh = hexUnitSquare(h);
+    msh.gnuplot();
+
+    string DOFStr   = "%    Total DOF:  " +
+                    to_string(int(msh.np * (deg + 1) * (deg + 2) * 0.5));
+    string blockStr = "%    Block Size: " + to_string(int((deg+1)*(deg+2)/2));
+
+    cout << endl
+         << "%--------------------------------------------------%" << endl
+         << DOFStr << setw(52 - DOFStr.length()) << "%" << endl
+         << blockStr << setw(52 - blockStr.length()) << "%" << endl
+         << "%--------------------------------------------------%"
+         << endl << endl;
     
     // specify the advection equation
     // with zero Dirichlet boundary conditions
@@ -41,7 +54,7 @@ int main(int argc, char ** argv)
     
     MeshFn f = MeshFn(msh, gaussian, deg);
     
-    int K = 2;
+    int K = 1;
     
     DIRK3 tiDIRK(M, eqn);
     f = MeshFn(msh, gaussian, deg);
@@ -53,7 +66,7 @@ int main(int argc, char ** argv)
     }
     
     // create the time integration object
-    IRK3 ti(M, eqn);
+    IRK ti(2, M, eqn);
     
     // create a mesh function by interpolating the 
     // initial conditions defined by the function above

@@ -11,18 +11,18 @@ using namespace std;
 using namespace arma;
 
 // Allocate a MeshFn with the given degree polynomial basis and given number of components
-MeshFn::MeshFn(const PolyMesh &a_msh, int a_deg, int a_nc /* = 1 */) : msh(a_msh)
+MeshFn::MeshFn(const PolyMesh &a_msh, int a_deg, int a_nc /* = 1 */) : msh(&a_msh)
 {
     nc = a_nc;
     deg = a_deg;
     int basisSize = (deg+1)*(deg+2)/2;
     
-    a = cube(basisSize, nc, msh.np);
+    a = cube(basisSize, nc, msh->np);
 }
 
 // Create a (scalar) MeshFn by interpolating the given function with degree a_deg 
 // polynomials
-MeshFn::MeshFn(const PolyMesh &a_msh, FnCallback cb, int a_deg) : msh(a_msh)
+MeshFn::MeshFn(const PolyMesh &a_msh, FnCallback cb, int a_deg) : msh(&a_msh)
 {
     FnCallbackFunctor functor(cb);
     int basisSize;
@@ -31,7 +31,7 @@ MeshFn::MeshFn(const PolyMesh &a_msh, FnCallback cb, int a_deg) : msh(a_msh)
     
     basisSize = (deg+1)*(deg+2)/2;
     
-    a = cube(basisSize, nc, msh.np);
+    a = cube(basisSize, nc, msh->np);
     
     interp(functor, 0);
 }
@@ -120,12 +120,12 @@ void MeshFn::interp(const VecFunctor &cb, int component/* = 0 */)
     
     vals = mat(numQuadPts, cb.n_rows);
     
-    for (p = 0; p < msh.np; p++)
+    for (p = 0; p < msh->np; p++)
     {
-        ax = msh.bb[p][0];
-        by = msh.bb[p][1];
-        w = msh.bb[p][2];
-        h = msh.bb[p][3];
+        ax = msh->bb[p][0];
+        by = msh->bb[p][1];
+        w = msh->bb[p][2];
+        h = msh->bb[p][3];
         
         for (i = 0; i < deg + 1; i++)
         {
@@ -150,7 +150,7 @@ double MeshFn::eval(double x, double y, int p, int c/* = 0 */) const
     double xx, yy;
     vec coeffs;
     
-    msh.getLocalCoordinates(p, x, y, xx, yy);
+    msh->getLocalCoordinates(p, x, y, xx, yy);
     
     coeffs = a.slice(p).col(c);
     
@@ -173,16 +173,16 @@ void MeshFn::gnuplot(std::string filename) const
     
     oldPrecision = plotFile.precision();
     
-    for (i = 0; i < msh.np; i++)
+    for (i = 0; i < msh->np; i++)
     {
-        for (j = 0; j < msh.tri[i].triangles.size(); j++)
+        for (j = 0; j < msh->tri[i].triangles.size(); j++)
         {
-            x1 = msh.tri[i].points[msh.tri[i].triangles[j][0]][0];
-            x2 = msh.tri[i].points[msh.tri[i].triangles[j][1]][0];
-            x3 = msh.tri[i].points[msh.tri[i].triangles[j][2]][0];
-            y1 = msh.tri[i].points[msh.tri[i].triangles[j][0]][1];
-            y2 = msh.tri[i].points[msh.tri[i].triangles[j][1]][1];
-            y3 = msh.tri[i].points[msh.tri[i].triangles[j][2]][1];
+            x1 = msh->tri[i].points[msh->tri[i].triangles[j][0]][0];
+            x2 = msh->tri[i].points[msh->tri[i].triangles[j][1]][0];
+            x3 = msh->tri[i].points[msh->tri[i].triangles[j][2]][0];
+            y1 = msh->tri[i].points[msh->tri[i].triangles[j][0]][1];
+            y2 = msh->tri[i].points[msh->tri[i].triangles[j][1]][1];
+            y3 = msh->tri[i].points[msh->tri[i].triangles[j][2]][1];
             
             for (k = 0; k < qr.n_rows; k++)
             {
@@ -211,7 +211,7 @@ MeshFn MeshFn::operator+(const MeshFn &fn2) const
     assert(deg == fn2.deg);
     assert(nc == fn2.nc);
     
-    MeshFn fn(msh, deg, nc);
+    MeshFn fn(*msh, deg, nc);
     fn.a = a + fn2.a;
     
     return fn; 
@@ -222,7 +222,7 @@ MeshFn MeshFn::operator-(const MeshFn &fn2) const
     assert(deg == fn2.deg);
     assert(nc == fn2.nc);
     
-    MeshFn fn(msh, deg, nc);
+    MeshFn fn(*msh, deg, nc);
     fn.a = a - fn2.a;
     
     return fn; 
@@ -238,7 +238,7 @@ MeshFn MeshFn::operator*(const double scale) const
 
 MeshFn & MeshFn::operator=(const MeshFn &fn)
 {
-    //msh = fn.msh;
+    msh = fn.msh;
     deg = fn.deg;
     a = fn.a;
     nc = fn.nc;
@@ -286,10 +286,10 @@ vec MeshFn::L2Error(const VecFunctor &exact) const
     vec error = zeros<vec>(nc);
     L2Difference differenceSquared(*this, exact);
     
-    for (i = 0; i < msh.np; i++)
+    for (i = 0; i < msh->np; i++)
     {
         differenceSquared.i = i;
-        error += Quadrature::polygonIntegral(msh, differenceSquared, i, deg*2);
+        error += Quadrature::polygonIntegral(*msh, differenceSquared, i, deg*2);
     }
     
     return sqrt(error);
@@ -302,10 +302,10 @@ vec MeshFn::L2Norm() const
     vec l2 = zeros<vec>(nc);
     int i;
     
-    for (i = 0; i < msh.np; i++)
+    for (i = 0; i < msh->np; i++)
     {
         functor.i = i;
-        l2 += Quadrature::polygonIntegral(msh, functor, i, deg*2);
+        l2 += Quadrature::polygonIntegral(*msh, functor, i, deg*2);
     }
     
     return sqrt(l2);

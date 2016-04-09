@@ -31,8 +31,8 @@ MeshFn RK2::advance(const MeshFn &u, const double dt, const double t) {
 MeshFn BackwardEuler::advance(const MeshFn &u, const double dt,
                               const double t) {
     MeshFn unp1 = u;
-    MeshFn r(u.msh, u.deg, u.nc);
-    MeshFn b(u.msh, u.deg, u.nc);
+    MeshFn r;
+    MeshFn b;
     int k;
 
     // Newton solve
@@ -64,17 +64,17 @@ MeshFn BackwardEuler::advance(const MeshFn &u, const double dt,
 }
 
 static double const alpha=0.435866521508459;
-mat DIRK3::A = {{(1+alpha)/2, 0,           0},
-                {-alpha/2,    (1+alpha)/2, 0},
-                {1+alpha,    -(1+2*alpha), (1+alpha)/2}};
+mat DIRK3::A = {{(1+alpha)/2.0, 0,             0},
+                {-alpha/2.0,    (1+alpha)/2.0, 0},
+                {1+alpha,      -(1+2*alpha),   (1+alpha)/2.0}};
 mat DIRK3::b = {1.0/6.0/(alpha*alpha),1-1.0/3.0/(alpha*alpha), 1.0/6.0/(alpha*alpha)};
-mat DIRK3::c = {(1+alpha)/2,1.0/2.0,(1-alpha)/2};
+mat DIRK3::c = {(1+alpha)/2.0, 1.0/2.0, (1-alpha)/2.0};
 
 MeshFn DIRK3::advance(const MeshFn &u, const double dt, const double t)
 {
     CH_TIMERS("DIRK");
     const static int nStages = 3;
-    MeshFn zero(u.msh, u.deg, u.nc);
+    MeshFn zero(*u.msh, u.deg, u.nc);
     zero.a.fill(0);
     array<MeshFn, nStages> k = {{zero, zero, zero}};
     
@@ -127,7 +127,17 @@ MeshFn DIRK3::advance(const MeshFn &u, const double dt, const double t)
     return unp1;
 }
 
-mat IRK3::A = {{(88-7*sqrt(6))/360.0,
+void getIRK(int nStages, arma::mat &A, arma::mat &Ainv, arma::vec &b, arma::vec &c) {
+    switch(nStages) {
+        case 2:
+            A = {{5/12.0, -1/12.0},
+                 {3/4.0,   1/4.0}};
+            Ainv = {{ 3/2.0, 1/2.0},
+                    {-9/2.0, 5/2.0}};
+            b = {3/4.0, 1/4.0};
+            c = {1/3.0, 1};
+        case 3:
+            A = {{(88-7*sqrt(6))/360.0,
                     (296-169*sqrt(6))/1800.0,
                     (-2+3*sqrt(6))/225.0},
                {(296+169*sqrt(6))/1800.0,
@@ -136,7 +146,7 @@ mat IRK3::A = {{(88-7*sqrt(6))/360.0,
                {(16-sqrt(6))/36.0,
                     (16+sqrt(6))/36.0,
                     1/9.0}};
-mat IRK3::Ainv = {{60*(1/30.0 + 1.0/(20*sqrt(6))),
+            Ainv = {{60*(1/30.0 + 1.0/(20*sqrt(6))),
                         60*(-1/50.0 + 29.0/(300*sqrt(6))),
                         60*(1/150.0 - sqrt(2/3.0)/75.0)},
                   {60*(-1/50.0 - 29.0/(300*sqrt(6))),
@@ -145,21 +155,29 @@ mat IRK3::Ainv = {{60*(1/30.0 + 1.0/(20*sqrt(6))),
                   {60*(-1/60.0 + (2*sqrt(2/3.0))/15.0),
                         60*(-1/60.0 - (2*sqrt(2/3.0))/15.0),
                         5}};
-vec IRK3::b = {(16-sqrt(6))/36.0, (16+sqrt(6))/36.0, 1/9.0};
-vec IRK3::c = {(4-sqrt(6))/10.0, (4+sqrt(6))/10.0, 1};
+            b = {(16-sqrt(6))/36.0, (16+sqrt(6))/36.0, 1/9.0};
+            c = {(4-sqrt(6))/10.0, (4+sqrt(6))/10.0, 1};
+            break;
+    }
+}
 
-MeshFn IRK3::advance(const MeshFn &u, const double dt, const double t)
+MeshFn IRK::advance(const MeshFn &u, const double dt, const double t)
 {
     CH_TIMERS("Full IRK - Regular Butcher Tableau");
-    const static int nStages = 3;
-    MeshFn zero(u.msh, u.deg, u.nc);
+    //const static int nStages = 3;
+    MeshFn zero(*u.msh, u.deg, u.nc);
     zero.a.fill(0);
-    array<MeshFn, nStages> k = {{zero, zero, zero}};
-    array<MeshFn, nStages> r = {{zero, zero, zero}};
-    array<MeshFn, nStages> w = {{zero, zero, zero}};
-    array<Jacobian, nStages> Js;
+    //array<MeshFn, nStages> k = {{zero, zero, zero}};
+    //array<MeshFn, nStages> r = {{zero, zero, zero}};
+    //array<MeshFn, nStages> w = {{zero, zero, zero}};
     
-    int vecSize = u.nc*(u.deg+1)*(u.deg+2)*0.5*u.msh.np;
+    field<MeshFn> k = {zero, zero, zero};
+    field<MeshFn> r = {zero, zero, zero};
+    field<MeshFn> w = {zero, zero, zero};
+    
+    field<Jacobian> Js(nStages);
+    
+    int vecSize = u.nc*(u.deg+1)*(u.deg+2)*0.5*u.msh->np;
     
     vec bigK = zeros(vecSize*nStages);
     vec bigR = zeros(vecSize*nStages);
@@ -169,13 +187,13 @@ MeshFn IRK3::advance(const MeshFn &u, const double dt, const double t)
     for (int iter = 0; iter < kNewtonMaxIterations; iter++) {
         double rNorm = 0;
         for (int stage = 0; stage < nStages; stage++) {
-            w[stage] = u;
+            w(stage) = u;
             for (int j = 0; j < nStages; j++) {
-                w[stage] += A(stage, j)*k[j];
+                w(stage) += A(stage, j)*k(j);
             }
-            MeshFn rhs = eqn.assemble(w[stage], t + dt*c(stage));
-            r[stage] = M.matvec(k[stage]) - dt*rhs;
-            rNorm += pow(r[stage].L2Norm().max(), 2);
+            MeshFn rhs = eqn.assemble(w(stage), t + dt*c(stage));
+            r(stage) = M.matvec(k(stage)) - dt*rhs;
+            rNorm += pow(r(stage).L2Norm().max(), 2);
         }
         rNorm = sqrt(rNorm);
         cout << "    Iteration number " << iter << ", residual norm = "
@@ -186,26 +204,26 @@ MeshFn IRK3::advance(const MeshFn &u, const double dt, const double t)
         }
         
         for (int stage = 0; stage < nStages; stage++) {
-            Js[stage] = eqn.jacobian(w[stage], t + dt*c(stage));
+            Js(stage) = eqn.jacobian(w(stage), t + dt*c(stage));
         }
         
         field<BlockMatrix> JBlocks(nStages, nStages);
         for (int i = 0; i < nStages; i++) {
-            Js[i] *= -dt;
+            Js(i) *= -dt;
             for (int j = 0; j < nStages; j++) {
                 if (i != j) {
-                    JBlocks(i,j) = Js[i];
+                    JBlocks(i,j) = Js(i);
                     JBlocks(i,j) *= A(i,j);
                 }
             }
-            Js[i] *= A(i,i);
-            Js[i] += M;
-            JBlocks(i,i) = Js[i];
+            Js(i) *= A(i,i);
+            Js(i) += M;
+            JBlocks(i,i) = Js(i);
         }
         BlockMatrix fullJ = BlockMatrix::blockBlockMatrix(JBlocks);
         
         for (int stage = 0; stage < nStages; stage++) {
-            bigR.rows(stage*vecSize, (stage+1)*vecSize-1) = vectorise(r[stage].a);
+            bigR.rows(stage*vecSize, (stage+1)*vecSize-1) = vectorise(r(stage).a);
         }
         
         CH_TIMER("Linear solve", t1);
@@ -224,31 +242,36 @@ MeshFn IRK3::advance(const MeshFn &u, const double dt, const double t)
         for (int stage = 0; stage < nStages; stage++) {
             xCube.slice(0) = bigK.rows(stage*vecSize, (stage+1)*vecSize-1);
             
-            k[stage].a -= reshape(xCube, (u.deg+1)*(u.deg+2)*0.5, u.nc, u.msh.np);
+            k(stage).a -= reshape(xCube, (u.deg+1)*(u.deg+2)*0.5, u.nc, u.msh->np);
         }
     }
     
     MeshFn unp1 = u;
     for (int i = 0; i < nStages; i++)
     {
-        unp1 += b(i)*k[i];
+        unp1 += b(i)*k(i);
     }
     
     return unp1;
 }
 
-MeshFn IRK3::newAdvance(const MeshFn &u, const double dt, const double t)
+MeshFn IRK::newAdvance(const MeshFn &u, const double dt, const double t)
 {
     CH_TIMERS("New IRK - Inverted Butcher Tableau");
-    const static int nStages = 3;
-    MeshFn zero(u.msh, u.deg, u.nc);
+    //const static int nStages = 3;
+    MeshFn zero(*u.msh, u.deg, u.nc);
     zero.a.fill(0);
-    array<MeshFn, nStages> k  = {{zero, zero, zero}};
-    array<MeshFn, nStages> r  = {{zero, zero, zero}};
-    array<MeshFn, nStages> w = {{zero, zero, zero}};
-    array<Jacobian, nStages> Js;
+    //array<MeshFn, nStages> k  = {{zero, zero, zero}};
+    //array<MeshFn, nStages> r  = {{zero, zero, zero}};
+    //array<MeshFn, nStages> w = {{zero, zero, zero}};
+    //array<Jacobian, nStages> Js;
+    field<MeshFn> k = {zero, zero, zero};
+    field<MeshFn> r = {zero, zero, zero};
+    field<MeshFn> w = {zero, zero, zero};
     
-    int vecSize = u.nc*(u.deg+1)*(u.deg+2)*0.5*u.msh.np;
+    field<Jacobian> Js(nStages);
+    
+    int vecSize = u.nc*(u.deg+1)*(u.deg+2)*0.5*u.msh->np;
     
     vec bigU = zeros(vecSize*nStages);
     vec bigR = zeros(vecSize*nStages);
@@ -257,17 +280,18 @@ MeshFn IRK3::newAdvance(const MeshFn &u, const double dt, const double t)
     cout << "  Beginning Newton solve" << endl;
     for (int iter = 0; iter < kNewtonMaxIterations; iter++) {
         for (int i = 0; i < nStages; i++) {
-            k[i].a.fill(0);
+            k(i).a.fill(0);
             for (int j = 0; j < nStages; j++) {
-                k[i] += Ainv(i, j)*w[j];
+                k(i) += Ainv(i, j)*w(j);
+                k(i) += Ainv(i, j)*w(j);
             }
         }
         
         double rNorm = 0;
         for (int stage = 0; stage < nStages; stage++) {
-            MeshFn rhs = eqn.assemble(u + w[stage], t + dt*c(stage));
-            r[stage] = M.matvec(k[stage]) - dt*rhs;
-            rNorm += pow(r[stage].L2Norm().max(), 2);
+            MeshFn rhs = eqn.assemble(u + w(stage), t + dt*c(stage));
+            r(stage) = M.matvec(k(stage)) - dt*rhs;
+            rNorm += pow(r(stage).L2Norm().max(), 2);
         }
         
         rNorm = sqrt(rNorm);
@@ -279,7 +303,7 @@ MeshFn IRK3::newAdvance(const MeshFn &u, const double dt, const double t)
         }
         
         for (int stage = 0; stage < nStages; stage++) {
-            Js[stage] = eqn.jacobian(u + w[stage], t + dt*c(stage));
+            Js(stage) = eqn.jacobian(u + w(stage), t + dt*c(stage));
         }
         
         field<BlockMatrix> JBlocks(nStages, nStages);
@@ -293,14 +317,14 @@ MeshFn IRK3::newAdvance(const MeshFn &u, const double dt, const double t)
             
             MassMatrix Mscaled = M;
             Mscaled *= Ainv(i,i);
-            Js[i] *= -dt;
-            Js[i] += Mscaled;
-            JBlocks(i,i) = Js[i];
+            Js(i) *= -dt;
+            Js(i) += Mscaled;
+            JBlocks(i,i) = Js(i);
         }
         BlockMatrix fullJ = BlockMatrix::blockBlockMatrix(JBlocks);
         
         for (int stage = 0; stage < nStages; stage++) {
-            bigR.rows(stage*vecSize, (stage+1)*vecSize-1) = vectorise(r[stage].a);
+            bigR.rows(stage*vecSize, (stage+1)*vecSize-1) = vectorise(r(stage).a);
         }
         
         CH_TIMER("Linear solve", t1);
@@ -319,14 +343,14 @@ MeshFn IRK3::newAdvance(const MeshFn &u, const double dt, const double t)
         for (int stage = 0; stage < nStages; stage++) {
             xCube.slice(0) = bigU.rows(stage*vecSize, (stage+1)*vecSize-1);
             
-            w[stage].a -= reshape(xCube, (u.deg+1)*(u.deg+2)*0.5, u.nc, u.msh.np);
+            w(stage).a -= reshape(xCube, (u.deg+1)*(u.deg+2)*0.5, u.nc, u.msh->np);
         }
     }
     
     mat btAinv = b.t()*Ainv;
     MeshFn unp1 = u;
     for (int i = 0; i < nStages; i++) {
-        unp1 += btAinv(i)*(w[i]);
+        unp1 += btAinv(i)*(w(i));
     }
     
     return unp1;

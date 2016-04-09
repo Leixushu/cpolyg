@@ -53,12 +53,19 @@ struct DIRK3 : TimeStepper
     MeshFn advance(const MeshFn &u, const double dt, const double t = 0);
 };
 
-struct IRK3 : TimeStepper
+void getIRK(int nStages, arma::mat &A, arma::mat &Ainv, arma::vec &b,
+            arma::vec &c);
+
+struct IRK : TimeStepper
 {
-    static arma::mat A, Ainv;
-    static arma::vec b, c;
-    IRK3(MassMatrix &a_M, Equation &a_eqn) : TimeStepper(a_M, a_eqn) { }
-    
+    arma::mat A, Ainv;
+    arma::vec b, c;
+    int nStages;
+    IRK(int a_nStages, MassMatrix &a_M, Equation &a_eqn)
+        : TimeStepper(a_M, a_eqn), nStages(a_nStages) {
+        getIRK(nStages, A, Ainv, b, c);
+    }
+
     MeshFn advance(const MeshFn &u, const double dt, const double t = 0);
     MeshFn newAdvance(const MeshFn &u, const double dt, const double t = 0);
 };

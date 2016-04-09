@@ -50,6 +50,21 @@ PolyMesh quadRectangle(double h, double width, double height)
     return PolyMesh(generatingPoints, width, height);
 }
 
+PolyMesh rectangle1D(double h, double width, double height) {
+    double x;
+    array<double, 2> pt;
+    vector<array<double, 2> > generatingPoints;
+    
+    for(x = 0.5*h; x <= width + kEPS; x += h)
+    {
+        pt[0] = x;
+        pt[1] = height/2;
+        generatingPoints.push_back(pt);
+    }
+    
+    return PolyMesh(generatingPoints, width, height);
+}
+
 PolyMesh perturbedQuadRectangle(double h, double p, double width, double height)
 {
     double x, y;
