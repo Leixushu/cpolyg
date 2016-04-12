@@ -2,7 +2,7 @@
 #include "Preconditioners.h"
 
 #define kNewtonMaxIterations 100
-#define kNewtonTolerance 5.e-10
+#define kNewtonTolerance 5.e-13
 
 using namespace std;
 using namespace arma;
@@ -56,8 +56,10 @@ MeshFn BackwardEuler::advance(const MeshFn &u, const double dt,
         B *= -dt;
         B += M;
         BlockILU0 pc(B);
+        //BlockJacobi pc(B);
 
         unp1 -= B.solve(r, pc, kGMRESSolver);
+        //unp1 -= B.solve(r, pc, kJacobiSolver);
     }
 
     return unp1;
@@ -136,6 +138,7 @@ void getIRK(int nStages, arma::mat &A, arma::mat &Ainv, arma::vec &b, arma::vec 
                     {-9/2.0, 5/2.0}};
             b = {3/4.0, 1/4.0};
             c = {1/3.0, 1};
+            break;
         case 3:
             A = {{(88-7*sqrt(6))/360.0,
                     (296-169*sqrt(6))/1800.0,
@@ -167,9 +170,6 @@ MeshFn IRK::advance(const MeshFn &u, const double dt, const double t)
     //const static int nStages = 3;
     MeshFn zero(*u.msh, u.deg, u.nc);
     zero.a.fill(0);
-    //array<MeshFn, nStages> k = {{zero, zero, zero}};
-    //array<MeshFn, nStages> r = {{zero, zero, zero}};
-    //array<MeshFn, nStages> w = {{zero, zero, zero}};
     
     field<MeshFn> k = {zero, zero, zero};
     field<MeshFn> r = {zero, zero, zero};
@@ -258,13 +258,9 @@ MeshFn IRK::advance(const MeshFn &u, const double dt, const double t)
 MeshFn IRK::newAdvance(const MeshFn &u, const double dt, const double t)
 {
     CH_TIMERS("New IRK - Inverted Butcher Tableau");
-    //const static int nStages = 3;
     MeshFn zero(*u.msh, u.deg, u.nc);
     zero.a.fill(0);
-    //array<MeshFn, nStages> k  = {{zero, zero, zero}};
-    //array<MeshFn, nStages> r  = {{zero, zero, zero}};
-    //array<MeshFn, nStages> w = {{zero, zero, zero}};
-    //array<Jacobian, nStages> Js;
+    
     field<MeshFn> k = {zero, zero, zero};
     field<MeshFn> r = {zero, zero, zero};
     field<MeshFn> w = {zero, zero, zero};
@@ -283,7 +279,6 @@ MeshFn IRK::newAdvance(const MeshFn &u, const double dt, const double t)
             k(i).a.fill(0);
             for (int j = 0; j < nStages; j++) {
                 k(i) += Ainv(i, j)*w(j);
-                k(i) += Ainv(i, j)*w(j);
             }
         }
         
@@ -293,7 +288,6 @@ MeshFn IRK::newAdvance(const MeshFn &u, const double dt, const double t)
             r(stage) = M.matvec(k(stage)) - dt*rhs;
             rNorm += pow(r(stage).L2Norm().max(), 2);
         }
-        
         rNorm = sqrt(rNorm);
         cout << "    Iteration number " << iter << ", residual norm = "
              << rNorm << endl;
