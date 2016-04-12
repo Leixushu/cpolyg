@@ -66,7 +66,7 @@ void solveit(int meshType, double cfl, int deg)
     BackwardEuler ti(M, eqn);
     
     double dt = h*cfl;
-    int K = 100;
+    int K = 1;
     cout << "Computing total of " << K << " timesteps." << endl;
     
     for (i = 0; i < K; i++)
@@ -92,8 +92,8 @@ void doMeshes(double cfl, int deg)
 
 int main()
 {
-    doMeshes(1, 0);
-    //doMeshes(1, 3);
-    //doMeshes(2, 3);
-    //doMeshes(4, 3);
+    int deg = 2;
+    //doMeshes(0.01, deg);
+    //doMeshes(0.10, deg);
+    doMeshes(1.00, deg);
 }
