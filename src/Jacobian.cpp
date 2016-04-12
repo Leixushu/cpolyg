@@ -72,8 +72,8 @@ MeshFn Jacobian::solve(const MeshFn &b, Preconditioner &pc, Solver s/* = kGMRESS
     vec x = zeros<vec>(bVec.n_rows);
     int basisSize = (deg + 1)*(deg + 2)/2;
     
-    double tol = 1.e-15;
-    int maxIt = 1000;
+    double tol = 1.e-14;
+    int maxIt = 90000;
     
     switch(s)
     {
