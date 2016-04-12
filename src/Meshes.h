@@ -20,3 +20,10 @@ PolyMesh honeycombUnitSquare(double h);
 PolyMesh quadUnitSquare(double h);
 PolyMesh hexUnitSquare(double h);
 PolyMesh triUnitSquare(double h);
+
+
+// meshes with "natural" ordering (for GMRES/ILU comparison in paper)
+PolyMesh naturalQuadOrdered(double h, double width, double height);
+PolyMesh naturalTriOrdered(double h, double width, double height);
+PolyMesh naturalHoneycombOrdered(double h, double width, double height);
+PolyMesh naturalHexOrdered(double h, double width, double height);

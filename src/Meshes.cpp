@@ -363,3 +363,184 @@ PolyMesh honeycombUnitSquare(double h)
 {
     return honeycombRectangle(h, 1, 1);
 }
+
+
+/******************************************************************************/
+#pragma mark -
+/******************************************************************************/
+
+PolyMesh naturalQuadOrdered(double h, double width, double height) {
+    double x, y;
+    array<double, 2> pt;
+    PolyMesh msh;
+    vector<int> polygon;
+    
+    int idx1, idx2, idx3, idx4;
+    
+    for(y = 0; y + h <= height + kEPS; y += h) {
+        for(x = 0; x + h <= width + kEPS; x += h) {
+            pt[0] = x;
+            pt[1] = y;
+            idx1 = msh.addVertex(pt);
+            
+            pt[0] = x+h;
+            pt[1] = y;
+            idx2 = msh.addVertex(pt);
+            
+            pt[0] = x+h;
+            pt[1] = y+h;
+            idx3 = msh.addVertex(pt);
+            
+            pt[0] = x;
+            pt[1] = y+h;
+            idx4 = msh.addVertex(pt);
+            
+            polygon = {idx1, idx2, idx3, idx4};
+            msh.p.push_back(polygon);
+        }
+    }
+    
+    msh.np = msh.p.size();
+    msh.computep2p();
+    msh.computebb();
+    msh.computeTriangulation();
+    
+    return msh;
+}
+
+PolyMesh naturalTriOrdered(double h, double width, double height) {
+    double x, y;
+    array<double, 2> pt;
+    PolyMesh msh;
+    vector<int> polygon;
+    
+    int idx1, idx2, idx3, idx4;
+    
+    for(y = 0; y + h <= height + kEPS; y += h) {
+        for(x = 0; x + h <= width + kEPS; x += h) {
+            pt[0] = x;
+            pt[1] = y;
+            idx1 = msh.addVertex(pt);
+            
+            pt[0] = x+h;
+            pt[1] = y;
+            idx2 = msh.addVertex(pt);
+            
+            pt[0] = x+h;
+            pt[1] = y+h;
+            idx3 = msh.addVertex(pt);
+            
+            pt[0] = x;
+            pt[1] = y+h;
+            idx4 = msh.addVertex(pt);
+            
+            polygon = {idx1, idx3, idx4};
+            msh.p.push_back(polygon);
+            polygon = {idx1, idx2, idx3};
+            msh.p.push_back(polygon);
+        }
+    }
+    
+    msh.np = msh.p.size();
+    msh.computep2p();
+    msh.computebb();
+    msh.computeTriangulation();
+    
+    return msh;
+}
+
+PolyMesh naturalHoneycombOrdered(double h, double width, double height) {
+    double x, y;
+    array<double, 2> pt;
+    PolyMesh msh;
+    vector<int> polygon;
+    double l = sqrt(3)*h/2;
+    
+    int idx1, idx2, idx3, idx4;
+    
+    double xshift = 0;
+    
+    for(y = 0; y + l <= height + kEPS; y += l) {
+        for(x = 0; x + h <= width + kEPS; x += h) {
+            pt[0] = x + xshift;
+            pt[1] = y;
+            idx1 = msh.addVertex(pt);
+            
+            pt[0] = x+h + xshift;
+            pt[1] = y;
+            idx2 = msh.addVertex(pt);
+            
+            pt[0] = x+h/2 + xshift;
+            pt[1] = y+l;
+            idx3 = msh.addVertex(pt);
+            
+            pt[0] = x-h/2 + xshift;
+            pt[1] = y+l;
+            idx4 = msh.addVertex(pt);
+            
+            polygon = {idx1, idx3, idx4};
+            msh.p.push_back(polygon);
+            polygon = {idx1, idx2, idx3};
+            msh.p.push_back(polygon);
+        }
+        xshift = -h/2*(xshift == 0);
+    }
+    
+    msh.np = msh.p.size();
+    msh.computep2p();
+    msh.computebb();
+    msh.computeTriangulation();
+    
+    return msh;
+}
+
+PolyMesh naturalHexOrdered(double h, double width, double height) {
+    double x, y;
+    array<double, 2> pt;
+    PolyMesh msh;
+    vector<int> polygon;
+    double l = sqrt(3)*h;
+    
+    int idx1, idx2, idx3, idx4, idx5, idx6;
+    
+    for(y = 0; y + l <= height + kEPS; y += l) {
+        double yshift = 0;
+        for(x = 0; x + h <= width + kEPS; x += 3*h/2) {
+            pt[0] = x + h;
+            pt[1] = y + yshift;
+            idx1 = msh.addVertex(pt);
+            
+            pt[0] = x + h/2;
+            pt[1] = y + sqrt(3)*h/2 + yshift;
+            idx2 = msh.addVertex(pt);
+            
+            pt[0] = x - h/2;
+            pt[1] = y + sqrt(3)*h/2 + yshift;
+            idx3 = msh.addVertex(pt);
+            
+            pt[0] = x - h;
+            pt[1] = y + yshift;
+            idx4 = msh.addVertex(pt);
+            
+            pt[0] = x - h/2;
+            pt[1] = y - sqrt(3)*h/2 + yshift;
+            idx5 = msh.addVertex(pt);
+            
+            pt[0] = x + h/2;
+            pt[1] = y - sqrt(3)*h/2 + yshift;
+            idx6 = msh.addVertex(pt);
+            
+            polygon = {idx1, idx2, idx3, idx4, idx5, idx6};
+            msh.p.push_back(polygon);
+            
+            yshift = -sqrt(3)*h/2*(yshift == 0);
+        }
+    }
+    
+    msh.np = msh.p.size();
+    msh.computep2p();
+    msh.computebb();
+    msh.computeTriangulation();
+    
+    return msh;
+}
