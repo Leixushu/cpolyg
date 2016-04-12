@@ -234,7 +234,7 @@ void PolyMesh::gnuplot()
         {
             edgeFile << v[p[i][j%nv]][0] << "\t" << v[p[i][j%nv]][1] << endl;
         }
-        edgeFile << endl << endl;
+        edgeFile << endl;
     }
     
     edgeFile.close();
