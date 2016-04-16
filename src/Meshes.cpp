@@ -369,7 +369,7 @@ PolyMesh honeycombUnitSquare(double h)
 #pragma mark -
 /******************************************************************************/
 
-PolyMesh naturalQuadOrdered(double h, double width, double height) {
+PolyMesh naturalOrderedQuad(double h, double width, double height) {
     double x, y;
     array<double, 2> pt;
     PolyMesh msh;
@@ -408,7 +408,7 @@ PolyMesh naturalQuadOrdered(double h, double width, double height) {
     return msh;
 }
 
-PolyMesh naturalTriOrdered(double h, double width, double height) {
+PolyMesh naturalOrderedTri(double h, double width, double height) {
     double x, y;
     array<double, 2> pt;
     PolyMesh msh;
@@ -449,7 +449,7 @@ PolyMesh naturalTriOrdered(double h, double width, double height) {
     return msh;
 }
 
-PolyMesh naturalHoneycombOrdered(double h, double width, double height) {
+PolyMesh naturalOrderedHoneycomb(double h, double width, double height) {
     double x, y;
     array<double, 2> pt;
     PolyMesh msh;
@@ -458,31 +458,52 @@ PolyMesh naturalHoneycombOrdered(double h, double width, double height) {
     
     int idx1, idx2, idx3, idx4;
     
+    bool odd = false;
+    
     double xshift = 0;
     
     for(y = 0; y + l <= height + kEPS; y += l) {
         for(x = 0; x + h <= width + kEPS; x += h) {
-            pt[0] = x + xshift;
-            pt[1] = y;
-            idx1 = msh.addVertex(pt);
+            if(odd) {
+                pt[0] = x+h/2;
+                pt[1] = y;
+                idx1 = msh.addVertex(pt);
             
-            pt[0] = x+h + xshift;
-            pt[1] = y;
-            idx2 = msh.addVertex(pt);
+                pt[0] = x+h;
+                pt[1] = y+l;
+                idx2 = msh.addVertex(pt);
             
-            pt[0] = x+h/2 + xshift;
-            pt[1] = y+l;
-            idx3 = msh.addVertex(pt);
+                pt[0] = x;
+                pt[1] = y+l;
+                idx3 = msh.addVertex(pt);
             
-            pt[0] = x-h/2 + xshift;
-            pt[1] = y+l;
-            idx4 = msh.addVertex(pt);
+                pt[0] = x-h/2;
+                pt[1] = y;
+                idx4 = msh.addVertex(pt);
+            } else {
+                pt[0] = x;
+                pt[1] = y;
+                idx1 = msh.addVertex(pt);
+            
+                pt[0] = x+h;
+                pt[1] = y;
+                idx2 = msh.addVertex(pt);
+            
+                pt[0] = x+h/2;
+                pt[1] = y+l;
+                idx3 = msh.addVertex(pt);
+            
+                pt[0] = x-h/2;
+                pt[1] = y+l;
+                idx4 = msh.addVertex(pt);
+            }
             
             polygon = {idx1, idx3, idx4};
             msh.p.push_back(polygon);
             polygon = {idx1, idx2, idx3};
             msh.p.push_back(polygon);
         }
+        odd = !odd;
         xshift = -h/2*(xshift == 0);
     }
     
@@ -494,7 +515,7 @@ PolyMesh naturalHoneycombOrdered(double h, double width, double height) {
     return msh;
 }
 
-PolyMesh naturalHexOrdered(double h, double width, double height) {
+PolyMesh naturalOrderedHex(double h, double width, double height) {
     double x, y;
     array<double, 2> pt;
     PolyMesh msh;
@@ -503,9 +524,9 @@ PolyMesh naturalHexOrdered(double h, double width, double height) {
     
     int idx1, idx2, idx3, idx4, idx5, idx6;
     
-    for(y = 0; y + l <= height + kEPS; y += l) {
-        double yshift = 0;
-        for(x = 0; x + h <= width + kEPS; x += 3*h/2) {
+    double yshift = 0;
+    for(x = 0; x + h <= width + kEPS; x += 3*h/2) {
+        for(y = 0; y + l <= height + kEPS; y += l) {
             pt[0] = x + h;
             pt[1] = y + yshift;
             idx1 = msh.addVertex(pt);
@@ -532,9 +553,58 @@ PolyMesh naturalHexOrdered(double h, double width, double height) {
             
             polygon = {idx1, idx2, idx3, idx4, idx5, idx6};
             msh.p.push_back(polygon);
-            
-            yshift = -sqrt(3)*h/2*(yshift == 0);
         }
+        yshift = -sqrt(3)*h/2*(yshift == 0);
+    }
+    
+    msh.np = msh.p.size();
+    msh.computep2p();
+    msh.computebb();
+    msh.computeTriangulation();
+    
+    return msh;
+}
+
+PolyMesh naturalOrderedHexRotated(double h, double width, double height) {
+    double x, y;
+    array<double, 2> pt;
+    PolyMesh msh;
+    vector<int> polygon;
+    double l = 3*h/2;
+    
+    int idx1, idx2, idx3, idx4, idx5, idx6;
+    
+    double xshift = -sqrt(3)*h/2;
+    for(y = 0; y + l <= height + kEPS; y += l) {
+        for(x = 0; x + h <= width + kEPS; x += sqrt(3)*h) {
+            pt[0] = x + sqrt(3)*h/2 + xshift;
+            pt[1] = y - h/2;
+            idx1 = msh.addVertex(pt);
+            
+            pt[0] = x + sqrt(3)*h/2 + xshift;
+            pt[1] = y + h/2;
+            idx2 = msh.addVertex(pt);
+            
+            pt[0] = x + xshift;
+            pt[1] = y + h;
+            idx3 = msh.addVertex(pt);
+            
+            pt[0] = x - sqrt(3)*h/2 + xshift;
+            pt[1] = y + h/2;
+            idx4 = msh.addVertex(pt);
+            
+            pt[0] = x - sqrt(3)*h/2 + xshift;
+            pt[1] = y - h/2;
+            idx5 = msh.addVertex(pt);
+            
+            pt[0] = x + xshift;
+            pt[1] = y - h;
+            idx6 = msh.addVertex(pt);
+            
+            polygon = {idx1, idx2, idx3, idx4, idx5, idx6};
+            msh.p.push_back(polygon);
+        }
+        xshift = -sqrt(3)*h/2*(xshift == 0);
     }
     
     msh.np = msh.p.size();

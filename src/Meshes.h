@@ -23,7 +23,8 @@ PolyMesh triUnitSquare(double h);
 
 
 // meshes with "natural" ordering (for GMRES/ILU comparison in paper)
-PolyMesh naturalQuadOrdered(double h, double width, double height);
-PolyMesh naturalTriOrdered(double h, double width, double height);
-PolyMesh naturalHoneycombOrdered(double h, double width, double height);
-PolyMesh naturalHexOrdered(double h, double width, double height);
+PolyMesh naturalOrderedQuad(double h, double width, double height);
+PolyMesh naturalOrderedTri(double h, double width, double height);
+PolyMesh naturalOrderedHoneycomb(double h, double width, double height);
+PolyMesh naturalOrderedHex(double h, double width, double height);
+PolyMesh naturalOrderedHexRotated(double h, double width, double height);
