@@ -44,24 +44,26 @@ void solveit(int meshType, double cfl, int deg)
     
     cout << "Creating mesh with h = " << h << endl;
     
+    //h = 0.4;
+    
     PolyMesh msh;
     switch(meshType)
     {
         case 0:
-            cout << "Hexagons" << endl;
-            msh = hexUnitSquare(h/sqrt(6.0));
+            cout << "(Naturally ordered) hexagons" << endl;
+            msh = naturalOrderedHexRotated(h/sqrt(6.0), 1, 1);
             break;
         case 1:
-            cout << "Squares" << endl;
-            msh = quadUnitSquare(h*0.5*sqrt(sqrt(3)));
+            cout << "(Naturally ordered) squares" << endl;
+            msh = naturalOrderedQuad(h*0.5*sqrt(sqrt(3)), 1, 1);
             break;
         case 2:
-            cout << "Right triangles" << endl;
-            msh = triUnitSquare(h*sqrt(sqrt(3)/2));
+            cout << "(Naturally ordered) right triangles" << endl;
+            msh = naturalOrderedTri(h*sqrt(sqrt(3)/2), 1, 1);
             break;
         case 3:
-            cout << "Equilateral triangles" << endl;
-            msh = honeycombUnitSquare(h);
+            cout << "(Naturally ordered) equilateral triangles" << endl;
+            msh = naturalOrderedHoneycomb(h, 1, 1);
             break;
         case 4:
             cout << "Peturbed polygons" << endl;
@@ -77,16 +79,15 @@ void solveit(int meshType, double cfl, int deg)
     
     msh.gnuplot();
     
-    MassMatrix M(msh, deg);
-    M.spy("plt/M.gnu");
-    
     VecFnCallbackFunctor zeroFunctor(zero);
     BoundaryConditions bc = BoundaryConditions::dirichletConditions(msh, 
         &zeroFunctor);
     
     Advection eqn(msh, bc);
     
-    //FnCallbackFunctor exact(planarWave);
+    MassMatrix M(msh, deg, eqn.nc);
+    M.spy("plt/M.gnu");
+    
     ExactGaussian exact(0);
     
     MeshFn f = MeshFn(msh, deg, 1);
@@ -94,11 +95,10 @@ void solveit(int meshType, double cfl, int deg)
     
     cout << "Computing Jacobian matrix" << endl;
     Jacobian B = eqn.jacobian(f, 0);
-    B.spy("plt/J.gnu");
     
     MeshFn unp1 = f;
     
-    int K = 10;
+    int K = 3;
     int i;
     double dt = cfl*h/sqrt(2);
     
@@ -107,11 +107,7 @@ void solveit(int meshType, double cfl, int deg)
     
     B *= -dt;
     B += M;
-    
-    B.spy("plt/B.gnu");
-    
     BlockILU0 pc(B);
-    //BlockJacobi pc(B);
     
     for (i = 0; i < K; i++)
     {
@@ -119,9 +115,7 @@ void solveit(int meshType, double cfl, int deg)
             cout << "Beginning timestep " << i << ", t=" << i*dt << endl;
         
         unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
-        //unp1 = B.solve(M.dot(unp1), pc, kJacobiSolver);
         unp1 = B.solve(M.matvec(unp1), pc, kGMRESSolver);
-        //unp1 = ti.advance(unp1, dt, i*dt);
     }
     unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
     
@@ -140,17 +134,20 @@ void doMeshes(double cfl, int deg)
     
     cout << endl << endl << "CFL = " << cfl << endl << endl;
     
+    solveit(3, cfl, deg);
     for (i = 0; i < 4; i++)
     {
-        solveit(i, cfl, deg);
+        //solveit(i, cfl, deg);
     }
 }
 
 int main()
 {
-    doMeshes(1, 3);
-    //doMeshes(2, 3);
-    //doMeshes(4, 3);
+    int deg = 2;
+    
+    doMeshes(1, deg);
+    doMeshes(2, deg);
+    doMeshes(4, deg);
     
     return 0;
 }

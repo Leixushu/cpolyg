@@ -34,21 +34,21 @@ int main(int argc, char ** argv)
     using namespace std;
     using namespace arma;
     
-    int deg = 4;
+    int deg = 3;
     double h = 0.1/2.0;
     
     double h2 = h*sqrt(2.0/3.0/sqrt(3.0));
     PolyMesh msh = hexUnitSquare(h2);
     msh.gnuplot();
     
-    MassMatrix M(msh, deg);
-    M.spy("plt/M.gnu");
-    
     VecFnCallbackFunctor zeroFunctor(zero);
     BoundaryConditions bc = BoundaryConditions::dirichletConditions(msh, 
         &zeroFunctor);
     
     Advection eqn(msh, bc);
+    
+    MassMatrix M(msh, deg, eqn.nc);
+    M.spy("plt/M.gnu");
     
     ExactGaussian exact(0);
     MeshFn f = MeshFn(msh, deg, 1);

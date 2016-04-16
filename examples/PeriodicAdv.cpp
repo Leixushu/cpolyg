@@ -28,12 +28,13 @@ int main(int argc, char ** argv)
     PolyMesh msh = periodicRectangle(N, N, 1, 1);
     msh.gnuplot();
     
-    MassMatrix M(msh, deg);
-    M.spy("plt/M.gnu");
-    
     BoundaryConditions bc = BoundaryConditions::periodicConditions(msh);
     
     ConstantAdvection eqn(msh, bc, -0.75, 0.25);
+    
+    MassMatrix M(msh, deg, eqn.nc);
+    M.spy("plt/M.gnu");
+    
     MeshFn unp1 = MeshFn(msh, gaussian, deg);
     
     int K = 1000;

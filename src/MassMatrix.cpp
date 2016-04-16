@@ -27,14 +27,17 @@ struct ProductFunctor : FnFunctor
 };
 
 // Allocate and compute mass matrix
-MassMatrix::MassMatrix(PolyMesh &m, int d) : msh(m), deg(d)
+MassMatrix::MassMatrix(PolyMesh &a_msh, int a_deg, int a_nc)
+    : msh(a_msh), deg(a_deg), nc(a_nc)
 {
     int i, j, k;
     double integ;
     ProductFunctor prod(msh);
     
+    int basisSize = (deg+1)*(deg+2)/2;
+    
     // each block stores is (basis size) x (basis size)
-    bl = (deg+1)*(deg+2)/2;
+    bl = nc*(deg+1)*(deg+2)/2;
     
     // M is block diagonal, so number of blocks is number of rows
     nb = msh.np;
@@ -48,15 +51,15 @@ MassMatrix::MassMatrix(PolyMesh &m, int d) : msh(m), deg(d)
     
     mat block(bl, bl);
     
-    prod.phi = zeros<vec>(bl);
-    prod.psi = zeros<vec>(bl);
+    prod.phi = zeros<vec>(basisSize);
+    prod.psi = zeros<vec>(basisSize);
     prod.m = deg+1;
     
     for (i = 0; i < msh.np; i++)
     {
         prod.i = i;
         
-        for (j = 0; j < bl; j++)
+        for (j = 0; j < basisSize; j++)
         {
             prod.phi[j] = 1.0;
             for (k = 0; k <= j; k++)
@@ -68,8 +71,10 @@ MassMatrix::MassMatrix(PolyMesh &m, int d) : msh(m), deg(d)
                 integ = Quadrature::polygonIntegral(msh, prod, i, deg*2);
                 
                 // the mass matrix is always symmetric
-                block(j, k) = integ;
-                block(k, j) = integ;
+                for (int c = 0; c < nc; c++) {
+                    block(j + c*basisSize, k + c*basisSize) = integ;
+                    block(k + c*basisSize, j + c*basisSize) = integ;
+                }
                 
                 prod.psi[k] = 0.0;
             }
@@ -92,23 +97,18 @@ MassMatrix::MassMatrix(PolyMesh &m, int d) : msh(m), deg(d)
 
 MeshFn MassMatrix::solve(const MeshFn &fn)
 {
-    int component;
     int i;
     MeshFn result(msh, deg, fn.nc);
     
     CH_TIMERS("Mass matrix solve");
     
-    // the mass matrix is identical for each component
-    for (component = 0; component < fn.nc; component++)
+    // since the mass matrix is block diagonal, we need to invert each block
+    for (i = 0; i < msh.np; i++)
     {
-        // since the mass matrix is block diagonal, we need to invert each block
-        for (i = 0; i < msh.np; i++)
-        {
-            result.a.slice(i).col(component) = fn.a.slice(i).col(component);
-            // use the precomputed LU factorization and pivots
-            cdgetrs('N', bl, 1, LU[i].memptr(), bl, ipvt[i].memptr(), 
-                    result.a.memptr() + i*bl*fn.nc + component*bl, bl);
-        }
+        result.a.slice(i) = fn.a.slice(i);
+        // use the precomputed LU factorization and pivots
+        cdgetrs('N', bl, 1, LU[i].memptr(), bl, ipvt[i].memptr(), 
+                result.a.memptr() + i*bl*fn.nc, bl);
     }
     
     return result;
@@ -116,17 +116,22 @@ MeshFn MassMatrix::solve(const MeshFn &fn)
 
 MeshFn MassMatrix::matvec(const MeshFn &fn) const
 {
-    int component;
-    int i;
-    MeshFn result(msh, deg, fn.nc);
-    
-    for (component = 0; component < fn.nc; component++)
-    {
-        for (i = 0; i < msh.np; i++)
-        {
-            result.a.slice(i).col(component) = blocks[i]*fn.a.slice(i).col(component);
-        }
-    }
+//     int component;
+//     int i;
+//     MeshFn result(msh, deg, fn.nc);
+//     
+//     for (component = 0; component < fn.nc; component++)
+//     {
+//         for (i = 0; i < msh.np; i++)
+//         {
+//             result.a.slice(i).col(component) = blocks[i]*fn.a.slice(i).col(component);
+//         }
+//     }
+//     
+//     return result;
+    CH_TIMERS("Mass matrix matvec");
+    MeshFn result = fn;
+    BlockMatrix::matvec(result.a.memptr());
     
     return result;
 }

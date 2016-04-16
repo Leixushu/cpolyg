@@ -94,7 +94,6 @@ void solveit(int meshType, double cfl, int deg)
     
     cout << "Computing Jacobian matrix" << endl;
     Jacobian B = eqn.jacobian(f, 0);
-    B.spy("plt/J.gnu");
     
     MeshFn unp1 = f;
     
@@ -108,10 +107,7 @@ void solveit(int meshType, double cfl, int deg)
     B *= -dt;
     B += M;
     
-    B.spy("plt/B.gnu");
-    
-    BlockILU0 pc(B);
-    //BlockJacobi pc(B);
+    BlockJacobi pc(B);
     
     for (i = 0; i < K; i++)
     {
@@ -119,19 +115,11 @@ void solveit(int meshType, double cfl, int deg)
             cout << "Beginning timestep " << i << ", t=" << i*dt << endl;
         
         unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
-        //unp1 = B.solve(M.dot(unp1), pc, kJacobiSolver);
-        unp1 = B.solve(M.matvec(unp1), pc, kGMRESSolver);
-        //unp1 = ti.advance(unp1, dt, i*dt);
+        unp1 = B.solve(M.matvec(unp1), pc, kJacobiSolver);
     }
     unp1.gnuplot("plt/u" + to_string(i) + ".gnu");
     
     cout << setprecision(20) << "Computed until final time t=" << i*dt << endl;
-    
-//     double l2err;
-//     
-//     exact.theta = i*dt;
-//     l2err = unp1.L2Error(exact);
-//     cout << "L^2 error = " << l2err << endl;
 }
 
 void doMeshes(double cfl, int deg)
@@ -148,9 +136,10 @@ void doMeshes(double cfl, int deg)
 
 int main()
 {
-    doMeshes(1, 3);
-    //doMeshes(2, 3);
-    //doMeshes(4, 3);
+    int deg = 0;
+    doMeshes(1, deg);
+    doMeshes(2, deg);
+    doMeshes(4, deg);
     
     return 0;
 }

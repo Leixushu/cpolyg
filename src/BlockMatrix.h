@@ -24,9 +24,9 @@ struct BlockMatrix
     std::vector<int> rowBlock;
     
     /// compute Ab = x given b, overwrite input array
-    void matvec(double *b);
+    void matvec(double *b) const;
     /// compute Ab = x given b, return result
-    arma::vec matvec(const arma::vec &b);
+    arma::vec matvec(const arma::vec &b) const;
     
     /// Solve the system Ax = b using GMRES, initial guess provided by x.
     /** \param[in    ] b       right-hand side vector

@@ -41,7 +41,7 @@ int main(int argc, char ** argv)
     Advection eqn(msh, bc);
     
     // compute the mass matrix
-    MassMatrix M(msh, deg);
+    MassMatrix M(msh, deg, eqn.nc);
     
     // create the time integration object
     ForwardEuler ti(M, eqn);

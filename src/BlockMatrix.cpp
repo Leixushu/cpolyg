@@ -7,7 +7,7 @@
 using namespace std;
 using namespace arma;
 
-vec BlockMatrix::matvec(const vec &b)
+vec BlockMatrix::matvec(const vec &b) const
 {
     vec result = zeros<vec>(b.n_rows);
     int i, j, k;
@@ -25,7 +25,7 @@ vec BlockMatrix::matvec(const vec &b)
     return result;
 }
 
-void BlockMatrix::matvec(double *b)
+void BlockMatrix::matvec(double *b) const
 {
     double *bCopy = new double[n_rows*bl];
     int i, j, k;
@@ -39,9 +39,9 @@ void BlockMatrix::matvec(double *b)
         for (k = rowBlock[i]; k < rowBlock[i+1]; k++)
         {
             j = colIndices[k];
-            
-            cdgemv('N', bl, bl, 1, blocks[k].memptr(), bl, bCopy + j*bl,
-                    1.0, 1.0, b + i*bl, 1.0);
+
+            cdgemv('N', bl, bl, 1, const_cast<double *>(blocks[k].memptr()), bl,
+                   bCopy + j * bl, 1.0, 1.0, b + i * bl, 1.0);
         }
     }
     

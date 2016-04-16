@@ -58,7 +58,7 @@ void solveit(int meshType, double cfl, int deg)
     Euler eqn(msh, 
         BoundaryConditions::dirichletConditions(msh, &exactSolution), kGamma);
     
-    MassMatrix M(msh, deg);
+    MassMatrix M(msh, deg, eqn.nc);
     M.spy("plt/M.gnu");
     
     MeshFn unp1 = exactSolution.interpolated(msh, deg);
@@ -92,8 +92,8 @@ void doMeshes(double cfl, int deg)
 
 int main()
 {
-    int deg = 2;
-    //doMeshes(0.01, deg);
-    //doMeshes(0.10, deg);
+    int deg = 1;
+    doMeshes(0.01, deg);
+    doMeshes(0.10, deg);
     doMeshes(1.00, deg);
 }

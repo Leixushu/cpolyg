@@ -26,14 +26,14 @@ int main(int argc, char ** argv)
     PolyMesh msh = periodicRectangle(100, 20, 20, 15);
     msh.gnuplot();
     
-    MassMatrix M(msh, deg);
-    M.spy("plt/M.gnu");
-    
     VortexSolution exactSolution(kGamma);
     //BoundaryConditions bc = BoundaryConditions::dirichletConditions(msh, 
     //    &exactSolution);
     BoundaryConditions bc = BoundaryConditions::periodicConditions(msh);
     Euler eqn(msh, bc, kGamma);
+    
+    MassMatrix M(msh, deg, eqn.nc);
+    M.spy("plt/M.gnu");
     
     MeshFn f = exactSolution.interpolated(msh, deg);
     MeshFn unp1 = f;

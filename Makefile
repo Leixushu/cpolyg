@@ -44,8 +44,8 @@ LIBOBJS := $(addprefix build/, $(notdir $(patsubst %.cpp,%.o, $(LIBSRC)))) \
 		   $(addprefix build/, $(notdir $(patsubst %.c,%.o, $(LIBCSRC))))
 
 EXAMPLES := ExpAdv ImpAdv PeriodicAdv test Convergence PeriodicAdv \
-			ExpEul  Convergence KH irk \
-			PaperEuler PaperGMRES
+			ExpEul  Convergence irk \
+			PaperEuler PaperGMRES PaperVariableVelocity
 
 BINS := $(addprefix bin/, $(EXAMPLES))
 

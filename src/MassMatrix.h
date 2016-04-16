@@ -15,9 +15,10 @@ struct MassMatrix : BlockMatrix
     
     PolyMesh  &msh;
     int deg;
+    int nc;
     
     // Compute the entries of the mass matrix
-    MassMatrix(PolyMesh &msh, int deg);
+    MassMatrix(PolyMesh &a_msh, int a_deg, int a_nc);
     
     // Compute M x = fn, for given fn, return x
     MeshFn solve(const MeshFn &fn);

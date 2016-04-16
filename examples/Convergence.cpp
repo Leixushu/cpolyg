@@ -37,14 +37,14 @@ double solveIt(int deg, double h)
     PolyMesh msh = quadUnitSquare(h);
     msh.gnuplot();
     
-    MassMatrix M(msh, deg);
-    
     VecFnCallbackFunctor zeroFunctor(zero);
     BoundaryConditions bc = BoundaryConditions::dirichletConditions(msh, 
         &zeroFunctor);
     
     Advection eqn(msh, bc);
     ExactGaussian exact(0);
+    
+    MassMatrix M(msh, deg, eqn.nc);
     
     MeshFn f = MeshFn(msh, deg, 1);
     f.interp(exact);

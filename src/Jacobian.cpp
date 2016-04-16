@@ -98,15 +98,12 @@ MeshFn Jacobian::solve(const MeshFn &b, Preconditioner &pc, Solver s/* = kGMRESS
 
 Jacobian& Jacobian::operator +=(const MassMatrix &M)
 {
-    int i, c, b;
+    int i, b;
     b = M.bl;
     
     for (i = 0; i < n_rows; i++)
     {
-        for (c = 0; c < nc; c++)
-        {
-            blocks[rowBlock[i]].submat(c*b, c*b, (c+1)*b-1, (c+1)*b-1) += M.blocks[i];
-        }
+        blocks[rowBlock[i]] += M.blocks[i];
     }
     
     return *this;
