@@ -65,20 +65,39 @@ MeshFn BackwardEuler::advance(const MeshFn &u, const double dt,
     return unp1;
 }
 
-static double const alpha=0.435866521508459;
-mat DIRK3::A = {{(1+alpha)/2.0, 0,             0},
+void getDIRK(int nStages, arma::mat &A, arma::vec &b, arma::vec &c) {
+    static double const alpha=0.435866521508459;
+    switch(nStages) {
+        case 3:
+            A = {{(1+alpha)/2.0, 0,             0},
                 {-alpha/2.0,    (1+alpha)/2.0, 0},
                 {1+alpha,      -(1+2*alpha),   (1+alpha)/2.0}};
-mat DIRK3::b = {1.0/6.0/(alpha*alpha),1-1.0/3.0/(alpha*alpha), 1.0/6.0/(alpha*alpha)};
-mat DIRK3::c = {(1+alpha)/2.0, 1.0/2.0, (1-alpha)/2.0};
+            b = {1.0/6.0/(alpha*alpha),1-1.0/3.0/(alpha*alpha), 1.0/6.0/(alpha*alpha)};
+            c = {(1+alpha)/2.0, 1.0/2.0, (1-alpha)/2.0};
+            break;
+        case 5:
+            // Cooper and Sayfy (1979)
+            double g = (6-sqrt(6))/10.0;
+            A = {{g,0,0,0,0},
+                 {(-6+5*sqrt(6))/14.0,g,0,0,0},
+                 {(888+607*sqrt(6))/2850.0,(126-161*sqrt(6))/1425.0,g,0,0},
+                 {(3153-3082*sqrt(6))/14250.0,(3213+1148*sqrt(6))/28500.0,(-267+88*sqrt(6))/500.0,g,0},
+                 {(-32583+14638*sqrt(6))/71250.0,(-17199+364*sqrt(6))/142500.0,(1329-544*sqrt(6))/2500.0,(-96+131*sqrt(6))/625.0,g}};
+            b = {0, 0, 1/9.0, (16 - sqrt(6))/36.0, (16 + sqrt(6))/36.0};
+            c = {g, (6+9*sqrt(6))/35.0, 1, (4-sqrt(6))/10.0, (4+sqrt(6))/10.0};
+            
+            break;
+    }
+}
 
-MeshFn DIRK3::advance(const MeshFn &u, const double dt, const double t)
+MeshFn DIRK::advance(const MeshFn &u, const double dt, const double t)
 {
     CH_TIMERS("DIRK");
-    const static int nStages = 3;
     MeshFn zero(*u.msh, u.deg, u.nc);
     zero.a.fill(0);
-    array<MeshFn, nStages> k = {{zero, zero, zero}};
+    //array<MeshFn, nStages> k = {{zero, zero, zero}};
+    field<MeshFn> k(nStages);
+    k.fill(zero);
     
     for (int stage = 0; stage < nStages; stage++)
     {
@@ -90,11 +109,11 @@ MeshFn DIRK3::advance(const MeshFn &u, const double dt, const double t)
             MeshFn cu = u;
             for (int j = 0; j <= stage; j++)
             {
-                cu += A(stage, j)*k[j];
+                cu += A(stage, j)*k(j);
             }
             
             MeshFn rhs = eqn.assemble(cu, t + dt*c(stage));
-            MeshFn r = M.matvec(k[stage]) - dt*rhs;
+            MeshFn r = M.matvec(k(stage)) - dt*rhs;
             
             cout << "    Iteration number " << iter << ", residual norm = "
                  << r.L2Norm().max() << endl;
@@ -113,7 +132,9 @@ MeshFn DIRK3::advance(const MeshFn &u, const double dt, const double t)
             CH_START(t1);
             
             BlockILU0 pc(B);
-            k[stage] -= B.solve(r, pc, kGMRESSolver);
+            
+            //NoPreconditioner pc;
+            k(stage) -= B.solve(r, pc, kGMRESSolver);
             
             CH_STOP(t1);
         }
@@ -123,7 +144,7 @@ MeshFn DIRK3::advance(const MeshFn &u, const double dt, const double t)
     
     for (int i = 0; i < nStages; i++)
     {
-        unp1 += b(i)*k[i];
+        unp1 += b(i)*k(i);
     }
     
     return unp1;
@@ -171,9 +192,11 @@ MeshFn IRK::advance(const MeshFn &u, const double dt, const double t)
     MeshFn zero(*u.msh, u.deg, u.nc);
     zero.a.fill(0);
     
-    field<MeshFn> k = {zero, zero, zero};
-    field<MeshFn> r = {zero, zero, zero};
-    field<MeshFn> w = {zero, zero, zero};
+    field<MeshFn> k(nStages);
+    field<MeshFn> r(nStages);
+    field<MeshFn> w(nStages);
+    
+    k.fill(zero);
     
     field<Jacobian> Js(nStages);
     
@@ -230,8 +253,10 @@ MeshFn IRK::advance(const MeshFn &u, const double dt, const double t)
         CH_START(t1);
         
         BlockILU0 pc(fullJ);
-        double tol = 1.e-15;
-        int maxIt = 1000;
+        //NoPreconditioner pc;
+        
+        double tol = 1.e-14;
+        int maxIt = 20000;
         fullJ.gmres(bigR, bigK, 20, tol, maxIt, pc);
         
         CH_STOP(t1);
@@ -325,8 +350,10 @@ MeshFn IRK::newAdvance(const MeshFn &u, const double dt, const double t)
         CH_START(t1);
         
         BlockILU0 pc(fullJ);
-        double tol = 1.e-15;
-        int maxIt = 1000;
+        //NoPreconditioner pc;
+        
+        double tol = 1.e-14;
+        int maxIt = 20000;
         fullJ.gmres(bigR, bigU, 20, tol, maxIt, pc);
         
         CH_STOP(t1);
