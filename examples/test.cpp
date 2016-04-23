@@ -5,18 +5,15 @@
 #include "Preconditioners.h"
 
 // Initial conditions
-double gaussian(double x, double y)
-{
+double gaussian(double x, double y) {
     return exp(-150*((x-0.25)*(x-0.25) + (y-0.5)*(y-0.5)));
 }
 
-double zero(double x, double y)
-{
+double zero(double x, double y) {
     return 0;
 }
 
-int main(int argc, char ** argv)
-{
+int main() {
     using namespace std;
     // specify the degree of polynomials to use
     int deg = 2;
@@ -46,8 +43,7 @@ int main(int argc, char ** argv)
     // create the time integration object
     ForwardEuler ti(M, eqn);
     
-    for (int i = 0; i < 200; i++)
-    {
+    for (int i = 0; i < 200; i++) {
         cout << "Beginning timestep " << i << endl;
         f = ti.advance(f, dt, i*dt);
         f.gnuplot("plt/u" + std::to_string(i) + ".gnu");
