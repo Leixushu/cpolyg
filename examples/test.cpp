@@ -2,7 +2,6 @@
 #include "Meshes.h"
 #include "Advection.h"
 #include "TimeIntegration.h"
-#include "Preconditioners.h"
 
 // Initial conditions
 double gaussian(double x, double y) {
@@ -14,7 +13,6 @@ double zero(double x, double y) {
 }
 
 int main() {
-    using namespace std;
     // specify the degree of polynomials to use
     int deg = 2;
     // specify the size of each element in the mesh
@@ -44,7 +42,7 @@ int main() {
     ForwardEuler ti(M, eqn);
     
     for (int i = 0; i < 200; i++) {
-        cout << "Beginning timestep " << i << endl;
+        std::cout << "Beginning timestep " << i << std::endl;
         f = ti.advance(f, dt, i*dt);
         f.gnuplot("plt/u" + std::to_string(i) + ".gnu");
     }
