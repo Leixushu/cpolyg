@@ -67,7 +67,11 @@ struct BlockMatrix
     static BlockMatrix blockBlockMatrix(arma::field<BlockMatrix> &b);
     
     /// default constructor
-    BlockMatrix() {};
+    BlockMatrix(){
+        n_rows = 0;
+        bl = 0;
+        nb = 0;
+    };
     
     BlockMatrix(int a_bl, int a_n);
 };
