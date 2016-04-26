@@ -342,6 +342,20 @@ MeshFn IRK::newAdvance(const MeshFn &u, const double dt, const double t)
         }
         BlockMatrix fullJ = BlockMatrix::blockBlockMatrix(JBlocks);
         
+        field<BlockMatrix> JPCBlocks(nStages, nStages);
+        for (int i = 0; i < nStages; i++) {
+            for (int j = 0; j < nStages; j++) {
+                if (i != j) {
+                    JPCBlocks(i,j) = BlockMatrix(Js(i).bl, Js(i).n_rows);
+                    //JPCBlocks(i,j) = M;
+                    //JPCBlocks(i,j) *= Ainv(i, j);
+                }
+            }
+            JPCBlocks(i,i) = Js(i);
+        }
+        BlockMatrix fullJPC = BlockMatrix::blockBlockMatrix(JPCBlocks);
+        
+        
         for (int stage = 0; stage < nStages; stage++) {
             bigR.rows(stage*vecSize, (stage+1)*vecSize-1) = vectorise(r(stage).a);
         }
@@ -349,8 +363,13 @@ MeshFn IRK::newAdvance(const MeshFn &u, const double dt, const double t)
         CH_TIMER("Linear solve", t1);
         CH_START(t1);
         
-        BlockILU0 pc(fullJ);
         //NoPreconditioner pc;
+        BlockILU0 pc(fullJPC);
+        //BlockILU0 pc(fullJ);
+        
+        //pc.DD.spy("plt/DD.gnu");
+        //pc.DU.spy("plt/DU.gnu");
+        //pc.L.spy("plt/L.gnu");
         
         double tol = 1.e-14;
         int maxIt = 20000;
