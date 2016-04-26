@@ -6,8 +6,7 @@
 #include <cmath>
 #include <iomanip>
 
-#define EULER_EQN
-
+//#define EULER_EQN
 const double kGamma = 1.4;
 
 // Initial conditions
@@ -20,15 +19,18 @@ double zero(double x, double y) { return 0; }
 int main(int argc, char **argv) {
     using namespace std;
     
+    double g;
+    g = kGamma;
+    
     #ifdef EULER_EQN
         int deg = 4;
         double h = 3;
-        double dt = 0.075;
+        double dt = 0.1;
         PolyMesh msh = quadRectangle(h, 20, 15);
     #else
         int deg = 4;
-        double h = 0.1;
-        double dt = h * 0.5;
+        double h = 0.05;
+        double dt = h*15;
         PolyMesh msh = hexUnitSquare(h);
     #endif
     
@@ -38,11 +40,13 @@ int main(int argc, char **argv) {
                     to_string(int(msh.np * (deg + 1) * (deg + 2) * 0.5));
     string blockStr =
         "%    Block Size: " + to_string(int((deg + 1) * (deg + 2) / 2));
-
+    string dtStr = "%    dt: " + to_string(dt);
+    
     cout << endl
          << "%--------------------------------------------------%" << endl
          << DOFStr << setw(52 - DOFStr.length()) << "%" << endl
          << blockStr << setw(52 - blockStr.length()) << "%" << endl
+         << dtStr <<  setw(52 - dtStr.length()) << "%" << endl
          << "%--------------------------------------------------%" << endl
          << endl;
     
@@ -63,8 +67,9 @@ int main(int argc, char **argv) {
 
     // compute the mass matrix
     MassMatrix M(msh, deg, eqn.nc);
+    M.spy("plt/M.gnu");
 
-    int K = 1;
+    int K = 3;
 
     // create the time integration object
     IRK ti(2, M, eqn);
@@ -83,7 +88,7 @@ int main(int argc, char **argv) {
         u.gnuplot("plt/irk1" + std::to_string(i) + ".gnu");
     }
 
-    DIRK3 tiDIRK(M, eqn);
+    DIRK tiDIRK(3, M, eqn);
     u = f;
     for (int i = 0; i < K; i++) {
         cout << "Beginning timestep " << i << endl;
