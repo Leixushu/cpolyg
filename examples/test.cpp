@@ -8,9 +8,7 @@ double gaussian(double x, double y) {
     return exp(-150*((x-0.25)*(x-0.25) + (y-0.5)*(y-0.5)));
 }
 
-double zero(double x, double y) {
-    return 0;
-}
+double zero(double x, double y) { return 0; }
 
 int main() {
     // specify the degree of polynomials to use
