@@ -46,8 +46,7 @@ BlockJacobi::BlockJacobi(BlockMatrix &M)
     }
 }
 
-BlockILU0::BlockILU0(BlockMatrix &A)
-{
+BlockILU0::BlockILU0(BlockMatrix &A) {
     CH_TIMERS("Compute ILU(0)");
     int i, j, k, k2;
     mat D, Id;
@@ -64,8 +63,7 @@ BlockILU0::BlockILU0(BlockMatrix &A)
     DD.colIndices.resize(n);
     
     // loop over all rows of A
-    for (i = 0; i < A.n_rows; i++)
-    {
+    for (i = 0; i < A.n_rows; i++) {
         // extract the diagonal block and invert it
         D = inv(AD.blocks[AD.rowBlock[i]]);
         DD.blocks.push_back(D);
@@ -73,17 +71,13 @@ BlockILU0::BlockILU0(BlockMatrix &A)
         DD.rowBlock[i] = i;
         
         // loop over all non-diagonal blocks
-        for (k = AO.rowBlock[i]; k < AO.rowBlock[i+1]; k++)
-        {
-             // get the column index
+        for (k = AO.rowBlock[i]; k < AO.rowBlock[i+1]; k++) {
+            // get the column index
             j = AO.colIndices[k];
             
-            if (j > i)
-            {
-                for (k2 = AO.rowBlock[j]; k2 < AO.rowBlock[j+1]; k2++)
-                {
-                    if (AO.colIndices[k2] == i)
-                    {
+            if (j > i) {
+                for (k2 = AO.rowBlock[j]; k2 < AO.rowBlock[j+1]; k2++) {
+                    if (AO.colIndices[k2] == i) {
                         // do increment operators here -- probably faster than assignment
                         AO.blocks[k2] = AO.blocks[k2]*D;
                         AD.blocks[j] = AD.blocks[j] - AO.blocks[k2]*AO.blocks[k];
@@ -101,26 +95,22 @@ BlockILU0::BlockILU0(BlockMatrix &A)
     DU = BlockMatrix(bl, n);
     
     // loop over rows of AO
-    for (i = 0; i < AO.n_rows; i++)
-    {
+    for (i = 0; i < AO.n_rows; i++) {
         // normally L and DU would have identity matrices along the diagonal
         // but we use them implicitly in the backward and forward triangular solvers
         L.rowBlock[i] = L.nb;
         DU.rowBlock[i] = DU.nb;
         
-        for (k = AO.rowBlock[i]; k < AO.rowBlock[i+1]; k++)
-        {
+        for (k = AO.rowBlock[i]; k < AO.rowBlock[i+1]; k++) {
             j = AO.colIndices[k];
             
             // if the block is to the left of the diagonal, add it to L
             // otherwise add it to DU
-            if( j < i)
-            {
+            if( j < i) {
                 L.blocks.push_back(AO.blocks[k]);
                 L.colIndices.push_back(j);
                 L.nb++;
-            } else if (j > i)
-            {
+            } else if (j > i) {
                 DU.blocks.push_back(AO.blocks[k]);
                 DU.colIndices.push_back(j);
                 DU.nb++;
