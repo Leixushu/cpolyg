@@ -347,8 +347,6 @@ MeshFn IRK::newAdvance(const MeshFn &u, const double dt, const double t)
             for (int j = 0; j < nStages; j++) {
                 if (i != j) {
                     JPCBlocks(i,j) = BlockMatrix(Js(i).bl, Js(i).n_rows);
-                    //JPCBlocks(i,j) = M;
-                    //JPCBlocks(i,j) *= Ainv(i, j);
                 }
             }
             JPCBlocks(i,i) = Js(i);
