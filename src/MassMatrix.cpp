@@ -48,8 +48,7 @@ MassMatrix::MassMatrix(PolyMesh &a_msh, int a_deg, int a_nc)
     LU.clear();
     ipvt.resize(nb, Col<int>(bl));
     
-    
-    mat block(bl, bl);
+    mat block(bl, bl, fill::zeros);
     
     prod.phi = zeros<vec>(basisSize);
     prod.psi = zeros<vec>(basisSize);
@@ -89,7 +88,6 @@ MassMatrix::MassMatrix(PolyMesh &a_msh, int a_deg, int a_nc)
         // LAPACK LU factorization
         LU.push_back(block);
         cdgetrf(bl, bl, LU[i].memptr(), bl, ipvt[i].memptr());
-        
     }
     
     rowBlock.push_back(i);
